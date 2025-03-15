@@ -35,7 +35,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                                         String sortField,
                                         String sortDirection) {
 
-        List<Employee> employees = queryFactory
+        return queryFactory
                 .select(qEmployee)
                 .from(qEmployee)
                 .where(
@@ -44,16 +44,15 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         containsPosition(position),
                         betweenHireDate(hireDateFrom, hireDateTo),
                         eqStatus(status),
-                        cursorCondition(cursor, sortField, sortDirection, idAfter)
+                        cursorCondition(cursor, sortField, sortDirection),
+                        idAfterCondition(idAfter)
                 )
                 .orderBy(
-                        getSortOrderBySortField(sortField, sortDirection),
+                        getSortOrderBySortField(sortField, sortDirection),  // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
                         qEmployee.id.asc()
                 )
                 .limit(size)
                 .fetch();
-
-        return employees;
     }
 
     // 총 사원 수 집계
@@ -73,8 +72,10 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .fetchOne();
     }
 
+    // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     @Override
     public String selectEmployeeNumberByHireDateYearAndCreateAt(int year) {
+        // 해당 년도에 입사한 직원 중 id가 가장 큰 직원의 사원번호 반환
         return queryFactory
                 .select(qEmployee.employeeNumber)
                 .from(qEmployee)
@@ -158,7 +159,8 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
 
     // 커서 기반 페이지네이션
-    private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection, Long idAfter) {
+    // 커서 세팅
+    private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection) {
         boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
 
         if (!StringUtils.isNullOrEmpty(cursor)) {
@@ -170,12 +172,16 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 case "hireDate" :
                     return isDesc ? qEmployee.hireDate.lt(LocalDate.parse(cursor)) : qEmployee.hireDate.gt(LocalDate.parse(cursor));
             }
-        } else {
-            if (idAfter != null) {
-                return qEmployee.id.gt(idAfter);
-            }
         }
 
+        return null;
+    }
+    
+    // idAfter 세팅
+    private BooleanExpression idAfterCondition(Long idAfter) {
+        if (idAfter != null) {
+            return qEmployee.id.gt(idAfter);
+        }
         return null;
     }
 }
