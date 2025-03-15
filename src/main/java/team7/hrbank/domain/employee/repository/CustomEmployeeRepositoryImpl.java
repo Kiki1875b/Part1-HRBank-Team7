@@ -20,6 +20,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
     private final JPAQueryFactory queryFactory;
     private final QEmployee qEmployee = QEmployee.employee;
 
+    // 조건에 맞는 직원 검색
     @Override
     public List<Employee> findEmployees(String nameOrEmail,
                                         String employeeNumber,
@@ -45,13 +46,17 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         eqStatus(status),
                         cursorCondition(cursor, sortField, sortDirection, idAfter)
                 )
-                .orderBy(getSortOrder(sortField, sortDirection))
+                .orderBy(
+                        getSortOrderBySortField(sortField, sortDirection),
+                        qEmployee.id.asc()
+                )
                 .limit(size)
                 .fetch();
 
         return employees;
     }
 
+    // 총 사원 수 집계
     @Override
     public long totalCountEmployee(String nameOrEmail, String employeeNumber, String departmentName, String position, LocalDate hireDateFrom, LocalDate hireDateTo, EmployeeStatus status) {
 
@@ -65,6 +70,21 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         betweenHireDate(hireDateFrom, hireDateTo),
                         eqStatus(status)
                 )
+                .fetchOne();
+    }
+
+    @Override
+    public String selectEmployeeNumberByHireDateYearAndCreateAt(int year) {
+        return queryFactory
+                .select(qEmployee.employeeNumber)
+                .from(qEmployee)
+                .where(
+                        qEmployee.hireDate.year().eq(year)
+                )
+                .orderBy(
+                        qEmployee.id.desc()
+                )
+                .limit(1)
                 .fetchOne();
     }
 
@@ -122,7 +142,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
 
     // 정렬 기준 설정
-    private OrderSpecifier<?> getSortOrder(String sortField, String sortDirection) {
+    private OrderSpecifier<?> getSortOrderBySortField(String sortField, String sortDirection) {
         boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
 
         switch (sortField) {
@@ -141,23 +161,18 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
     private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection, Long idAfter) {
         boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
 
-        if (cursor != null) {
-
+        if (!StringUtils.isNullOrEmpty(cursor)) {
             switch (sortField) {
                 case "name" :
-                    return isDesc ? qEmployee.name.loe(cursor) : qEmployee.name.goe(cursor);
+                    return isDesc ? qEmployee.name.lt(cursor) : qEmployee.name.gt(cursor);
                 case "employeeNumber" :
-                    return isDesc ? qEmployee.employeeNumber.loe(cursor) : qEmployee.employeeNumber.goe(cursor);
+                    return isDesc ? qEmployee.employeeNumber.lt(cursor) : qEmployee.employeeNumber.gt(cursor);
                 case "hireDate" :
-                    return isDesc ? qEmployee.hireDate.loe(LocalDate.parse(cursor)) : qEmployee.hireDate.goe(LocalDate.parse(cursor));
+                    return isDesc ? qEmployee.hireDate.lt(LocalDate.parse(cursor)) : qEmployee.hireDate.gt(LocalDate.parse(cursor));
             }
         } else {
             if (idAfter != null) {
-                if (isDesc) {
-                    return qEmployee.id.lt(idAfter);
-                } else {
-                    return qEmployee.id.gt(idAfter);
-                }
+                return qEmployee.id.gt(idAfter);
             }
         }
 
