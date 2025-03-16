@@ -34,8 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // 사원번호 생성
         int year = request.hireDate().getYear();   // 입사 연도
-        long count = employeeRepository.countByHireDateYear(year);  // 해당 연도 입사자 수
-        String employeeNumber = String.format("EMP-%d-%03d", year, count + 1);  // 최종 사원번호
+        String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 프로필 사진
         BinaryContent binaryContent = null;
@@ -82,19 +81,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // 다음 데이터 있는지 확인
         if (employees.size() > size) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음
-            Employee nextEmployee = employees.get(employees.size() - 1);
-            nextIdAfter = nextEmployee.getId(); // 다음 페이지 첫번째 직원의 id
-            nextCursor = getSortValue(nextEmployee, sortField); // 다음 페이지 첫번째 직원의 cursor 정보(name, employeeNumber, hireDate)
-            hasNext = true; // 다음 페이지 유무
+            employees.remove(employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 다음 페이지 유무 확인용이었으므로 이제 필요없음 -> 삭제
 
-            employees.remove(employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 필요없으므로 list에서 삭제
+            Employee lastEmployee = employees.get(employees.size() - 1);
+            nextIdAfter = lastEmployee.getId(); // 현재 페이지 마지막 직원의 id
+            nextCursor = getNextCursorValue(lastEmployee, sortField); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
+            hasNext = true; // 다음 페이지 유무
         }
 
         // TODO: EmployeeMapper 만들고 수정 필요
         List<EmployeeDto> employeeDtos = employees.stream()
                 .map(EmployeeDto::fromEntity)
                 .toList();
-
 
         return new PageResponse<>(
                 employeeDtos,
@@ -159,6 +157,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.deleteById(id);
     }
 
+
+    // 사원번호 생성
+    private String getEmployeeNumber(int year) {
+        String lastEmployeeNumber = customEmployeeRepository.selectEmployeeNumberByHireDateYearAndCreateAt(year);
+        long lastNumber = 0;
+        if (lastEmployeeNumber != null) {
+            lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
+        }
+
+        return String.format("EMP-%d-%03d", year, lastNumber + 1);
+    }
+
     // save() 시 파일 저장 오류 발생으로 주석 처리
 //    // 프로필 사진 가공
 //    private BinaryContent profileProcess(MultipartFile profile) {
@@ -177,7 +187,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 //        }
 //    }
 
-    private String getSortValue(Employee employee, String sortField) {
+    // cursor 세팅
+    private String getNextCursorValue(Employee employee, String sortField) {
         switch (sortField) {
             case "name":
                 return employee.getName();
