@@ -26,7 +26,7 @@ CREATE TABLE employees (
     email VARCHAR(150) NOT NULL UNIQUE,
     job_title VARCHAR(50) NOT NULL,
     hire_date TIMESTAMPTZ NOT NULL,
-    status VARCHAR(50) NOT NULL CHECK (status IN ('재직중', '휴직중', '퇴사')),
+    status VARCHAR(50) NOT NULL CHECK (status IN ('ACTIVE', 'ON_LEAVE', 'RESIGNED')),
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NULL,
     CONSTRAINT fk_employees_department FOREIGN KEY (department_id) REFERENCES departments (id),
@@ -34,24 +34,24 @@ CREATE TABLE employees (
 );
 
 
-CREATE TABLE employee_history (
+CREATE TABLE change_log (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    employee_number VARCHAR(50) NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('직원 추가', '정보 수정', '직원 삭제')),
+    employee_number VARCHAR(50) NULL, -- 논의 필요, employee 삭제시 동작
+    type VARCHAR(20) NOT NULL CHECK (type IN ('CREATED', 'UPDATED', 'DELETED')),
     details JSONB NULL,
     memo TEXT NULL,
     ip_address INET NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    CONSTRAINT fk_employee_history_employee FOREIGN KEY (employee_number) REFERENCES employees (employee_number) ON SET NULL
+    CONSTRAINT fk_change_log_employee FOREIGN KEY (employee_number) REFERENCES employees (employee_number) ON delete SET NULL
 );
 
 
 CREATE TABLE backup_history (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    operator INET NOT NULL,
+    worker VARCHAR(50) NOT NULL,
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NULL,
-    status VARCHAR(50) NOT NULL CHECK (status IN ('진행중', '완료', '실패', '건너뜀')),
-    file_id UUID NOT NULL,
-    CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE CASCADE
+    status VARCHAR(50) NOT NULL CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'FAILED', 'SKIPPED')),
+    file_id BIGINT NOT NULL,
+    CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );

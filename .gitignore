@@ -53,3 +53,5 @@ target/
 
 build/
 build/**
+
+src/main/java/team7/hrbank/insert/**
