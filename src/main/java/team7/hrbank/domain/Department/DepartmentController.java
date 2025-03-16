@@ -1,7 +1,6 @@
 package team7.hrbank.domain.Department;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +8,6 @@ import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.Department.dto.DepartmentListResponse;
 import team7.hrbank.domain.Department.dto.DepartmentResponse;
 import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/departments")

@@ -11,10 +11,9 @@ import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.Department.dto.DepartmentListResponse;
 import team7.hrbank.domain.Department.dto.DepartmentResponse;
 import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
-import team7.hrbank.domain.Department.exception.DepartmentAlreadyExistsException;
-import team7.hrbank.domain.Department.exception.DepartmentNotFoundException;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ public class DepartmentService {
     public DepartmentResponse createDepartment(DepartmentCreateRequest requestDto) {
         // 부서 이름 중복 체크
         if (departmentRepository.existsByName(requestDto.name())) {
-            throw new DepartmentAlreadyExistsException("이미 존재하는 부서 이름입니다.");
+            throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
         }
         // 엔티티 생성
         Department department = new Department(
@@ -48,11 +47,11 @@ public class DepartmentService {
     public DepartmentResponse updateDepartment(Long id, DepartmentUpdateRequest requestDto) {
         // 부서 이름 중복 체크
         if (departmentRepository.existsByName(requestDto.name())) {
-            throw new DepartmentAlreadyExistsException("이미 존재하는 부서 이름입니다.");
+            throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
         }
         // 기존 부서 조회
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new DepartmentNotFoundException("부서가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
         // 부서 수정
         department.update(requestDto.name(), requestDto.description(), requestDto.establishedDate());
         // 수정된 부서 저장
@@ -67,7 +66,7 @@ public class DepartmentService {
     public void deleteDepartment(Long id) {
         // 기존 부서 조회
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new DepartmentNotFoundException("부서가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
         //부서 내 소속직원 존재여부 체크
 //        if (employeeRepository.existByDepartment(department.getId())){
 //            throw  new EmployeeExistsInDepartmentException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
@@ -145,7 +144,7 @@ public class DepartmentService {
     public DepartmentResponse getDepartment(Long id) {
         // 기존 부서 조회
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new DepartmentNotFoundException("부서 코드는 필수입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("부서 코드는 필수입니다."));
         return new DepartmentResponse(department);
     }
 }
