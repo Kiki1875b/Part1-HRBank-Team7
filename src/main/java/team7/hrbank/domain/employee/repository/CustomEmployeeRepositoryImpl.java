@@ -6,6 +6,8 @@ import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
+import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.entity.QEmployee;
@@ -22,52 +24,41 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 조건에 맞는 직원 검색
     @Override
-    public List<Employee> findEmployees(String nameOrEmail,
-                                        String employeeNumber,
-                                        String departmentName,
-                                        String position,
-                                        LocalDate hireDateFrom,
-                                        LocalDate hireDateTo,
-                                        EmployeeStatus status,
-                                        Long idAfter,
-                                        String cursor,
-                                        int size,
-                                        String sortField,
-                                        String sortDirection) {
+    public List<Employee> findEmployees(EmployeeFindRequest request) {
 
         return queryFactory
                 .select(qEmployee)
                 .from(qEmployee)
                 .where(
-                        containsNameOrEmail(nameOrEmail),
-                        containsEmployeeNumber(employeeNumber),
-                        containsPosition(position),
-                        betweenHireDate(hireDateFrom, hireDateTo),
-                        eqStatus(status),
-                        cursorCondition(cursor, sortField, sortDirection),
-                        idAfterCondition(idAfter)
+                        containsNameOrEmail(request.nameOrEmail()),
+                        containsEmployeeNumber(request.employeeNumber()),
+                        containsPosition(request.position()),
+                        betweenHireDate(request.hireDateFrom(), request.hireDateTo()),
+                        eqStatus(request.status()),
+                        cursorCondition(request.cursor(), request.sortField(), request.sortDirection()),
+                        idAfterCondition(request.idAfter())
                 )
                 .orderBy(
-                        getSortOrderBySortField(sortField, sortDirection),  // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
+                        getSortOrderBySortField(request.sortField(), request.sortDirection()),  // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
                         qEmployee.id.asc()
                 )
-                .limit(size)
+                .limit(request.size())
                 .fetch();
     }
 
     // 총 사원 수 집계
     @Override
-    public long totalCountEmployee(String nameOrEmail, String employeeNumber, String departmentName, String position, LocalDate hireDateFrom, LocalDate hireDateTo, EmployeeStatus status) {
+    public Long totalCountEmployee(EmployeeCountRequest request) {
 
         return queryFactory
                 .select(qEmployee.count())
                 .from(qEmployee)
                 .where(
-                        containsNameOrEmail(nameOrEmail),
-                        containsEmployeeNumber(employeeNumber),
-                        containsPosition(position),
-                        betweenHireDate(hireDateFrom, hireDateTo),
-                        eqStatus(status)
+                        containsNameOrEmail(request.nameOrEmail()),
+                        containsEmployeeNumber(request.employeeNumber()),
+                        containsPosition(request.position()),
+                        betweenHireDate(request.hireDateFrom(), request.hireDateTo()),
+                        eqStatus(request.status())
                 )
                 .fetchOne();
     }
