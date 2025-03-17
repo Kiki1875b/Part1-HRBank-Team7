@@ -13,7 +13,7 @@ import team7.hrbank.domain.Department.dto.DepartmentResponse;
 import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
 import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.Department.repository.DepartmentRepository;
-import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
+import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
-    private final CustomEmployeeRepository customEmployeeRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Transactional
     @Override
@@ -82,7 +82,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Override
     public Integer getEmployeeCountByDepartment(Long departmentId) {
-        return customEmployeeRepository.countEmployeesByDepartmentId(departmentId);
+        return employeeRepository.countEmployeesByDepartmentId(departmentId);
     }
 
 
