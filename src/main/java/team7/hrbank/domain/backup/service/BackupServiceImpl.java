@@ -2,14 +2,11 @@ package team7.hrbank.domain.backup.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.net.InetAddress;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.domain.backup.dto.BackupDto;
@@ -19,9 +16,7 @@ import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.common.exception.BackupException;
 import team7.hrbank.domain.backup.mapper.BackupMapper;
 import team7.hrbank.domain.backup.repository.BackupRepository;
-import team7.hrbank.domain.change_log.ChangeLogRepository;
-import team7.hrbank.domain.change_log.ChangeLogService;
-import team7.hrbank.domain.change_log.entity.ChangeLog;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 @Service
 @RequiredArgsConstructor

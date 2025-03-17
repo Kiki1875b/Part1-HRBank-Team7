@@ -1,4 +1,4 @@
-package team7.hrbank.domain.change_log;
+package team7.hrbank.domain.change_log.service;
 
 
 import jakarta.transaction.Transactional;
@@ -9,36 +9,38 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
-import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import team7.hrbank.domain.change_log.entity.ChangeLogType;
-
+import team7.hrbank.domain.change_log.repository.CustomChangeLogRepository;
+import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 
 @Service
 @RequiredArgsConstructor
-public class ChangeLogService {
+public class ChangeLogServiceImpl implements ChangeLogService{
 
   private final ChangeLogRepository changeLogRepository;
-  // private final EmployeeRepository employeeRepository;
+  private final EmployeeRepository employeeRepository;
+  private final CustomChangeLogRepository customChangeLogRepository;
 
 //Todo - Employee서비스의 각 사용자 생성, 수정, 삭제에서  ChangeLogService.save 메서드 호출시 시 변경사항 확인 후 회원수정로그 등록.
 
 
+  @Override
   @Transactional
   public Page<ChangeLogDto> getChangeLogs(
       String employeeNumber,
       ChangeLogType type,
       String memo,
       String ipAddress,
-      LocalDateTime atFrom,
-      LocalDateTime atTo,
+      Instant atFrom,
+      Instant atTo,
       Long idAfter,
       Integer size,
       String sortField,
@@ -55,7 +57,7 @@ public class ChangeLogService {
         ? PageRequest.of(0, size, Sort.by(direction, sortField))
         : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, sortField));
 
-    Page<ChangeLog> changeLogs = changeLogRepository.searchChangeLogs(
+    Page<ChangeLog> changeLogs = customChangeLogRepository.searchChangeLogs(
         employeeNumber, type, memo, ipAddress, atFrom, atTo, idAfter, sortedPageable);
 
     return changeLogs.map(changeLog -> new ChangeLogDto(
@@ -68,6 +70,7 @@ public class ChangeLogService {
     ));
   }
 
+  @Override
   @Transactional
   public List<DiffDto> getChangeLogDetails(Long id) {
     ChangeLog changeLog = changeLogRepository.findById(id)
@@ -77,6 +80,7 @@ public class ChangeLogService {
   }
 
 
+  @Override
   public Instant getLatestChannelLogUpdateTime(){
     ChangeLog latestLog = changeLogRepository.findFirstByOrderByCreatedAtDesc().orElse(null);
     return latestLog == null ? Instant.EPOCH : latestLog.getCreatedAt();
