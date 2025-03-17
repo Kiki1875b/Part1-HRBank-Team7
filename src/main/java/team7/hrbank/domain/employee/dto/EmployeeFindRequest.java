@@ -9,6 +9,7 @@ import java.util.Objects;
 public record EmployeeFindRequest(
         String nameOrEmail,
         String employeeNumber,
+        String departmentName,
         String position,
         LocalDate hireDateFrom,
         LocalDate hireDateTo,
