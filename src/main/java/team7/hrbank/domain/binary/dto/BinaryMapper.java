@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 
-//@MapperConfig(mappingInheritanceStrategy = AUTO_INHERIT_ALL_FROM_CONFIG)
 @Mapper
 public interface BinaryMapper {
 
