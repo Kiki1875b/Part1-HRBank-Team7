@@ -2,6 +2,8 @@ package team7.hrbank.domain.binary;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +21,8 @@ public class BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
     private final LocalBinaryContentStorage localBinaryContentStorage;
     private final BinaryMapper binaryMapper;
-
+    private final JobLauncher jobLauncher;
+    private final Job employeeBackupJob;
     private static final List<String> ALLOWED_FILE_TYPES = List.of("image/jpeg", "image/png", "image/gif");
 
     // 여러개 저장시 List 자료구조 사용

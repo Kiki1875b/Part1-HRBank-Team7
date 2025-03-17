@@ -62,7 +62,8 @@ public class Employee extends BaseEntity {
 
     // 생성자
     // TODO: 생성자 인자로 departmentId 추가
-    public Employee(BinaryContent profile, String employeeNumber, String name, String email, String position, LocalDate hireDate) {
+    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
+        String position, LocalDate hireDate) {
         this.profile = profile;
         this.employeeNumber = employeeNumber;
         this.name = name;

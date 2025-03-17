@@ -75,6 +75,13 @@ public class Backup {
     endedAt = Instant.now();
   }
 
+  public void success(){
+    status = BackupStatus.COMPLETED;
+  }
+
+  public void fail(){
+    status = BackupStatus.FAILED;
+  }
   public void addFile(BinaryContent file) {
     this.file = file;
   }
