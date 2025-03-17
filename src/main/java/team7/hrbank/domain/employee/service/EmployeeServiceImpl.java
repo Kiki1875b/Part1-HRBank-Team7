@@ -9,13 +9,13 @@ import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
+import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.dto.EmployeeUpdateRequest;
 import team7.hrbank.domain.employee.entity.Employee;
-import team7.hrbank.domain.employee.entity.EmployeeStatus;
+import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -25,6 +25,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 의존성 주입
     private final EmployeeRepository employeeRepository;
     private final CustomEmployeeRepository customEmployeeRepository;
+    private final EmployeeMapper employeeMapper;
     private final BinaryContentService binaryContentService;
     private final BinaryMapper binaryMapper;
 
@@ -55,22 +56,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 목록 조회
     @Override
-    public PageResponse<EmployeeDto> find(String nameOrEmail,
-                                          String employeeNumber,
-                                          String departmentName,
-                                          String position,
-                                          LocalDate hireDateFrom,
-                                          LocalDate hireDateTo,
-                                          EmployeeStatus status,
-                                          Long idAfter,
-                                          String cursor,
-                                          int size,
-                                          String sortField,
-                                          String sortDirection) {
+    public PageResponse<EmployeeDto> find(EmployeeFindRequest request) {
 
         // 다음 페이지 있는지 확인하기 위해 size+1개의 데이터 읽어옴
-        List<Employee> employees = customEmployeeRepository.findEmployees(nameOrEmail, employeeNumber, departmentName, position, hireDateFrom, hireDateTo, status,
-                idAfter, cursor, size + 1, sortField, sortDirection);
+        List<Employee> employees = customEmployeeRepository.findEmployees(request);
 
         // 다음 페이지 정보
         String nextCursor = null;
@@ -78,15 +67,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         boolean hasNext = false;
 
         // 전체 데이터 개수 계산
-        long totalElement = customEmployeeRepository.totalCountEmployee(nameOrEmail, employeeNumber, departmentName, position, hireDateFrom, hireDateTo, status);
+        long totalElement = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
 
         // 다음 데이터 있는지 확인
-        if (employees.size() > size) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음
+        if (employees.size() > request.size()) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음
             employees.remove(employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 다음 페이지 유무 확인용이었으므로 이제 필요없음 -> 삭제
 
             Employee lastEmployee = employees.get(employees.size() - 1);
             nextIdAfter = lastEmployee.getId(); // 현재 페이지 마지막 직원의 id
-            nextCursor = getNextCursorValue(lastEmployee, sortField); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
+            nextCursor = getNextCursorValue(lastEmployee, request.sortField()); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
             hasNext = true; // 다음 페이지 유무
         }
 
@@ -99,11 +88,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employeeDtos,
                 nextCursor,
                 nextIdAfter,
-                size,
+                request.size(),
                 (int) totalElement,
                 hasNext
         );
     }
+
 
     // 직원 상세 조회
     @Override

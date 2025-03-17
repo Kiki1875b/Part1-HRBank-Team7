@@ -4,10 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import team7.hrbank.domain.employee.Employee;
+import team7.hrbank.domain.employee.entity.Employee;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,9 +49,9 @@ public class LocalBinaryContentStorage {
                 .body(new FileSystemResource(profilePath));
     }
 
-    public void backUpEmployeeToCsv(List<Employee> employeeList){
-
-    }
+//    public void backUpEmployeeToCsv(List<Employee> employeeList){
+//
+//    }
 
 
     /**
