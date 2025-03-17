@@ -4,10 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import team7.hrbank.domain.employee.Employee;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
+import team7.hrbank.domain.employee.entity.Employee;
 
 import static org.springframework.http.HttpHeaders.*;
 

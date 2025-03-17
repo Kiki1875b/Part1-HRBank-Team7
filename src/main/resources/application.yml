@@ -8,8 +8,12 @@ spring:
       ddl-auto: none
     show-sql: true
     open-in-view: false
+  batch:
+    jdbc:
+      initialize-schema: always
 
 
 hrbank:
   storage:
     local.root-path: "C:\\hrbank-storage"
+    backup: "${user.dir}/backups"
