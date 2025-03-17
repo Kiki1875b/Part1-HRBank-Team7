@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
+import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
@@ -18,6 +19,7 @@ import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -77,9 +79,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             employees.remove(employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 다음 페이지 유무 확인용이었으므로 이제 필요없음 -> 삭제
 
             Employee lastEmployee = employees.get(employees.size() - 1);
-            nextIdAfter = lastEmployee.getId(); // 현재 페이지 마지막 직원의 id
+            nextIdAfter = lastEmployee.getId();     // 현재 페이지 마지막 직원의 id
             nextCursor = getNextCursorValue(lastEmployee, request.sortField()); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
-            hasNext = true; // 다음 페이지 유무
+            hasNext = true;     // 다음 페이지 유무
         }
 
         // TODO: EmployeeMapper 만들고 수정 필요
@@ -102,7 +104,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeDto findById(Long id) {
 
-        Employee employee = employeeRepository.findById(id).orElseThrow();  // TODO: null일 경우 예외 처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외 처리
 
         return EmployeeDto.fromEntity(employee);
     }
@@ -113,7 +115,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // TODO: ChangeLog에 수정 이력 저장
 
-        Employee employee = employeeRepository.findById(id).orElseThrow();  // TODO: null일 경우 예외처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
         // TODO: departmentId 수정 로직 추가
 
