@@ -8,3 +8,8 @@ spring:
       ddl-auto: none
     show-sql: true
     open-in-view: false
+
+
+hrbank:
+  storage:
+    local.root-path: "C:\\hrbank-storage"

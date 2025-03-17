@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import team7.hrbank.domain.Department.DepartmentService;
 import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 
+
 @SpringBootApplication
 public class HrbankApplication {
 
