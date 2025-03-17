@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/hrbank
-    username: hrbank
-    password: 1234
+    username: postgres
+    password: 970501
   jpa:
     hibernate:
       ddl-auto: none
