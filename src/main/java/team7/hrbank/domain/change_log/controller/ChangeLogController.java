@@ -1,6 +1,6 @@
-package team7.hrbank.domain.change_log;
+package team7.hrbank.domain.change_log.controller;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.dto.DiffDto;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 @RestController
 @RequestMapping("/api/change-logs")
@@ -29,8 +30,8 @@ public class ChangeLogController {
       @RequestParam(required = false) ChangeLogType type,
       @RequestParam(required = false) String memo,
       @RequestParam(required = false) String ipAddress,
-      @RequestParam(required = false) LocalDateTime atFrom,
-      @RequestParam(required = false) LocalDateTime atTo,
+      @RequestParam(required = false) Instant atFrom,
+      @RequestParam(required = false) Instant atTo,
       @RequestParam(required = false) Long idAfter,
       @RequestParam(defaultValue = "10") Integer size,
       @RequestParam(defaultValue = "createdAt") String sortField,
