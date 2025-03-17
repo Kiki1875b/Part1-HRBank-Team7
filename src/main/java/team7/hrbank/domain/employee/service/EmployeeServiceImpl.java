@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 등록
     @Override
+    @Transactional
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile) {
 
         // TODO: ChangeLog에 memo 저장
@@ -67,7 +69,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         boolean hasNext = false;
 
         // 전체 데이터 개수 계산
-        long totalElement = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
+        Long totalElementLong = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
+        long totalElement = (totalElementLong == null ? 0 : totalElementLong);   // null 체크
 
         // 다음 데이터 있는지 확인
         if (employees.size() > request.size()) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음

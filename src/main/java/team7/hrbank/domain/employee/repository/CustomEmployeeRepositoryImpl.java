@@ -48,7 +48,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 총 사원 수 집계
     @Override
-    public long totalCountEmployee(EmployeeCountRequest request) {
+    public Long totalCountEmployee(EmployeeCountRequest request) {
 
         return queryFactory
                 .select(qEmployee.count())
