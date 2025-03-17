@@ -9,7 +9,6 @@ import team7.hrbank.domain.Department.DepartmentService;
 import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 
 @SpringBootApplication
-@EnableJpaAuditing
 public class HrbankApplication {
 
     public static void main(String[] args) { SpringApplication.run(HrbankApplication.class, args);}

@@ -45,7 +45,7 @@ public class DepartmentController {
     public ResponseEntity<DepartmentListResponse> getDepartments(
         @RequestParam(name = "nameOrDescription", required = false) String nameOrDescription,
         @RequestParam(name = "idAfter", required = false) Integer idAfter, // 이전 페이지의 마지막 id
-        @RequestParam(name = "cursor", required = false) String cursor,
+        @RequestParam(name = "cursor", required = false) String cursor, //다음 페이지 시작점
         @RequestParam(name = "size", defaultValue = "10") Integer size, //한페이지당 보여질 페이지 수
         @RequestParam(name = "sortField", required = false) String sortField,
         @RequestParam(name = "sortDirection", required = false, defaultValue = "asc") String sortDirection

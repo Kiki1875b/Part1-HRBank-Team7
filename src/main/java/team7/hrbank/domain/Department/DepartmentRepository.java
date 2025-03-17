@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
@@ -59,6 +58,4 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
                                                 @Param("establishedDate") String establishedDate,
                                                 Pageable pageable);
 
-    //부서 아이디로 단건 조회
-    Department findById(Integer id);
 }

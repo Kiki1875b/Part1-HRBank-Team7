@@ -78,17 +78,17 @@ public class DepartmentService {
     //부서 조회 메서드
     public DepartmentListResponse getDepartments(String nameOrDescription, Integer idAfter, String cursor, Integer size, String sortField, String sortDirection) {
 
-        // 정렬 방향 처리 (기본값: DESC)
+        // 정렬 방향 처리 (기본값: ASC)
         Sort.Direction direction;
         try {
             direction = Sort.Direction.fromString(sortDirection);
         } catch (IllegalArgumentException | NullPointerException e) {
-            direction = Sort.Direction.DESC;
+            direction = Sort.Direction.ASC;
         }
 
-        // 정렬 필드가 유효한지 확인하고, 기본값 설정
+        // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
         if (!List.of("name", "establishedDate").contains(sortField)) {
-            sortField = "name"; // 기본 정렬 필드
+            sortField = "establishedDate"; // 기본 정렬 필드
         }
 
         Sort sort = Sort.by(direction, sortField);
