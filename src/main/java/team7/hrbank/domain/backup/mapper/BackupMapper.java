@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import team7.hrbank.domain.backup.dto.BackupDto;
 import team7.hrbank.domain.backup.entity.Backup;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface BackupMapper {
 
   @Mapping(target = "fileId", source = "file.id")

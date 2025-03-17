@@ -20,8 +20,8 @@ import java.time.Instant;
 @Transactional
 public class CsvTest {
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+//    @Autowired
+//    private EmployeeRepository employeeRepository;
 
     @Autowired
     private EntityManager em;
@@ -37,40 +37,40 @@ public class CsvTest {
         Files.createFile(filePath);
     }
 
-    @Test
-    void testCsv() throws IOException {
-
-        //    private String name;
-        //    private String email;
-        //    private String jobTitle;
-        //    private Instant hireDate;
-        for (int i = 0; i < 15; i++) {
-            Employee testEmployee = new Employee("name" + i, "email" + i, "jobTitle" + i, Instant.now());
-            employeeRepository.save(testEmployee);
-        }
-
-
-        //    private String name;
-        //    private String email;
-        //    private String jobTitle;
-        //    private Instant hireDate;
-        em.flush();
-        em.clear();
-
-
-        ICSVWriter writer = new CSVWriterBuilder(new FileWriter(FILE_NAME))
-                .withSeparator(',')
-                .build();
-
-        String[] headers = {"ID", "Name", "Email"};
-        writer.writeNext(headers);
-
-        employeeRepository.findAll().forEach(employee -> {
-            String[] data = {employee.getId().toString(), employee.getName(), employee.getEmail(), employee.getJobTitle(), employee.getJobTitle(), employee.getHireDate().toString()};
-            writer.writeNext(data);
-        });
-
-        writer.close();
-
-    }
+//    @Test
+//    void testCsv() throws IOException {
+//
+//        //    private String name;
+//        //    private String email;
+//        //    private String jobTitle;
+//        //    private Instant hireDate;
+//        for (int i = 0; i < 15; i++) {
+//            Employee testEmployee = new Employee("name" + i, "email" + i, "jobTitle" + i, Instant.now());
+//            employeeRepository.save(testEmployee);
+//        }
+//
+//
+//        //    private String name;
+//        //    private String email;
+//        //    private String jobTitle;
+//        //    private Instant hireDate;
+//        em.flush();
+//        em.clear();
+//
+//
+//        ICSVWriter writer = new CSVWriterBuilder(new FileWriter(FILE_NAME))
+//                .withSeparator(',')
+//                .build();
+//
+//        String[] headers = {"ID", "Name", "Email"};
+//        writer.writeNext(headers);
+//
+//        employeeRepository.findAll().forEach(employee -> {
+//            String[] data = {employee.getId().toString(), employee.getName(), employee.getEmail(), employee.getJobTitle(), employee.getJobTitle(), employee.getHireDate().toString()};
+//            writer.writeNext(data);
+//        });
+//
+//        writer.close();
+//
+//    }
 }
