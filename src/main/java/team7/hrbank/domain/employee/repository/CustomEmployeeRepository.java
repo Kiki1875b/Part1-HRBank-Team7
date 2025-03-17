@@ -1,5 +1,7 @@
 package team7.hrbank.domain.employee.repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
@@ -34,4 +36,8 @@ public interface CustomEmployeeRepository {
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     String selectEmployeeNumberByHireDateYearAndCreateAt(int year);
+
+    // 부서에 소속된 직원수 확인
+    @Query("SELECT COUNT(e) FROM Employee e WHERE e.departmentId = :departmentId")
+    Integer countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 }
