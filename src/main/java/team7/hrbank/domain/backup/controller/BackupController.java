@@ -3,6 +3,7 @@ package team7.hrbank.domain.backup.controller;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,8 +50,15 @@ public class BackupController {
   // 200, 400, 409, 500
   @PostMapping
   public ResponseEntity<BackupDto> generateBackup() {
-    BackupDto response = backupService.startBackup();
-    return ResponseEntity.ok(response);
+    BackupDto backupDto = backupService.createBackupRecord();
+
+    if(backupDto.status() == BackupStatus.SKIPPED){
+      return ResponseEntity.ok(backupDto); // TODO : 상태 코드 변경 고려
+    }
+
+    CompletableFuture.runAsync(() -> backupService.startBackupAsync(backupDto.id()));
+
+    return ResponseEntity.ok(backupDto);
   }
 
   // 200, 400, 500
