@@ -4,13 +4,16 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
+import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 
@@ -28,8 +31,12 @@ public class Employee extends BaseEntity {
     //  departmentId, profileImageId 추가
     //  직원 등록용 생성자 추가(이름, 이메일, 부서, 입사일, 프로필 이미지 필요)
     // <<-- 임시 테스트용
-    @Column(name = "department_id", nullable = false)
-    private Long departmentId = 1L;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
+//    private Long departmentId = 1L;
     // -->>
 
     @OneToOne
@@ -71,6 +78,18 @@ public class Employee extends BaseEntity {
         this.position = position;
         this.hireDate = hireDate;
         this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+    }
+
+    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
+        String position, LocalDate hireDate, Department department) {
+        this.profile = profile;
+        this.employeeNumber = employeeNumber;
+        this.name = name;
+        this.email = email;
+        this.position = position;
+        this.hireDate = hireDate;
+        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+        this.department = department;
     }
 
 

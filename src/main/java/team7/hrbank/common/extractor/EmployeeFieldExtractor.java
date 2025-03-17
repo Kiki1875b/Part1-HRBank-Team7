@@ -12,7 +12,7 @@ public class EmployeeFieldExtractor implements FieldExtractor<Employee> {
         employee.getEmployeeNumber(),
         employee.getName(),
         employee.getEmail(),
-        employee.getDepartmentId(), // TODO : getDepartment() 로 변경
+        employee.getDepartment().getName(), // TODO : getDepartment() 로 변경
         employee.getPosition(),
         employee.getHireDate(),
         employee.getStatus()

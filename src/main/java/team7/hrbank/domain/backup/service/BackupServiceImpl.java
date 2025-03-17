@@ -126,16 +126,18 @@ public class BackupServiceImpl implements BackupService {
 
   @Override
   public BackupDto startBackup(Long backupId) {
+
     Backup backup = backupRepository.findById(backupId).orElseThrow(); // TODO : Exception 추가
 
     try {
       JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
       if (execution.getStatus() == BatchStatus.COMPLETED) {
         File backupFile = new File(backupDir, TEMP_BACKUP);
+
         if (!backupFile.exists()) {
           // retry? rollback?
         }
-        Thread.sleep(5000); // 비동기 테스트용
+
 
         BinaryContent binaryContent = new BinaryContent("EmployeeBackup-" + backup.getId(),
             "application/csv", backupFile.length());

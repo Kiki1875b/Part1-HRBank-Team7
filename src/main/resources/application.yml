@@ -1,12 +1,12 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/hrbank
-    username: postgres
-    password: 970501
+    username: hrbank
+    password: 1234
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     open-in-view: false
   batch:
     jdbc:
