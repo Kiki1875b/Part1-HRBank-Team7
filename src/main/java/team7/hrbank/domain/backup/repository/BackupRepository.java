@@ -7,4 +7,6 @@ import team7.hrbank.domain.backup.entity.BackupStatus;
 
 public interface BackupRepository extends JpaRepository<Backup, Long>, CustomBackupRepository {
   Optional<Backup> findFirstByStatusOrderByStartedAtDesc(BackupStatus status);
+
+   Optional<Backup> findFirstByOrderByStartedAtDesc();
 }

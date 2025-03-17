@@ -37,7 +37,12 @@ public class Backup {
     this.worker = worker;
     this.startedAt = startedAt;
     this.status = BackupStatus.COMPLETED;
+  }
 
+  public Backup(Instant startedAt, BackupStatus status){
+    this.startedAt = startedAt;
+    this.worker = "system";
+    this.status = status;
   }
 
   @Id
