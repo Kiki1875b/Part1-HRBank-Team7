@@ -1,11 +1,11 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/hrbank
-    username: postgres
-    password: 970501
+    username: hrbank
+    password: 1234
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: none #'update' 로 처음 실행 후 'none' 으로 변경
     show-sql: true
     open-in-view: false
   batch:
