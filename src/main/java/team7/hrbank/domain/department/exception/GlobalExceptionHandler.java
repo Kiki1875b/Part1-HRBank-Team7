@@ -1,4 +1,4 @@
-package team7.hrbank.domain.Department.exception;
+package team7.hrbank.domain.department.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.NoSuchElementException;
 
 //todo 메세지, 디테일 등 예외처리 신경써서 수정하긔
+//todo 전역 처리 클래스 이용해야할듯
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
