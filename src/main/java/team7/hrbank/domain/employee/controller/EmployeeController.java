@@ -41,7 +41,7 @@ public class EmployeeController {
 
     // 직원 목록 조회
     @GetMapping
-    public ResponseEntity<PageResponse> read(@RequestParam(required = false) String nameOrEmail,
+    public ResponseEntity<PageResponse<EmployeeDto>> read(@RequestParam(required = false) String nameOrEmail,
                                        @RequestParam(required = false) String employeeNumber,
                                        @RequestParam(required = false) String departmentName,
                                        @RequestParam(required = false) String position,

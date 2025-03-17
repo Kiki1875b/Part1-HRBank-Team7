@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
+import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeUpdateRequest;
@@ -25,6 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final CustomEmployeeRepository customEmployeeRepository;
     private final BinaryContentService binaryContentService;
+    private final BinaryMapper binaryMapper;
 
     // 직원 등록
     @Override
@@ -37,10 +39,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 프로필 사진
-        BinaryContent binaryContent = null;
-//        if (profile != null) {
-//            binaryContent = profileProcess(profile);
-//        }
+        BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
+                .map(binaryContentService::save)
+                .orElse(null);
 
         // Employee 생성
         Employee employee = new Employee(binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
@@ -138,11 +139,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (request.status() != null) {
             employee.updateStatus(request.status());
         }
-
-//        if (profile != null) {
-//            BinaryContent binaryContent = profileProcess(profile);
-//            employee.updateProfile(binaryContent);
-//        }
+        if (profile != null) {
+            employee.updateProfile(binaryMapper.convertFileToBinaryContent(profile)
+                    .map(binaryContentService::save)
+                    .orElse(null));
+        }
 
         // DB 저장
         employeeRepository.save(employee);
@@ -168,24 +169,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return String.format("EMP-%d-%03d", year, lastNumber + 1);
     }
-
-    // save() 시 파일 저장 오류 발생으로 주석 처리
-//    // 프로필 사진 가공
-//    private BinaryContent profileProcess(MultipartFile profile) {
-//        try {
-//            String fileName = profile.getOriginalFilename();
-//            String fileType = profile.getContentType();
-//            Long fileSize = profile.getSize();
-//            byte[] bytes = profile.getBytes();
-//
-//            BinaryContentDto binaryContentDto = new BinaryContentDto(fileName, fileType, fileSize, bytes);
-//
-//            return binaryContentService.save(binaryContentDto);
-//
-//        } catch (IOException e) {
-//            throw new IllegalArgumentException("파일 변환 실패");
-//        }
-//    }
 
     // cursor 세팅
     private String getNextCursorValue(Employee employee, String sortField) {
