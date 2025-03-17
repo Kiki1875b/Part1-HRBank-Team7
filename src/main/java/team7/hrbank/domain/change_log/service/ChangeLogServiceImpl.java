@@ -15,9 +15,7 @@ import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import team7.hrbank.domain.change_log.repository.CustomChangeLogRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 
@@ -25,9 +23,8 @@ import team7.hrbank.domain.employee.repository.EmployeeRepository;
 @RequiredArgsConstructor
 public class ChangeLogServiceImpl implements ChangeLogService{
 
+  // private final EmployeeRepository employeeRepository;
   private final ChangeLogRepository changeLogRepository;
-  private final EmployeeRepository employeeRepository;
-  private final CustomChangeLogRepository customChangeLogRepository;
 
 //Todo - Employee서비스의 각 사용자 생성, 수정, 삭제에서  ChangeLogService.save 메서드 호출시 시 변경사항 확인 후 회원수정로그 등록.
 
@@ -57,7 +54,7 @@ public class ChangeLogServiceImpl implements ChangeLogService{
         ? PageRequest.of(0, size, Sort.by(direction, sortField))
         : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, sortField));
 
-    Page<ChangeLog> changeLogs = customChangeLogRepository.searchChangeLogs(
+    Page<ChangeLog> changeLogs = changeLogRepository.searchChangeLogs(
         employeeNumber, type, memo, ipAddress, atFrom, atTo, idAfter, sortedPageable);
 
     return changeLogs.map(changeLog -> new ChangeLogDto(
@@ -78,7 +75,6 @@ public class ChangeLogServiceImpl implements ChangeLogService{
 
     return changeLog.getDetails();
   }
-
 
   @Override
   public Instant getLatestChannelLogUpdateTime(){

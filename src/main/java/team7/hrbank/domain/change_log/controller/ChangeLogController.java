@@ -1,7 +1,6 @@
 package team7.hrbank.domain.change_log.controller;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.dto.DiffDto;
-import team7.hrbank.domain.change_log.service.ChangeLogServiceImpl;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 @RestController
 @RequestMapping("/api/change-logs")
 @RequiredArgsConstructor
 public class ChangeLogController {
 
-  private final ChangeLogServiceImpl changeLogServiceImpl;
+  private final ChangeLogService changeLogService;
 
   @GetMapping
   public ResponseEntity<Page<ChangeLogDto>> getChangeLogs(
@@ -39,14 +38,14 @@ public class ChangeLogController {
       @RequestParam(defaultValue = "desc") String sortDirection,
       Pageable pageable) {
 
-    Page<ChangeLogDto> changeLogs = changeLogServiceImpl.getChangeLogs(
+    Page<ChangeLogDto> changeLogs = changeLogService.getChangeLogs(
         employeeNumber, type, memo, ipAddress, atFrom, atTo, idAfter, size, sortField, sortDirection, pageable);
     return ResponseEntity.ok(changeLogs);
   }
 
   @GetMapping("/{id}/diffs")
   public ResponseEntity<List<DiffDto>> getChangeLogDetails(@PathVariable Long id) {
-    List<DiffDto> diffs = changeLogServiceImpl.getChangeLogDetails(id);
+    List<DiffDto> diffs = changeLogService.getChangeLogDetails(id);
     return ResponseEntity.ok(diffs);
   }
 }
