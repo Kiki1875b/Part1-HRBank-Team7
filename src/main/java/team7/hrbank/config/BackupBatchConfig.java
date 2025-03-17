@@ -4,7 +4,6 @@ package team7.hrbank.config;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import java.io.File;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -70,7 +69,6 @@ public class BackupBatchConfig {
             transactionManager)
         .reader(employeeItemReader())
         .writer(employeeItemWriter())
-        .allowStartIfComplete(true)
         .build();
   }
 
@@ -92,6 +90,5 @@ public class BackupBatchConfig {
         log.error("Failed to create backup directory: {}", backupDir);
       }
     }
-
   }
 }

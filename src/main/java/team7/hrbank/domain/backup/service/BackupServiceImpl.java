@@ -3,13 +3,12 @@ package team7.hrbank.domain.backup.service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.io.File;
-import java.net.InetAddress;
-import java.nio.file.Files;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +18,8 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.domain.backup.dto.BackupDto;
@@ -33,9 +31,7 @@ import team7.hrbank.domain.backup.mapper.BackupMapper;
 import team7.hrbank.domain.backup.repository.BackupRepository;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentRepository;
-import team7.hrbank.domain.change_log.ChangeLogRepository;
-import team7.hrbank.domain.change_log.ChangeLogService;
-import team7.hrbank.domain.change_log.entity.ChangeLog;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 
 @Slf4j
@@ -57,6 +53,26 @@ public class BackupServiceImpl implements BackupService {
 
   @PersistenceContext
   private final EntityManager em;
+
+
+  @Async
+  @Override
+  public CompletableFuture<BackupDto> startBackupAsync(Long backupId) {
+    BackupDto result = startBackup(backupId);
+    return CompletableFuture.completedFuture(result);
+  }
+
+  @Override
+  public BackupDto createBackupRecord() {
+    if (!isBackupNeeded()) {
+      Backup skippedBackup = new Backup(Instant.now(), BackupStatus.SKIPPED);
+      backupRepository.save(skippedBackup);
+      return backupMapper.fromEntity(skippedBackup);
+    }
+
+    Backup backup = backupRepository.save(new Backup(Instant.now(), BackupStatus.IN_PROGRESS));
+    return backupMapper.fromEntity(backup);
+  }
 
   // TODO : 최적화 필요
   @Override
@@ -108,26 +124,9 @@ public class BackupServiceImpl implements BackupService {
     );
   }
 
-  @Override // TODO : SRP 를 따르도록 분리해야 함
-  public BackupDto startBackup() {
-
-    Instant latestBackupTime = getLatestBackupTime();
-    Instant latestChangeLogTime = changeLogService.getLatestChannelLogUpdateTime();
-
-    // 가장 최근 Backup 시간이 가장 최근 ChangeLog 보다 크다면 변경사항이 없다는 뜻. Instant.EPOCH 비교에 대해선 좀 더 생각
-    if (latestBackupTime.isAfter(latestChangeLogTime) && !latestBackupTime.equals(Instant.EPOCH)) {
-      Backup backup = backupRepository.save(new Backup(Instant.now(), BackupStatus.SKIPPED));
-      return backupMapper.fromEntity(backup);
-    }
-
-    Backup backup = backupRepository.save(new Backup(Instant.now(), BackupStatus.IN_PROGRESS));
-    em.flush();
-
-    // TODO : 타 도메인 완료시 나머지 로직
-
-    // 백업 시작
-    // 백업 완료 후 파일 받아와서 BinaryContent 객체 생성 및 repo 저장,
-    // 백업 파일 이름 BinaryContentId 로 변경
+  @Override
+  public BackupDto startBackup(Long backupId) {
+    Backup backup = backupRepository.findById(backupId).orElseThrow(); // TODO : Exception 추가
 
     try {
       JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
@@ -136,6 +135,7 @@ public class BackupServiceImpl implements BackupService {
         if (!backupFile.exists()) {
           // retry? rollback?
         }
+        Thread.sleep(5000); // 비동기 테스트용
 
         BinaryContent binaryContent = new BinaryContent("EmployeeBackup-" + backup.getId(),
             "application/csv", backupFile.length());
@@ -149,19 +149,19 @@ public class BackupServiceImpl implements BackupService {
         }
 
         backup.addFile(saved);
-        backup.endBackup();
         backup.success();
-        backupRepository.save(backup);
       }
-
     } catch (Exception e) {
-      backup.endBackup();
       backup.fail();
+
+    } finally {
+      backup.endBackup();
       backupRepository.save(backup);
     }
 
     return backupMapper.fromEntity(backup);
   }
+
 
   @Override
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
@@ -169,6 +169,13 @@ public class BackupServiceImpl implements BackupService {
     Backup backup = backupRepository.findFirstByStatusOrderByStartedAtDesc(status)
         .orElseThrow(() -> new BackupException());
     return backupMapper.fromEntity(backup);
+  }
+
+  private boolean isBackupNeeded(){
+    Instant latestBackupTime = getLatestBackupTime();
+    Instant latestChangeLogTime = changeLogService.getLatestChannelLogUpdateTime();
+    // 백업 시간이 변경 로그보다 최신이면 백업 불필요
+    return latestChangeLogTime.isAfter(latestBackupTime);
   }
 
   private Instant getLatestBackupTime() {

@@ -12,13 +12,10 @@ public class EmployeeFieldExtractor implements FieldExtractor<Employee> {
         employee.getEmployeeNumber(),
         employee.getName(),
         employee.getEmail(),
+        employee.getDepartmentId(), // TODO : getDepartment() 로 변경
         employee.getPosition(),
         employee.getHireDate(),
-        employee.getStatus(),
-        employee.getCreatedAt(),
-        employee.getUpdatedAt(),
-        employee.getDepartmentId(), // TODO : getDepartment() 로 변경
-        employee.getProfile() != null ? employee.getProfile().getId() : "default"
+        employee.getStatus()
     };
   }
 }
