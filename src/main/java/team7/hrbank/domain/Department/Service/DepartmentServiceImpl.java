@@ -1,4 +1,4 @@
-package team7.hrbank.domain.Department;
+package team7.hrbank.domain.Department.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,9 @@ import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.Department.dto.DepartmentListResponse;
 import team7.hrbank.domain.Department.dto.DepartmentResponse;
 import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.Department.entity.Department;
+import team7.hrbank.domain.Department.repository.DepartmentRepository;
+import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -19,11 +22,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class DepartmentService {
+public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
-    //private final EmployeeRepository employeeRepository;
+    private final CustomEmployeeRepository customEmployeeRepository;
 
     @Transactional
+    @Override
     public DepartmentResponse createDepartment(DepartmentCreateRequest requestDto) {
         // 부서 이름 중복 체크
         if (departmentRepository.existsByName(requestDto.name())) {
@@ -44,6 +48,7 @@ public class DepartmentService {
 
     // 부서 수정 메서드
     @Transactional
+    @Override
     public DepartmentResponse updateDepartment(Long id, DepartmentUpdateRequest requestDto) {
         // 부서 이름 중복 체크
         if (departmentRepository.existsByName(requestDto.name())) {
@@ -60,22 +65,29 @@ public class DepartmentService {
         return new DepartmentResponse(department);
     }
 
-    // employeeRepository 이용하므로 우선 주석처리
     //부서 삭제 메서드
     @Transactional
+    @Override
     public void deleteDepartment(Long id) {
         // 기존 부서 조회
         Department department = departmentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
         //부서 내 소속직원 존재여부 체크
-//        if (employeeRepository.existByDepartment(department.getId())){
-//            throw  new EmployeeExistsInDepartmentException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
-//        }
+       if (getEmployeeCountByDepartment(department.getId())==0) {
+            throw  new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
+        }
         //부서 삭제
         departmentRepository.delete(department);
     }
 
+    @Override
+    public Integer getEmployeeCountByDepartment(Long departmentId) {
+        return customEmployeeRepository.countEmployeesByDepartmentId(departmentId);
+    }
+
+
     //부서 조회 메서드
+    @Override
     public DepartmentListResponse getDepartments(String nameOrDescription, Integer idAfter, String cursor, Integer size, String sortField, String sortDirection) {
 
         // 정렬 방향 처리 (기본값: ASC)
@@ -118,14 +130,15 @@ public class DepartmentService {
                 .collect(Collectors.toList());
 
         String nextCursor = departments.hasNext() ? generateNextCursor(departments.getContent(), sortField) : null;
-        Integer nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
+        Long nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
         boolean hasNext = departments.hasNext();
 
         return new DepartmentListResponse(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
 
     }
 
-    private String generateNextCursor(List<Department> departments, String sortField) {
+    @Override
+    public String generateNextCursor(List<Department> departments, String sortField) {
         if (departments.isEmpty()) {
             return null;
         }

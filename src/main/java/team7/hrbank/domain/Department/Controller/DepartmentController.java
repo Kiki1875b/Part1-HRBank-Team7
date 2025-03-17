@@ -1,9 +1,10 @@
-package team7.hrbank.domain.Department;
+package team7.hrbank.domain.Department.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import team7.hrbank.domain.Department.Service.DepartmentServiceImpl;
 import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.Department.dto.DepartmentListResponse;
 import team7.hrbank.domain.Department.dto.DepartmentResponse;
@@ -13,19 +14,19 @@ import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
 @RequestMapping("/api/departments")
 @RequiredArgsConstructor
 public class DepartmentController {
-    private final DepartmentService departmentService;
+    private final DepartmentServiceImpl departmentServiceImpl;
 
     // 부서 등록 API _ 등록 후 해당 부서 상세화면으로 리다이렉트
     @PostMapping
     public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
-        DepartmentResponse responseDto = departmentService.createDepartment(requestDto);
+        DepartmentResponse responseDto = departmentServiceImpl.createDepartment(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     // 부서 수정 API
     @PatchMapping("/{id}")
     public ResponseEntity<DepartmentResponse> updateDepartment(@PathVariable("id") Long id, @RequestBody DepartmentUpdateRequest requestDto) {
-        DepartmentResponse responseDto = departmentService.updateDepartment(id, requestDto);
+        DepartmentResponse responseDto = departmentServiceImpl.updateDepartment(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
@@ -34,7 +35,7 @@ public class DepartmentController {
     // 부서 삭제 API
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteDepartment(@PathVariable("id") Long id) {
-        departmentService.deleteDepartment(id);
+        departmentServiceImpl.deleteDepartment(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body("부서가 삭제되었습니다");
@@ -50,7 +51,7 @@ public class DepartmentController {
         @RequestParam(name = "sortField", required = false) String sortField,
         @RequestParam(name = "sortDirection", required = false, defaultValue = "asc") String sortDirection
     ){
-        DepartmentListResponse departmentListResponse = departmentService.getDepartments(
+        DepartmentListResponse departmentListResponse = departmentServiceImpl.getDepartments(
                 nameOrDescription,
                 idAfter,
                 cursor,
@@ -67,7 +68,7 @@ public class DepartmentController {
     //부서 상세 조회 API
     @GetMapping("/{id}")
     public ResponseEntity<DepartmentResponse> getDepartmentDetail(@PathVariable("id") Long id) {
-        DepartmentResponse responseDto = departmentService.getDepartment(id);
+        DepartmentResponse responseDto = departmentServiceImpl.getDepartment(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
