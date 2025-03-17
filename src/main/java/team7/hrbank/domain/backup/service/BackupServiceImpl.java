@@ -33,8 +33,8 @@ import team7.hrbank.domain.backup.mapper.BackupMapper;
 import team7.hrbank.domain.backup.repository.BackupRepository;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentRepository;
-import team7.hrbank.domain.change_log.ChangeLogRepository;
-import team7.hrbank.domain.change_log.ChangeLogService;
+import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 
 

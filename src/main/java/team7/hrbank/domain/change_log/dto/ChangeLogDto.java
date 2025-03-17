@@ -5,8 +5,8 @@ import team7.hrbank.domain.change_log.entity.ChangeLogType;
 
 public record ChangeLogDto(
     Long id,
-    String employeeNumber,
     ChangeLogType type,
+    String employeeNumber,
     String memo,
     String ipAddress,
     Instant at
