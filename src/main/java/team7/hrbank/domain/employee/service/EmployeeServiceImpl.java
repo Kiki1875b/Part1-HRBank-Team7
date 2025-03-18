@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
+import team7.hrbank.domain.Department.Service.DepartmentServiceImpl;
+import team7.hrbank.domain.Department.dto.DepartmentResponse;
+import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
@@ -19,7 +22,6 @@ import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeMapper employeeMapper;
     private final BinaryContentService binaryContentService;
     private final BinaryMapper binaryMapper;
+    // TODO: DepartmentService 인터페이스에 getDepartment() 생기면
+    //  DepartmentServiceImpl -> DepartmentService로 수정
+    private final DepartmentServiceImpl departmentService;
 
     // 직원 등록
     @Override
@@ -43,23 +48,27 @@ public class EmployeeServiceImpl implements EmployeeService {
         int year = request.hireDate().getYear();   // 입사 연도
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
+        // 부서
+        DepartmentResponse departmentResponse = departmentService.getDepartment(request.departmentId());
+
         // 프로필 사진
         BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
                 .map(binaryContentService::save)
                 .orElse(null);
 
         // Employee 생성
-        Employee employee = new Employee(binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
+        Employee employee = new Employee(toDepartment(departmentResponse), binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
 
         // DB 저장
         employeeRepository.save(employee);
 
         // employeeDto로 반환
-        return EmployeeDto.fromEntity(employee);
+        return employeeMapper.fromEntity(employee);
     }
 
     // 직원 목록 조회
     @Override
+    @Transactional
     public PageResponse<EmployeeDto> find(EmployeeFindRequest request) {
 
         // 다음 페이지 있는지 확인하기 위해 size+1개의 데이터 읽어옴
@@ -71,8 +80,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         boolean hasNext = false;
 
         // 전체 데이터 개수 계산
-        Long totalElementLong = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
-        long totalElement = (totalElementLong == null ? 0 : totalElementLong);   // null 체크
+        int totalElement = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
 
         // 다음 데이터 있는지 확인
         if (employees.size() > request.size()) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음
@@ -84,21 +92,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             hasNext = true;     // 다음 페이지 유무
         }
 
-        // TODO: EmployeeMapper 만들고 수정 필요
-        List<EmployeeDto> employeeDtos = employees.stream()
-                .map(EmployeeDto::fromEntity)
-                .toList();
-
         return new PageResponse<>(
-                employeeDtos,
+                employeeMapper.fromEntity(employees),
                 nextCursor,
                 nextIdAfter,
                 request.size(),
-                (int) totalElement,
+                totalElement,
                 hasNext
         );
     }
-
 
     // 직원 상세 조회
     @Override
@@ -106,7 +108,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외 처리
 
-        return EmployeeDto.fromEntity(employee);
+        return employeeMapper.fromEntity(employee);
     }
 
     // 직원 수정
@@ -117,7 +119,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
-        // TODO: departmentId 수정 로직 추가
+        if (request.departmentId() != null) {
+            DepartmentResponse departmentResponse = departmentService.getDepartment(request.departmentId());
+            employee.updateDepartment(toDepartment(departmentResponse));
+        }
 
         if (request.name() != null) {
             employee.updateName(request.name());
@@ -144,7 +149,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(employee);
 
         // employeeDto로 반환
-        return EmployeeDto.fromEntity(employee);
+        return employeeMapper.fromEntity(employee);
     }
 
     // 직원 삭제
@@ -177,5 +182,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             default:
                 return null;
         }
+    }
+
+    // DepartmentDto -> Department로 바꾸기
+    // 여기 있어도 되나??
+    private Department toDepartment(DepartmentResponse departmentResponse) {
+        return new Department(
+                departmentResponse.name(),
+                departmentResponse.description(),
+                departmentResponse.establishedDate()
+        );
     }
 }

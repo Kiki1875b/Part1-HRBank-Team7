@@ -6,6 +6,7 @@ import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import team7.hrbank.domain.Department.entity.QDepartment;
 import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
@@ -21,6 +22,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     private final JPAQueryFactory queryFactory;
     private final QEmployee qEmployee = QEmployee.employee;
+    private final QDepartment qDepartment = QDepartment.department;
 
     // 조건에 맞는 직원 검색
     @Override
@@ -32,6 +34,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .where(
                         containsNameOrEmail(request.nameOrEmail()),
                         containsEmployeeNumber(request.employeeNumber()),
+                        containsDepartmentName(request.departmentName()),
                         containsPosition(request.position()),
                         betweenHireDate(request.hireDateFrom(), request.hireDateTo()),
                         eqStatus(request.status()),
@@ -48,9 +51,9 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 총 사원 수 집계
     @Override
-    public Long totalCountEmployee(EmployeeCountRequest request) {
+    public Integer totalCountEmployee(EmployeeCountRequest request) {
 
-        return queryFactory
+        Long count = queryFactory
                 .select(qEmployee.count())
                 .from(qEmployee)
                 .where(
@@ -61,6 +64,8 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         eqStatus(request.status())
                 )
                 .fetchOne();
+
+        return (count == null) ? 0 : count.intValue();
     }
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
@@ -79,6 +84,19 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .limit(1)
                 .fetchOne();
     }
+
+    // 해당 부서에 소속된 직원의 수
+//    @Override
+//    public Integer countEmployeeByDepartmentId(Long departmentId) {
+//
+//        Long count = queryFactory
+//                .select(qEmployee.count())
+//                .from(qEmployee)
+//                .where(qEmployee.department.id.eq(departmentId))
+//                .fetchOne();
+//
+//        return (count == null) ? 0 : count.intValue();
+//    }
 
     // 부분 일치 조건
     // 이름 또는 이메일
@@ -99,7 +117,17 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
     }
 
     // 부서 이름
-    // TODO: department 엔티티 완성 시 부서 이름 조건 추가
+    private BooleanExpression containsDepartmentName(String departmentName) {
+        if (StringUtils.isNullOrEmpty(departmentName)) {
+            return null;
+        }
+
+        return qEmployee.department.id.in(
+                queryFactory.select(qDepartment.id)
+                        .from(qDepartment)
+                        .where(qDepartment.name.contains(departmentName))
+        );
+    }
 
     // 직함
     private BooleanExpression containsPosition(String position) {
