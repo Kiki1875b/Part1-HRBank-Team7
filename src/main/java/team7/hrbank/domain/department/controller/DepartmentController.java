@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import team7.hrbank.domain.department.service.DepartmentServiceImpl;
 import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.department.dto.DepartmentListResponse;
-import team7.hrbank.domain.department.dto.DepartmentResponse;
+import team7.hrbank.domain.department.dto.DepartmentResponseDtoList;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 
 @RestController
@@ -16,17 +16,17 @@ import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 public class DepartmentController {
     private final DepartmentServiceImpl departmentServiceImpl;
 
-    // 부서 등록 API _ 등록 후 해당 부서 상세화면으로 리다이렉트
+    // 부서 등록 API
     @PostMapping
-    public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
-        DepartmentResponse responseDto = departmentServiceImpl.create(requestDto);
+    public ResponseEntity<DepartmentResponseDto> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
+        DepartmentResponseDto responseDto = departmentServiceImpl.create(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     // 부서 수정 API
     @PatchMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> updateDepartment(@PathVariable("id") Long id, @RequestBody DepartmentUpdateRequest requestDto) {
-        DepartmentResponse responseDto = departmentServiceImpl.update(id, requestDto);
+    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody DepartmentUpdateRequest requestDto) {
+        DepartmentResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
@@ -43,7 +43,7 @@ public class DepartmentController {
 
     //부서 목록 조회 API
     @GetMapping
-    public ResponseEntity<DepartmentListResponse> getDepartments(
+    public ResponseEntity<DepartmentResponseDtoList> getDepartments(
         @RequestParam(name = "nameOrDescription", required = false) String nameOrDescription,
         @RequestParam(name = "idAfter", required = false) Integer idAfter, // 이전 페이지의 마지막 id
         @RequestParam(name = "cursor", required = false) String cursor, //다음 페이지 시작점
@@ -51,7 +51,7 @@ public class DepartmentController {
         @RequestParam(name = "sortField", required = false) String sortField,
         @RequestParam(name = "sortDirection", required = false, defaultValue = "asc") String sortDirection
     ){
-        DepartmentListResponse departmentListResponse = departmentServiceImpl.getDepartments(
+        DepartmentResponseDtoList departmentResponseDtoList = departmentServiceImpl.getDepartments(
                 nameOrDescription,
                 idAfter,
                 cursor,
@@ -62,13 +62,13 @@ public class DepartmentController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(departmentListResponse);
+                .body(departmentResponseDtoList);
     }
 
-    //부서 상세 조회 API
+    //부서 단건 상세 조회 API
     @GetMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> getDepartmentDetail(@PathVariable("id") Long id) {
-        DepartmentResponse responseDto = departmentServiceImpl.getDepartment(id);
+    public ResponseEntity<DepartmentResponseDto> getDepartmentDetail(@PathVariable("id") Long id) {
+        DepartmentResponseDto responseDto = departmentServiceImpl.getDepartment(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
