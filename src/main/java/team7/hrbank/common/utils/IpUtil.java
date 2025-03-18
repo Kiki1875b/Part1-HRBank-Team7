@@ -19,6 +19,13 @@ public class IpUtil {
       return ip;
     }
 
+    //로컬에서 테스트를 위한 IPv6 -> IPv4 변환 로직
+    //todo - 로컬 아닌 환경에서 테스트 필요
+    ip = request.getRemoteAddr();
+    if ("0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip)) {
+      return "127.0.0.1";
+    }
+
     return request.getRemoteAddr();
   }
 }
