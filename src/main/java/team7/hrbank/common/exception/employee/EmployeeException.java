@@ -12,16 +12,28 @@ import java.time.Instant;
 
 @RestControllerAdvice(basePackages = "team7.hrbank.domain.employee")
 public class EmployeeException {
-    // 400 - Bad Request
+    
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handlerEmailDuplication(DataIntegrityViolationException e) {
+        String message = e.getMostSpecificCause().getMessage();
+
+        // 이메일 중복 예외처리
+        if (message.contains("email")) {
+            ErrorResponse errorResponse = new ErrorResponse(
+                    Instant.now(),
+                    ErrorCode.EMAIL_DUPLICATION.getStatus(),
+                    ErrorCode.EMAIL_DUPLICATION.getMessage(),
+                    "이미 존재하는 이메일입니다."
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
-                ErrorCode.EMAIL_DUPLICATION.getStatus(),
-                ErrorCode.EMAIL_DUPLICATION.getMessage(),
-                "이미 존재하는 이메일입니다."
+                ErrorCode.INTERNAL_SERVER_ERROR.getStatus(),
+                ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
+                e.getMessage()
         );
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

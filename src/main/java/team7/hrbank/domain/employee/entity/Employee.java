@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
+import team7.hrbank.domain.department.entity.Department;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,14 +28,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Employee extends BaseEntity {
 
-    // TODO: department, BinaryContent 엔티티 완료 시
-    //  departmentId, profileImageId 추가
-    //  직원 등록용 생성자 추가(이름, 이메일, 부서, 입사일, 프로필 이미지 필요)
-
-    // <<-- 임시 테스트용
-    @Column(name = "department_id", nullable = false)
-    private Long departmentId = 1L;
-    // -->>
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;  // 부서
 
     // 직원 삭제 시 프로필 사진도 삭제, 직원과 관계가 끊긴 사진도 삭제
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -65,9 +62,9 @@ public class Employee extends BaseEntity {
 
 
     // 생성자
-    // TODO: 생성자 인자로 department 추가
-    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
-                    String position, LocalDate hireDate) {
+    public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
+                    String email, String position, LocalDate hireDate) {
+        this.department = department;
         this.profile = profile;
         this.employeeNumber = employeeNumber;
         this.name = name;
@@ -79,6 +76,16 @@ public class Employee extends BaseEntity {
 
 
     // update 메서드
+    // 부서 수정
+    public void updateDepartment(Department department) {
+        this.department = department;
+    }
+
+    // 프로필 사진 수정
+    public void updateProfile(BinaryContent profile) {
+        this.profile = profile;
+    }
+
     // 이름 수정
     public void updateName(String name) {
         this.name = name;
@@ -104,11 +111,6 @@ public class Employee extends BaseEntity {
         this.status = status;
     }
 
-    // 프로필 사진 수정
-    public void updateProfile(BinaryContent profile) {
-        this.profile = profile;
-    }
-
     //직원 복사
     public Employee copy() {
         Employee copied = new Employee();
@@ -119,7 +121,7 @@ public class Employee extends BaseEntity {
         copied.position = this.position;
         copied.hireDate = this.hireDate;
         copied.status = this.status;
-        copied.departmentId = this.departmentId;
+        copied.department = this.department;
 
         return copied;
     }

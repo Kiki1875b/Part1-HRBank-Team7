@@ -12,13 +12,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import team7.hrbank.domain.Department.entity.Department;
-import team7.hrbank.domain.Department.repository.DepartmentRepository;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
+import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.entity.Employee;
 
 
@@ -32,7 +32,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Override
   @Transactional
   public void logEmployeeCreated(Employee employee, String memo, String ipAddress) {
-    Department department = departmentRepository.findById(employee.getDepartmentId())
+    Department department = departmentRepository.findById(employee.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();
@@ -57,9 +57,9 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Override
   @Transactional
   public void logEmployeeUpdated(Employee before, Employee after, String memo, String ipAddress) {
-    Department departmentBefore = departmentRepository.findById(before.getDepartmentId())
+    Department departmentBefore = departmentRepository.findById(before.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
-    Department departmentAfter = departmentRepository.findById(after.getDepartmentId())
+    Department departmentAfter = departmentRepository.findById(after.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();
@@ -102,7 +102,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Override
   @Transactional
   public void logEmployeeDeleted(Employee employee, String memo, String ipAddress) {
-    Department department = departmentRepository.findById(employee.getDepartmentId())
+    Department department = departmentRepository.findById(employee.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();

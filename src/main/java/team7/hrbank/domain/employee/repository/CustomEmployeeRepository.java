@@ -14,8 +14,11 @@ public interface CustomEmployeeRepository {
     List<Employee> findEmployees(EmployeeFindRequest employeeFindRequest);
 
     // 총 직원 수 집계
-    Long totalCountEmployee(EmployeeCountRequest request);
+    Integer totalCountEmployee(EmployeeCountRequest request);
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     String selectEmployeeNumberByHireDateYearAndCreateAt(int year);
+
+    // 해당 부서에 소속된 직원 수 확인
+//    Integer countEmployeeByDepartmentId(Long departmentId);
 }
