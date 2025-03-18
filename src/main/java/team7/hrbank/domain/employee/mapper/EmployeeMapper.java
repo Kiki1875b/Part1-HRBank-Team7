@@ -22,5 +22,7 @@ public interface EmployeeMapper {
     @Mapping(target = "profileImageId", source = "profile.id", defaultValue = "-1L")
     List<EmployeeDto> fromEntity(List<Employee> employees);
 
+    Employee fromDto(EmployeeDto employeeDto);
+
     EmployeeCountRequest fromEmployeeFindRequest(EmployeeFindRequest request);
 }

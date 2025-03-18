@@ -6,12 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
-import team7.hrbank.domain.Department.Service.DepartmentServiceImpl;
-import team7.hrbank.domain.Department.dto.DepartmentResponse;
-import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
@@ -35,7 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BinaryMapper binaryMapper;
     // TODO: DepartmentService 인터페이스에 getDepartment() 생기면
     //  DepartmentServiceImpl -> DepartmentService로 수정
-    private final DepartmentServiceImpl departmentService;
+    private final DepartmentService departmentService;
 
     // 직원 등록
     @Override
@@ -49,7 +48,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        DepartmentResponse departmentResponse = departmentService.getDepartment(request.departmentId());
+        DepartmentResponseDto departmentResponse = departmentService.getDepartment(request.departmentId());
 
         // 프로필 사진
         BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
@@ -57,7 +56,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElse(null);
 
         // Employee 생성
-        Employee employee = new Employee(toDepartment(departmentResponse), binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
+        Employee employee = new Employee(departmentService.getDepartmentEntityById(request.departmentId()), binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
 
         // DB 저장
         employeeRepository.save(employee);
@@ -106,22 +105,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeDto findById(Long id) {
 
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외 처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         return employeeMapper.fromEntity(employee);
     }
 
     // 직원 수정
     @Override
+    @Transactional
     public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile) {
 
         // TODO: ChangeLog에 수정 이력 저장
 
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         if (request.departmentId() != null) {
-            DepartmentResponse departmentResponse = departmentService.getDepartment(request.departmentId());
-            employee.updateDepartment(toDepartment(departmentResponse));
+            employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
 
         if (request.name() != null) {
@@ -182,15 +181,5 @@ public class EmployeeServiceImpl implements EmployeeService {
             default:
                 return null;
         }
-    }
-
-    // DepartmentDto -> Department로 바꾸기
-    // 여기 있어도 되나??
-    private Department toDepartment(DepartmentResponse departmentResponse) {
-        return new Department(
-                departmentResponse.name(),
-                departmentResponse.description(),
-                departmentResponse.establishedDate()
-        );
     }
 }

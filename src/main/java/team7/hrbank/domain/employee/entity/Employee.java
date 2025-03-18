@@ -14,9 +14,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
-import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
+import team7.hrbank.domain.department.entity.Department;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -62,7 +62,6 @@ public class Employee extends BaseEntity {
 
 
     // 생성자
-    // TODO: 생성자 인자로 department 추가
     public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
                     String email, String position, LocalDate hireDate) {
         this.department = department;

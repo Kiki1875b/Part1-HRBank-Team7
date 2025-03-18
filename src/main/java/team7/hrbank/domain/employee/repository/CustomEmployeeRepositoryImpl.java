@@ -6,7 +6,7 @@ import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import team7.hrbank.domain.Department.entity.QDepartment;
+import team7.hrbank.domain.department.entity.QDepartment;
 import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
@@ -85,6 +85,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .fetchOne();
     }
 
+    // TODO: 나중에 필요없으면 삭제
     // 해당 부서에 소속된 직원의 수
 //    @Override
 //    public Integer countEmployeeByDepartmentId(Long departmentId) {
