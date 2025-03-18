@@ -7,10 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.department.dto.DepartmentListResponse;
-import team7.hrbank.domain.department.dto.DepartmentResponse;
-import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
@@ -25,39 +22,36 @@ import java.util.stream.Collectors;
 public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeRepository employeeRepository;
+    private final DepartmentMapper departmentMapper = DepartmentMapper.INSTANCE;
+
+
 
     @Transactional
     @Override
-    public DepartmentResponse create(DepartmentCreateRequest requestDto) {
+    public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
         
         checkName(requestDto.name());
         
-        Department department = new Department(
-                requestDto.name(),
-                requestDto.description(),
-                requestDto.establishedDate()
-        );
+        Department department = departmentMapper.toEntity(requestDto);
         departmentRepository.save(department);
         
-        return new DepartmentResponse(department);
+        return departmentMapper.toDto(department);
     }
 
 
     // 부서 수정 메서드
     @Transactional
     @Override
-    public DepartmentResponse update(Long id, DepartmentUpdateRequest requestDto) {
+    public DepartmentResponseDto update(Long id, DepartmentUpdateRequest requestDto) {
 
         checkName(requestDto.name());
         // 기존 부서 조회
         Department department = getOrElseThrow(id);
         // 부서 수정
-        department.setName(requestDto.name());
-        department.setDescription(requestDto.description());
-        department.setEstablishedDate(requestDto.establishedDate());// 수정된 부서 저장
+        departmentMapper.updateFromDto(requestDto, department);// 수정된 부서 저장
         departmentRepository.save(department);
 
-        return new DepartmentResponse(department);
+        return departmentMapper.toDto(department);
     }
 
     
@@ -78,15 +72,15 @@ public class DepartmentServiceImpl implements DepartmentService {
         return employeeRepository.countEmployeesByDepartmentId(departmentId);
     }
 
-
+    //todo 아직 정상동작 안합니다 !!! 수정예정!
     //부서 조회 메서드
     @Override
-    public DepartmentListResponse getDepartments(String nameOrDescription,
-                                                 Integer idAfter,
-                                                 String cursor,
-                                                 Integer size,
-                                                 String sortField,
-                                                 String sortDirection) {
+    public DepartmentResponseDtoList getDepartments(String nameOrDescription,
+                                                    Integer idAfter,
+                                                    String cursor,
+                                                    Integer size,
+                                                    String sortField,
+                                                    String sortDirection) {
 
         // 정렬 방향 처리 (기본값: ASC)
         Sort.Direction direction;
@@ -118,19 +112,15 @@ public class DepartmentServiceImpl implements DepartmentService {
             departments = departmentRepository.findByCriteria(nameOrDescription, pageable);
         }
         //todo dto 이상하게 반환하고있는거아닌지 확인하자
-        List<DepartmentResponse> content = departments.getContent().stream()
-                .map(department -> new DepartmentResponse(
-                        department.getId(),
-                        department.getName(),
-                        department.getDescription(),
-                        department.getEstablishedDate()))
+        List<DepartmentResponseDto> content = departments.getContent().stream()
+                .map(departmentMapper::toDto)
                 .collect(Collectors.toList());
 
         String nextCursor = departments.hasNext() ? generateNextCursor(departments.getContent(), sortField) : null;
         Long nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
         boolean hasNext = departments.hasNext();
 
-        return new DepartmentListResponse(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
+        return new DepartmentResponseDtoList(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
 
     }
 
@@ -151,10 +141,16 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     //부서 단건 조회 메서드
-    public DepartmentResponse getDepartment(Long id) {
+    public DepartmentResponseDto getDepartment(Long id) {
         // 기존 부서 조회
         Department department = getOrElseThrow(id);
-        return new DepartmentResponse(department);
+        return departmentMapper.toDto(department);
+    }
+
+    //성지님! 그대를 위해 준비한 메서드입니다... S2
+    @Override
+    public Department getDepartmentEntityById(Long id) {
+        return departmentRepository.getById(id);
     }
 
 
