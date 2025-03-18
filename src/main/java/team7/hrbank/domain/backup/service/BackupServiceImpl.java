@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import team7.hrbank.common.dto.PageResponse;
+import team7.hrbank.common.exception.ErrorCode;
 import team7.hrbank.domain.backup.dto.BackupDto;
 import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.Backup;
@@ -132,61 +133,18 @@ public class BackupServiceImpl implements BackupService {
   @Override
   public BackupDto startBackup(Long backupId) {
 
-    Backup backup = backupRepository.findById(backupId).orElseThrow(); // TODO : Exception 추가
+    Backup backup = backupRepository.findById(backupId).orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND)); // TODO : Exception 추가
     File backupFile = new File(backupDir, TEMP_BACKUP);
-
-    BinaryContent saved = binaryContentRepository.save(
-        new BinaryContent("EmployeeBackup-" + backup.getId(),
-            "application/csv", backupFile.length()));
-
+    BinaryContent saved = binaryContentRepository.save(new BinaryContent("EmployeeBackup-" + backup.getId(), "application/csv", backupFile.length()));
     try {
       JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
       if (execution.getStatus() == BatchStatus.COMPLETED) {
-
-        if (!backupFile.exists()) { // TODO : exception 커스터마이징
-          throw new Exception();
-        }
-
-        File renamedFile = new File(backupDir, saved.getId() + ".csv");
-        if (backupFile.renameTo(renamedFile)) {
-          log.info("Backup file renamed to {}", renamedFile.getAbsolutePath());
-        } else {
-          log.warn("Failed to rename backup file.");
-        }
-
-        saved.updateSize(renamedFile.length());
-        backup.addFile(saved);
-        backup.success();
+        onBackupSuccess(backupFile, saved, backup);
       }
     } catch (Exception e) {
-      log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
-      File logFile = new File(backupDir, saved.getId() + ".log");
-      backup.fail();
-      saved.updateFields("BackupFailLog-" + backup.getId(), "text/plain", 0L);
-
-      try {
-        Path path = Path.of(backupDir + "/" + saved.getId() + ".csv");
-        Files.deleteIfExists(path);
-      } catch (IOException exception) {
-        log.error("Failed To delete");
-      }
-
-      try (
-          FileWriter writer = new FileWriter(logFile, false)
-      ) {
-        writer.write("Backup failed for Backup ID : " + backupId + "\n");
-        writer.write("Timestamp : " + new Date() + "\n");
-        writer.write("For reason : " + e.getMessage());
-      } catch (IOException exception) {
-        log.error("Failed to write error log for ID {}", backupId);
-      }
-
-      saved.updateSize(logFile.length());
-
+      onBackupFail(backup, saved, backupId, e);
     } finally {
-      backup.endBackup();
-      binaryContentRepository.save(saved);
-      backupRepository.save(backup);
+      finishBackupProcess(backup, saved);
     }
 
     return backupMapper.fromEntity(backup);
@@ -196,8 +154,58 @@ public class BackupServiceImpl implements BackupService {
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
     // 에러 처리 방식 논의
     Backup backup = backupRepository.findFirstByStatusOrderByStartedAtDesc(status)
-        .orElseThrow(() -> new BackupException());
+        .orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND));
     return backupMapper.fromEntity(backup);
+  }
+
+  private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup) throws Exception {
+    if (!backupFile.exists()) {
+      throw new BackupException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    File renamedFile = new File(backupDir, saved.getId() + ".csv");
+
+    if (backupFile.renameTo(renamedFile)) {
+      log.info("Backup file renamed to {}", renamedFile.getAbsolutePath());
+    } else {
+      log.warn("Failed to rename backup file.");
+    }
+
+    saved.updateSize(renamedFile.length());
+    backup.addFile(saved);
+    backup.success();
+  }
+
+  private void onBackupFail(Backup backup, BinaryContent saved, Long backupId, Exception e){
+    log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
+    File logFile = new File(backupDir, saved.getId() + ".log");
+    backup.fail();
+    saved.updateFields("BackupFailLog-" + backup.getId(), "text/plain", 0L);
+
+    try {
+      Path path = Path.of(backupDir + "/" + saved.getId() + ".csv");
+      Files.deleteIfExists(path);
+    } catch (IOException exception) {
+      log.error("Failed To delete");
+    }
+
+    try (
+        FileWriter writer = new FileWriter(logFile, false)
+    ) {
+      writer.write("Backup failed for Backup ID : " + backupId + "\n");
+      writer.write("Timestamp : " + new Date() + "\n");
+      writer.write("For reason : " + e.getMessage());
+    } catch (IOException exception) {
+      log.error("Failed to write error log for ID {}", backupId);
+    }
+
+    saved.updateSize(logFile.length());
+  }
+
+  private void finishBackupProcess(Backup backup, BinaryContent saved){
+    backup.endBackup();
+    binaryContentRepository.save(saved);
+    backupRepository.save(backup);
   }
 
   private boolean isBackupNeeded() {
