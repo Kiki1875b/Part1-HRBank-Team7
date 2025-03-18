@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
@@ -30,7 +32,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   private final DepartmentRepository departmentRepository;
 
   @Override
-  @Transactional
+  @Transactional // todo : findById 전부 수정
   public void logEmployeeCreated(Employee employee, String memo, String ipAddress) {
     Department department = departmentRepository.findById(employee.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리

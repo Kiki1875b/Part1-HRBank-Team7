@@ -4,9 +4,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.io.File;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -126,20 +131,21 @@ public class BackupServiceImpl implements BackupService {
 
   @Override
   public BackupDto startBackup(Long backupId) {
+
     Backup backup = backupRepository.findById(backupId).orElseThrow(); // TODO : Exception 추가
+    File backupFile = new File(backupDir, TEMP_BACKUP);
+
+    BinaryContent saved = binaryContentRepository.save(
+        new BinaryContent("EmployeeBackup-" + backup.getId(),
+            "application/csv", backupFile.length()));
 
     try {
       JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
       if (execution.getStatus() == BatchStatus.COMPLETED) {
-        File backupFile = new File(backupDir, TEMP_BACKUP);
-        if (!backupFile.exists()) {
-          // retry? rollback?
-        }
-        Thread.sleep(5000); // 비동기 테스트용
 
-        BinaryContent binaryContent = new BinaryContent("EmployeeBackup-" + backup.getId(),
-            "application/csv", backupFile.length());
-        BinaryContent saved = binaryContentRepository.save(binaryContent);
+        if (!backupFile.exists()) { // TODO : exception 커스터마이징
+          throw new Exception();
+        }
 
         File renamedFile = new File(backupDir, saved.getId() + ".csv");
         if (backupFile.renameTo(renamedFile)) {
@@ -148,20 +154,43 @@ public class BackupServiceImpl implements BackupService {
           log.warn("Failed to rename backup file.");
         }
 
+        saved.updateSize(renamedFile.length());
         backup.addFile(saved);
         backup.success();
       }
     } catch (Exception e) {
+      log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
+      File logFile = new File(backupDir, saved.getId() + ".log");
       backup.fail();
+      saved.updateFields("BackupFailLog-" + backup.getId(), "text/plain", 0L);
+
+      try {
+        Path path = Path.of(backupDir + "/" + saved.getId() + ".csv");
+        Files.deleteIfExists(path);
+      } catch (IOException exception) {
+        log.error("Failed To delete");
+      }
+
+      try (
+          FileWriter writer = new FileWriter(logFile, false)
+      ) {
+        writer.write("Backup failed for Backup ID : " + backupId + "\n");
+        writer.write("Timestamp : " + new Date() + "\n");
+        writer.write("For reason : " + e.getMessage());
+      } catch (IOException exception) {
+        log.error("Failed to write error log for ID {}", backupId);
+      }
+
+      saved.updateSize(logFile.length());
 
     } finally {
       backup.endBackup();
+      binaryContentRepository.save(saved);
       backupRepository.save(backup);
     }
 
     return backupMapper.fromEntity(backup);
   }
-
 
   @Override
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
@@ -171,7 +200,7 @@ public class BackupServiceImpl implements BackupService {
     return backupMapper.fromEntity(backup);
   }
 
-  private boolean isBackupNeeded(){
+  private boolean isBackupNeeded() {
     Instant latestBackupTime = getLatestBackupTime();
     Instant latestChangeLogTime = changeLogService.getLatestChannelLogUpdateTime();
     // 백업 시간이 변경 로그보다 최신이면 백업 불필요
