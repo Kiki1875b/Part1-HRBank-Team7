@@ -40,15 +40,15 @@ public class DepartmentController {
 
     //부서 목록 조회 API
     @GetMapping
-    public ResponseEntity<ResponseDtoList> getDepartments(
+    public ResponseEntity<PageDepartmentsResponseDto> getDepartments(
         @RequestParam(name = "nameOrDescription", required = false) String nameOrDescription,
         @RequestParam(name = "idAfter", required = false) Integer idAfter, // 이전 페이지의 마지막 id
         @RequestParam(name = "cursor", required = false) String cursor, //다음 페이지 시작점
-        @RequestParam(name = "size", defaultValue = "10") Integer size, //한페이지당 보여질 페이지 수
-        @RequestParam(name = "sortField", required = false) String sortField,
+        @RequestParam(name = "size", required = false, defaultValue = "10") Integer size, //한페이지당 보여질 페이지 수
+        @RequestParam(name = "sortField", required = false, defaultValue = "establishedDate") String sortField,
         @RequestParam(name = "sortDirection", required = false, defaultValue = "asc") String sortDirection
     ){
-        ResponseDtoList departmentResponseDtoList = departmentServiceImpl.getDepartments(
+        PageDepartmentsResponseDto pageDepartmentsResponseDto = departmentServiceImpl.getDepartments(
                 nameOrDescription,
                 idAfter,
                 cursor,
@@ -59,7 +59,7 @@ public class DepartmentController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(departmentResponseDtoList);
+                .body(pageDepartmentsResponseDto);
     }
 
     //부서 단건 상세 조회 API

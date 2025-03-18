@@ -9,7 +9,7 @@ import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
@@ -47,7 +47,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        DepartmentResponseDto departmentResponse = departmentService.getDepartment(request.departmentId());
+        Department department = departmentService.getDepartmentEntityById(request.departmentId());
 
         // 프로필 사진
         BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)

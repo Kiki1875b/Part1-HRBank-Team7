@@ -20,7 +20,7 @@ public interface DepartmentService {
     void delete(Long id);
 
     //부서 조회 메서드
-    ResponseDtoList getDepartments(String nameOrDescription, Integer idAfter, String cursor, Integer size, String sortField, String sortDirection);
+    PageDepartmentsResponseDto getDepartments(String nameOrDescription, Integer idAfter, String cursor, Integer size, String sortField, String sortDirection);
 
     //부서 단건 조회 메서드
     WithEmployeeCountResponseDto getDepartment(Long id);

@@ -9,5 +9,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     // 부서에 소속된 직원수 확인
     @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId")
-    Integer countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
+    Long countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 }

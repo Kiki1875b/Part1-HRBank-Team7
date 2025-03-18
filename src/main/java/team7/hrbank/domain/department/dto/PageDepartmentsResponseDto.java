@@ -2,7 +2,7 @@ package team7.hrbank.domain.department.dto;
 
 import java.util.List;
 
-public record ResponseDtoList(
+public record PageDepartmentsResponseDto(
     List<WithEmployeeCountResponseDto> content,
     String nextCursor,
     Long nextIdAfter,
@@ -10,7 +10,7 @@ public record ResponseDtoList(
     Long totalElements,
     boolean hasNext
 ) {
-    public ResponseDtoList(List<WithEmployeeCountResponseDto> content, String nextCursor, Long nextIdAfter, Integer size, Long totalElements, boolean hasNext) {
+    public PageDepartmentsResponseDto(List<WithEmployeeCountResponseDto> content, String nextCursor, Long nextIdAfter, Integer size, Long totalElements, boolean hasNext) {
         this.content = content;
         this.nextCursor = nextCursor;
         this.nextIdAfter = nextIdAfter;

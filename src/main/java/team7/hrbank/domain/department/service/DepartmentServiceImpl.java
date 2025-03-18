@@ -9,6 +9,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
+import team7.hrbank.domain.department.repository.CustomDepartmentRepositoryImpl;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
@@ -23,6 +25,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeRepository employeeRepository;
     private final DepartmentMapper departmentMapper = DepartmentMapper.INSTANCE;
+    private final CustomDepartmentRepository customDepartmentRepository;
 
 
 
@@ -70,53 +73,21 @@ public class DepartmentServiceImpl implements DepartmentService {
     //todo 아직 정상동작 안합니다 !!! 수정예정!
     //부서 조회 메서드
     @Override
-    public ResponseDtoList getDepartments(String nameOrDescription,
+    public PageDepartmentsResponseDto getDepartments(String nameOrDescription,
                                           Integer idAfter,
                                           String cursor,
                                           Integer size,
                                           String sortField,
                                           String sortDirection) {
 
-        // 정렬 방향 처리 (기본값: ASC)
-        Sort.Direction direction;
-        try {
-            direction = Sort.Direction.fromString(sortDirection);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            direction = Sort.Direction.ASC;
-        }
-
         // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
         if (!List.of("name", "establishedDate").contains(sortField)) {
-            sortField = "establishedDate"; // 기본 정렬 필드
+            sortField = "establishedDate";
         }
+        // 정렬 방향 처리 (기본값: ASC)
+        Sort.Direction newSortDirection = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-        Sort sort = Sort.by(direction, sortField);
-        Pageable pageable = PageRequest.of(0, size, sort);
-
-        // idAfter 또는 cursor 기반 필터링
-        Page<Department> departments;
-        if (idAfter != null) {
-            departments = departmentRepository.findByIdAfter(nameOrDescription, idAfter, pageable);
-        } else if (cursor != null) {
-            if ("name".equals(sortField)) {
-                departments = departmentRepository.findByNameAfter(nameOrDescription, cursor, pageable);
-            } else { // establishedDate 정렬 기준
-                departments = departmentRepository.findByEstablishedDateAfter(nameOrDescription, cursor, pageable);
-            }
-        } else {
-            departments = departmentRepository.findByCriteria(nameOrDescription, pageable);
-        }
-        //todo dto 이상하게 반환하고있는거아닌지 확인하자
-        List<WithEmployeeCountResponseDto> content = departments.getContent().stream()
-                .map(department -> departmentMapper.toDto(department, getEmployeeCountByDepartment(department.getId())))
-                .collect(Collectors.toList());
-
-        String nextCursor = departments.hasNext() ? generateNextCursor(departments.getContent(), sortField) : null;
-        Long nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
-        boolean hasNext = departments.hasNext();
-
-        return new ResponseDtoList(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
-
+        return customDepartmentRepository.findDepartments(nameOrDescription, idAfter, cursor, size, sortField, newSortDirection);
     }
 
     @Override
