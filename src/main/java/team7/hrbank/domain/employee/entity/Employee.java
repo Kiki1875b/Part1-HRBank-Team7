@@ -20,6 +20,7 @@ import team7.hrbank.domain.department.entity.Department;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import team7.hrbank.domain.department.entity.Department;
 
 @Entity
 @Getter
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Employee extends BaseEntity {
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
@@ -72,6 +74,18 @@ public class Employee extends BaseEntity {
         this.position = position;
         this.hireDate = hireDate;
         this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+    }
+
+    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
+        String position, LocalDate hireDate, Department department) {
+        this.profile = profile;
+        this.employeeNumber = employeeNumber;
+        this.name = name;
+        this.email = email;
+        this.position = position;
+        this.hireDate = hireDate;
+        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+        this.department = department;
     }
 
 
