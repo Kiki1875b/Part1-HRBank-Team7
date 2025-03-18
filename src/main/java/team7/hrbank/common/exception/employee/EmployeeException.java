@@ -20,7 +20,7 @@ public class EmployeeException {
         String message = e.getMostSpecificCause().getMessage();
 
         // 이메일 중복 예외처리
-        if (message.contains("email")) {
+        if (message.contains("employees_email_key")) {  // 에러 메시지에 고유 제약 조건 이름 포함되어 있을 때
             ErrorResponse errorResponse = new ErrorResponse(
                     ExceptionUtil.getRequestTime(request),
                     ErrorCode.EMAIL_DUPLICATION.getStatus(),

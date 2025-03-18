@@ -54,10 +54,6 @@ public class Employee extends BaseUpdatableEntity {
     @Column(name = "status", nullable = false)
     private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
 
-//    @UpdateTimestamp
-//    @Column(name = "updated_at")
-//    private Instant updatedAt;  // 수정일
-
 
     // 생성자
     public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
