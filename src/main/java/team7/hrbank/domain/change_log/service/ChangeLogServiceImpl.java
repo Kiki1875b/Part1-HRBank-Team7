@@ -30,9 +30,9 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   private final DepartmentRepository departmentRepository;
 
   @Override
-  @Transactional
+  @Transactional // todo : findById 전부 수정
   public void logEmployeeCreated(Employee employee, String memo, String ipAddress) {
-    Department department = departmentRepository.findById(employee.getDepartmentId())
+    Department department = departmentRepository.findById(employee.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();
@@ -57,9 +57,9 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Override
   @Transactional
   public void logEmployeeUpdated(Employee before, Employee after, String memo, String ipAddress) {
-    Department departmentBefore = departmentRepository.findById(before.getDepartmentId())
+    Department departmentBefore = departmentRepository.findById(before.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
-    Department departmentAfter = departmentRepository.findById(after.getDepartmentId())
+    Department departmentAfter = departmentRepository.findById(after.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();
@@ -102,7 +102,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Override
   @Transactional
   public void logEmployeeDeleted(Employee employee, String memo, String ipAddress) {
-    Department department = departmentRepository.findById(employee.getDepartmentId())
+    Department department = departmentRepository.findById(employee.getDepartment().getId())
         .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다.")); //todo-전역예외처리
 
     List<DiffDto> details = new ArrayList<>();
