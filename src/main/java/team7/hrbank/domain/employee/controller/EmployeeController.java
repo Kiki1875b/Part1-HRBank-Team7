@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
+import team7.hrbank.common.utils.IpUtil;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
@@ -25,14 +27,17 @@ import team7.hrbank.domain.employee.service.EmployeeService;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final HttpServletRequest request;
 
     // 직원 등록
     @PostMapping
     public ResponseEntity<EmployeeDto> create(@RequestPart(value = "employee") EmployeeCreateRequest employee,
                                               @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
+        //IP 주소 받기
+        String ipAddress = IpUtil.getClientIp(request);
         // 직원 생성 로직
-        EmployeeDto employeeDto = employeeService.create(employee, profile);
+        EmployeeDto employeeDto = employeeService.create(employee, profile, ipAddress);
 
         return ResponseEntity.ok(employeeDto);
     }
@@ -61,8 +66,10 @@ public class EmployeeController {
                                          @RequestPart(value = "employee") EmployeeUpdateRequest employee,
                                          @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
+        //IP 주소 받기
+        String ipAddress = IpUtil.getClientIp(request);
         // 직원 수정 로직
-        EmployeeDto employeeDto = employeeService.updateById(id, employee, profile);
+        EmployeeDto employeeDto = employeeService.updateById(id, employee, profile, ipAddress);
 
         return ResponseEntity.ok(employeeDto);
     }
@@ -71,8 +78,10 @@ public class EmployeeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
+        //IP 주소 받기
+        String ipAddress = IpUtil.getClientIp(request);
         // 삭제 로직
-        employeeService.deleteById(id);
+        employeeService.deleteById(id, ipAddress);
 
         return ResponseEntity.noContent().build();
     }
