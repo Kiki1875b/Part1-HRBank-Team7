@@ -1,4 +1,4 @@
-package team7.hrbank.domain.Department.Service;
+package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -7,12 +7,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.Department.dto.DepartmentListResponse;
-import team7.hrbank.domain.Department.dto.DepartmentResponse;
-import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
-import team7.hrbank.domain.Department.entity.Department;
-import team7.hrbank.domain.Department.repository.DepartmentRepository;
+import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
+import team7.hrbank.domain.department.dto.DepartmentListResponse;
+import team7.hrbank.domain.department.dto.DepartmentResponse;
+import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
@@ -28,20 +28,17 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Transactional
     @Override
-    public DepartmentResponse createDepartment(DepartmentCreateRequest requestDto) {
-        // 부서 이름 중복 체크
-        if (departmentRepository.existsByName(requestDto.name())) {
-            throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
-        }
-        // 엔티티 생성
+    public DepartmentResponse create(DepartmentCreateRequest requestDto) {
+        
+        checkName(requestDto.name());
+        
         Department department = new Department(
                 requestDto.name(),
                 requestDto.description(),
                 requestDto.establishedDate()
         );
-        // 저장
         departmentRepository.save(department);
-        // 저장된 데이터를 DTO로 변환 후 반환
+        
         return new DepartmentResponse(department);
     }
 
@@ -49,36 +46,32 @@ public class DepartmentServiceImpl implements DepartmentService {
     // 부서 수정 메서드
     @Transactional
     @Override
-    public DepartmentResponse updateDepartment(Long id, DepartmentUpdateRequest requestDto) {
-        // 부서 이름 중복 체크
-        if (departmentRepository.existsByName(requestDto.name())) {
-            throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
-        }
+    public DepartmentResponse update(Long id, DepartmentUpdateRequest requestDto) {
+
+        checkName(requestDto.name());
         // 기존 부서 조회
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
+        Department department = getOrElseThrow(id);
         // 부서 수정
-        department.update(requestDto.name(), requestDto.description(), requestDto.establishedDate());
-        // 수정된 부서 저장
+        department.setName(requestDto.name());
+        department.setDescription(requestDto.description());
+        department.setEstablishedDate(requestDto.establishedDate());// 수정된 부서 저장
         departmentRepository.save(department);
 
         return new DepartmentResponse(department);
     }
 
+    
     //부서 삭제 메서드
     @Transactional
     @Override
-    public void deleteDepartment(Long id) {
-        // 기존 부서 조회
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
-        //부서 내 소속직원 존재여부 체크
-       if (getEmployeeCountByDepartment(department.getId())==0) {
-            throw  new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
-        }
-        //부서 삭제
+    public void delete(Long id) {
+        Department department = getOrElseThrow(id);
+
+        isEmployeeExistent(department); //부서 내 소속직원 존재여부 체크
+
         departmentRepository.delete(department);
     }
+
 
     @Override
     public Integer getEmployeeCountByDepartment(Long departmentId) {
@@ -88,7 +81,12 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     //부서 조회 메서드
     @Override
-    public DepartmentListResponse getDepartments(String nameOrDescription, Integer idAfter, String cursor, Integer size, String sortField, String sortDirection) {
+    public DepartmentListResponse getDepartments(String nameOrDescription,
+                                                 Integer idAfter,
+                                                 String cursor,
+                                                 Integer size,
+                                                 String sortField,
+                                                 String sortDirection) {
 
         // 정렬 방향 처리 (기본값: ASC)
         Sort.Direction direction;
@@ -119,8 +117,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         } else {
             departments = departmentRepository.findByCriteria(nameOrDescription, pageable);
         }
-
-        // content 변환
+        //todo dto 이상하게 반환하고있는거아닌지 확인하자
         List<DepartmentResponse> content = departments.getContent().stream()
                 .map(department -> new DepartmentResponse(
                         department.getId(),
@@ -156,8 +153,27 @@ public class DepartmentServiceImpl implements DepartmentService {
     //부서 단건 조회 메서드
     public DepartmentResponse getDepartment(Long id) {
         // 기존 부서 조회
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("부서 코드는 필수입니다."));
+        Department department = getOrElseThrow(id);
         return new DepartmentResponse(department);
+    }
+
+
+
+
+    private void checkName(String name) {
+        if (departmentRepository.existsByName(name)) {
+            throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
+        }
+    }
+
+    private Department getOrElseThrow(Long id) {
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("부서가 존재하지 않습니다."));
+    }
+
+    private void isEmployeeExistent(Department department) {
+        if (getEmployeeCountByDepartment(department.getId())!=0) {
+            throw  new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
+        }
     }
 }

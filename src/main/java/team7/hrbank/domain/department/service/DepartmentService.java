@@ -1,26 +1,26 @@
-package team7.hrbank.domain.Department.Service;
+package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
-import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.Department.dto.DepartmentListResponse;
-import team7.hrbank.domain.Department.dto.DepartmentResponse;
-import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
-import team7.hrbank.domain.Department.entity.Department;
+import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
+import team7.hrbank.domain.department.dto.DepartmentListResponse;
+import team7.hrbank.domain.department.dto.DepartmentResponse;
+import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.department.entity.Department;
 
 import java.util.List;
 
 public interface DepartmentService {
     //부서 생성 메서드
     @Transactional
-    DepartmentResponse createDepartment(DepartmentCreateRequest requestDto);
+    DepartmentResponse create(DepartmentCreateRequest requestDto);
 
     // 부서 수정 메서드
     @Transactional
-    DepartmentResponse updateDepartment(Long id, DepartmentUpdateRequest requestDto);
+    DepartmentResponse update(Long id, DepartmentUpdateRequest requestDto);
 
     //부서 삭제 메서드
     @Transactional
-    void deleteDepartment(Long id);
+    void delete(Long id);
 
     //부서에 소속된 직원 수 조회
     Integer getEmployeeCountByDepartment(Long departmentId);
