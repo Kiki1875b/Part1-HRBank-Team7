@@ -167,7 +167,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
+        changeLogService.logEmployeeDeleted(employee, ipAddress);
     }
 
 
