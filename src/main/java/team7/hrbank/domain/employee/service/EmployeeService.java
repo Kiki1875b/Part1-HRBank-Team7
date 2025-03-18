@@ -10,7 +10,7 @@ import team7.hrbank.domain.employee.dto.EmployeeUpdateRequest;
 public interface EmployeeService {
 
     // 직원 등록
-    EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile);
+    EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile, String ipAddress);
 
     // 직원 목록 조회
     PageResponse<EmployeeDto> find(EmployeeFindRequest request);
@@ -19,8 +19,8 @@ public interface EmployeeService {
     EmployeeDto findById(Long id);
 
     // 직원 수정
-    EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile);
+    EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile, String ipAddress);
 
     // 직원 삭제
-    void deleteById(Long id);
+    void deleteById(Long id, String ipAddress);
 }
