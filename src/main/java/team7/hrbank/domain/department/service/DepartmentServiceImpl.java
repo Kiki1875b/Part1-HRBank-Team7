@@ -28,7 +28,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Transactional
     @Override
-    public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
+    public ResponseDto create(CreateRequest requestDto) {
         
         checkName(requestDto.name());
         
@@ -42,7 +42,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     // 부서 수정 메서드
     @Transactional
     @Override
-    public DepartmentResponseDto update(Long id, DepartmentUpdateRequest requestDto) {
+    public ResponseDto update(Long id, UpdateRequest requestDto) {
 
         checkName(requestDto.name());
         // 기존 부서 조회
@@ -67,20 +67,15 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
 
-    @Override
-    public Integer getEmployeeCountByDepartment(Long departmentId) {
-        return employeeRepository.countEmployeesByDepartmentId(departmentId);
-    }
-
     //todo 아직 정상동작 안합니다 !!! 수정예정!
     //부서 조회 메서드
     @Override
-    public DepartmentResponseDtoList getDepartments(String nameOrDescription,
-                                                    Integer idAfter,
-                                                    String cursor,
-                                                    Integer size,
-                                                    String sortField,
-                                                    String sortDirection) {
+    public ResponseDtoList getDepartments(String nameOrDescription,
+                                          Integer idAfter,
+                                          String cursor,
+                                          Integer size,
+                                          String sortField,
+                                          String sortDirection) {
 
         // 정렬 방향 처리 (기본값: ASC)
         Sort.Direction direction;
@@ -112,15 +107,15 @@ public class DepartmentServiceImpl implements DepartmentService {
             departments = departmentRepository.findByCriteria(nameOrDescription, pageable);
         }
         //todo dto 이상하게 반환하고있는거아닌지 확인하자
-        List<DepartmentResponseDto> content = departments.getContent().stream()
-                .map(departmentMapper::toDto)
+        List<WithEmployeeCountResponseDto> content = departments.getContent().stream()
+                .map(department -> departmentMapper.toDto(department, getEmployeeCountByDepartment(department.getId())))
                 .collect(Collectors.toList());
 
         String nextCursor = departments.hasNext() ? generateNextCursor(departments.getContent(), sortField) : null;
         Long nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
         boolean hasNext = departments.hasNext();
 
-        return new DepartmentResponseDtoList(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
+        return new ResponseDtoList(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
 
     }
 
@@ -141,10 +136,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     //부서 단건 조회 메서드
-    public DepartmentResponseDto getDepartment(Long id) {
+    public WithEmployeeCountResponseDto getDepartment(Long id) {
         // 기존 부서 조회
         Department department = getOrElseThrow(id);
-        return departmentMapper.toDto(department);
+        return departmentMapper.toDto(department, getEmployeeCountByDepartment(id));
     }
 
     //성지님! 그대를 위해 준비한 메서드입니다... S2
@@ -171,5 +166,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (getEmployeeCountByDepartment(department.getId())!=0) {
             throw  new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
         }
+    }
+
+    public Long getEmployeeCountByDepartment(Long departmentId) {
+        return employeeRepository.countEmployeesByDepartmentId(departmentId);
     }
 }

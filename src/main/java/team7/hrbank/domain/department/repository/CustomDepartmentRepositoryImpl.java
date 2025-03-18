@@ -1,15 +1,19 @@
 package team7.hrbank.domain.department.repository;
 
-import com.querydsl.core.BooleanBuilder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import team7.hrbank.domain.department.entity.Department;
-import team7.hrbank.domain.department.entity.QDepartment;
+import com.querydsl.core.QueryFactory;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import team7.hrbank.domain.employee.entity.QEmployee;
 
-import java.util.List;
-/*
+
+@Repository
+@RequiredArgsConstructor
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
+    private final JPAQueryFactory queryFactory;
+
+    /*
     @Override
     public Page<Department> findDepartments(String nameOrDescription,
                                             Integer idAfter,
@@ -21,10 +25,10 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         List<Department> result;
 
 
-    }
+    }*/
 
 
-
+    /*
     private BooleanBuilder buildSearchCondition(String nameOrDescription,
                                                 Integer idAfter,
                                                 String cursor,
@@ -41,9 +45,9 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         }
 
 
-    }
+    }*/
 
 
 }
- */
+
 // todo 쿼리문 짜기 !!!!!
