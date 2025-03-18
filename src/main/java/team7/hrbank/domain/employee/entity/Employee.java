@@ -26,8 +26,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Employee extends BaseEntity {
 
-    // TODO: Department 엔티티 완료 시
-    //  department 추가
+    // TODO: department, BinaryContent 엔티티 완료 시
+    //  departmentId, profileImageId 추가
+    //  직원 등록용 생성자 추가(이름, 이메일, 부서, 입사일, 프로필 이미지 필요)
+
     // <<-- 임시 테스트용
     @Column(name = "department_id", nullable = false)
     private Long departmentId = 1L;

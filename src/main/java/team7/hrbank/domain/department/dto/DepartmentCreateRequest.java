@@ -1,4 +1,4 @@
-package team7.hrbank.domain.Department.dto;
+package team7.hrbank.domain.department.dto;
 
 import java.time.LocalDate;
 

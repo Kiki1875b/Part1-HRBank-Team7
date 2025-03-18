@@ -1,14 +1,14 @@
-package team7.hrbank.domain.Department.Controller;
+package team7.hrbank.domain.department.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import team7.hrbank.domain.Department.Service.DepartmentServiceImpl;
-import team7.hrbank.domain.Department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.Department.dto.DepartmentListResponse;
-import team7.hrbank.domain.Department.dto.DepartmentResponse;
-import team7.hrbank.domain.Department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.department.service.DepartmentServiceImpl;
+import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
+import team7.hrbank.domain.department.dto.DepartmentListResponse;
+import team7.hrbank.domain.department.dto.DepartmentResponse;
+import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -19,14 +19,14 @@ public class DepartmentController {
     // 부서 등록 API _ 등록 후 해당 부서 상세화면으로 리다이렉트
     @PostMapping
     public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
-        DepartmentResponse responseDto = departmentServiceImpl.createDepartment(requestDto);
+        DepartmentResponse responseDto = departmentServiceImpl.create(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     // 부서 수정 API
     @PatchMapping("/{id}")
     public ResponseEntity<DepartmentResponse> updateDepartment(@PathVariable("id") Long id, @RequestBody DepartmentUpdateRequest requestDto) {
-        DepartmentResponse responseDto = departmentServiceImpl.updateDepartment(id, requestDto);
+        DepartmentResponse responseDto = departmentServiceImpl.update(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
@@ -35,7 +35,7 @@ public class DepartmentController {
     // 부서 삭제 API
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteDepartment(@PathVariable("id") Long id) {
-        departmentServiceImpl.deleteDepartment(id);
+        departmentServiceImpl.delete(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body("부서가 삭제되었습니다");
