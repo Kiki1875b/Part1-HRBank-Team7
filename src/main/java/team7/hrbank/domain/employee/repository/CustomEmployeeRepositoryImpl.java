@@ -70,13 +70,18 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     @Override
-    public String selectEmployeeNumberByHireDateYearAndCreateAt(int year) {
+    public String selectLatestEmployeeNumberByHireDateYear(int year) {
+
+        // 해당 년도의 첫날과 마지막날 구하기
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+        LocalDate endOfYear = LocalDate.of(year, 12, 31);
+
         // 해당 년도에 입사한 직원 중 id가 가장 큰 직원의 사원번호 반환
         return queryFactory
                 .select(qEmployee.employeeNumber)
                 .from(qEmployee)
                 .where(
-                        qEmployee.hireDate.year().eq(year)
+                        qEmployee.hireDate.between(startOfYear, endOfYear)
                 )
                 .orderBy(
                         qEmployee.id.desc()

@@ -13,25 +13,21 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
-import team7.hrbank.domain.base.BaseEntity;
+import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.department.entity.Department;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import team7.hrbank.domain.department.entity.Department;
 
 @Entity
 @Getter
 @Table(name = "employees")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employee extends BaseEntity {
-
+public class Employee extends BaseUpdatableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department_id", nullable = false)
     private Department department;  // 부서
 
     // 직원 삭제 시 프로필 사진도 삭제, 직원과 관계가 끊긴 사진도 삭제
@@ -58,10 +54,6 @@ public class Employee extends BaseEntity {
     @Column(name = "status", nullable = false)
     private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;  // 수정일
-
 
     // 생성자
     public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
@@ -74,18 +66,6 @@ public class Employee extends BaseEntity {
         this.position = position;
         this.hireDate = hireDate;
         this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
-    }
-
-    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
-        String position, LocalDate hireDate, Department department) {
-        this.profile = profile;
-        this.employeeNumber = employeeNumber;
-        this.name = name;
-        this.email = email;
-        this.position = position;
-        this.hireDate = hireDate;
-        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
-        this.department = department;
     }
 
 
