@@ -1,5 +1,6 @@
 package team7.hrbank.common.exception.employee;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.exception.ErrorCode;
+import team7.hrbank.common.utils.ExceptionUtil;
 
 import java.time.Instant;
 
@@ -14,13 +16,13 @@ import java.time.Instant;
 public class EmployeeException {
     
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handlerEmailDuplication(DataIntegrityViolationException e) {
+    public ResponseEntity<ErrorResponse> handlerEmailDuplication(DataIntegrityViolationException e, HttpServletRequest request) {
         String message = e.getMostSpecificCause().getMessage();
 
         // 이메일 중복 예외처리
         if (message.contains("email")) {
             ErrorResponse errorResponse = new ErrorResponse(
-                    Instant.now(),
+                    ExceptionUtil.getRequestTime(request),
                     ErrorCode.EMAIL_DUPLICATION.getStatus(),
                     ErrorCode.EMAIL_DUPLICATION.getMessage(),
                     "이미 존재하는 이메일입니다."
@@ -29,7 +31,7 @@ public class EmployeeException {
         }
 
         ErrorResponse errorResponse = new ErrorResponse(
-                Instant.now(),
+                ExceptionUtil.getRequestTime(request),
                 ErrorCode.INTERNAL_SERVER_ERROR.getStatus(),
                 ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
                 e.getMessage()
