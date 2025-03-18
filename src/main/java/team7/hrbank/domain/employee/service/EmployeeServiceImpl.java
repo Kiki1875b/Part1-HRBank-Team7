@@ -9,9 +9,9 @@ import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 import team7.hrbank.domain.department.service.DepartmentService;
-import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
@@ -22,7 +22,6 @@ import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +35,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BinaryMapper binaryMapper;
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
+
 
     // 직원 등록
     @Override
@@ -123,7 +123,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         //수정로그를 위한 수정 전 직원 복사
         Employee before = employee.copy();
 
-        // TODO: departmentId 수정 로직 추가
         if (request.departmentId() != null) {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
@@ -162,12 +161,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);  // TODO: null일 경우 예외처리
 
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
+//        changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
     }
 
 
