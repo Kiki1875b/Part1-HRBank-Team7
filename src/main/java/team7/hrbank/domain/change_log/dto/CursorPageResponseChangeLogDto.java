@@ -6,20 +6,8 @@ public record CursorPageResponseChangeLogDto<T>(
     List<T> content,
     String nextCursor,
     Long nextIdAfter,
-    Integer size,
-    Long totalElements,
+    int size,
+    int totalElements,
     boolean hasNext
 ) {
-
-  public static <T> CursorPageResponseChangeLogDto<T> of(List<T> content, String nextCursor,
-      Long nextIdAfter, int size, long totalElements) {
-    return new CursorPageResponseChangeLogDto<>(
-        content,
-        nextCursor,
-        nextIdAfter,
-        size,
-        totalElements,
-        nextCursor != null
-    );
-  }
 }

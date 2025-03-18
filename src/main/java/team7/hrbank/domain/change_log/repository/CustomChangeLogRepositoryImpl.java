@@ -4,8 +4,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
@@ -25,52 +23,39 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
   QEmployee qEmployee = QEmployee.employee;
 
   @Override
-  public Page<ChangeLog> searchChangeLogs(String employeeNumber, ChangeLogType type, String memo,
+  public List<ChangeLog> findChangeLogs(
+      String employeeNumber, ChangeLogType type, String memo,
       String ipAddress, Instant atFrom, Instant atTo,
       Long idAfter, Pageable pageable) {
 
-    List<ChangeLog> changeLogs = queryFactory
+    return queryFactory
         .selectFrom(qChangeLog)
         .join(qChangeLog.employee, qEmployee)
         .where(
-            eqEmployeeNumber(employeeNumber, qEmployee),
+            containsEmployeeNumber(employeeNumber, qEmployee),
             eqChangeLogType(type, qChangeLog),
             containsMemo(memo, qChangeLog),
-            eqIpAddress(ipAddress, qChangeLog),
+            containsIpAddress(ipAddress, qChangeLog),
             betweenCreatedAt(atFrom, atTo, qChangeLog),
             gtIdAfter(idAfter, qChangeLog)
         )
-        .offset(pageable.getOffset())
-        .limit(pageable.getPageSize())
+        .orderBy(qChangeLog.id.asc())
+        .limit(pageable.getPageSize() + 1)
         .fetch();
-
-    Long total = Optional.ofNullable(queryFactory
-        .select(qChangeLog.count())
-        .from(qChangeLog)
-        .join(qChangeLog.employee, qEmployee)
-        .where(
-            eqEmployeeNumber(employeeNumber, qEmployee),
-            eqChangeLogType(type, qChangeLog),
-            containsMemo(memo, qChangeLog),
-            eqIpAddress(ipAddress, qChangeLog),
-            betweenCreatedAt(atFrom, atTo, qChangeLog),
-            gtIdAfter(idAfter, qChangeLog)
-        )
-        .fetchOne()).orElse(0L);
-
-    return new PageImpl<>(changeLogs, pageable, total);
   }
 
   // 필터 조건들
-  private BooleanExpression eqEmployeeNumber(String employeeNumber, QEmployee qEmployee) {
-    return Optional.ofNullable(employeeNumber)
-        .map(qEmployee.employeeNumber::eq)
-        .orElse(null);
-  }
+
 
   private BooleanExpression eqChangeLogType(ChangeLogType type, QChangeLog qChangeLog) {
     return Optional.ofNullable(type)
         .map(qChangeLog.type::eq)
+        .orElse(null);
+  }
+
+  private BooleanExpression containsEmployeeNumber(String employeeNumber, QEmployee qEmployee) {
+    return Optional.ofNullable(employeeNumber)
+        .map(e -> qEmployee.employeeNumber.containsIgnoreCase(e))
         .orElse(null);
   }
 
@@ -80,9 +65,9 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
         .orElse(null);
   }
 
-  private BooleanExpression eqIpAddress(String ipAddress, QChangeLog qChangeLog) {
+  private BooleanExpression containsIpAddress(String ipAddress, QChangeLog qChangeLog) {
     return Optional.ofNullable(ipAddress)
-        .map(qChangeLog.ipAddress::eq)
+        .map(i -> qChangeLog.ipAddress.containsIgnoreCase(i))
         .orElse(null);
   }
 
