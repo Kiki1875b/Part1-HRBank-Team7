@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,12 +14,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
-import team7.hrbank.domain.Department.entity.Department;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import team7.hrbank.domain.department.entity.Department;
 
 @Entity
 @Getter
@@ -27,9 +28,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Employee extends BaseEntity {
 
-    // TODO: Department, BinaryContent 엔티티 완료 시
+    // TODO: department, BinaryContent 엔티티 완료 시
     //  departmentId, profileImageId 추가
     //  직원 등록용 생성자 추가(이름, 이메일, 부서, 입사일, 프로필 이미지 필요)
+
     // <<-- 임시 테스트용
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,7 +41,8 @@ public class Employee extends BaseEntity {
 //    private Long departmentId = 1L;
     // -->>
 
-    @OneToOne
+    // 직원 삭제 시 프로필 사진도 삭제, 직원과 관계가 끊긴 사진도 삭제
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "binary_content_id")
     private BinaryContent profile;  // 프로필 사진
 
@@ -68,9 +71,9 @@ public class Employee extends BaseEntity {
 
 
     // 생성자
-    // TODO: 생성자 인자로 departmentId 추가
+    // TODO: 생성자 인자로 department 추가
     public Employee(BinaryContent profile, String employeeNumber, String name, String email,
-        String position, LocalDate hireDate) {
+                    String position, LocalDate hireDate) {
         this.profile = profile;
         this.employeeNumber = employeeNumber;
         this.name = name;
@@ -94,8 +97,6 @@ public class Employee extends BaseEntity {
 
 
     // update 메서드
-    //  - 사원번호 외에 모두 수정 가능
-    //  - 수정일은 자동 수정
     // 이름 수정
     public void updateName(String name) {
         this.name = name;
@@ -124,5 +125,20 @@ public class Employee extends BaseEntity {
     // 프로필 사진 수정
     public void updateProfile(BinaryContent profile) {
         this.profile = profile;
+    }
+
+    //직원 복사
+    public Employee copy() {
+        Employee copied = new Employee();
+        copied.profile = this.profile;
+        copied.employeeNumber = this.employeeNumber;
+        copied.name = this.name;
+        copied.email = this.email;
+        copied.position = this.position;
+        copied.hireDate = this.hireDate;
+        copied.status = this.status;
+        copied.department = this.department;
+
+        return copied;
     }
 }

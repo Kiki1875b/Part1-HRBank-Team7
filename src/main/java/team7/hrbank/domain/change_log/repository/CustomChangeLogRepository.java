@@ -1,7 +1,6 @@
 package team7.hrbank.domain.change_log.repository;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import team7.hrbank.domain.change_log.entity.ChangeLog;

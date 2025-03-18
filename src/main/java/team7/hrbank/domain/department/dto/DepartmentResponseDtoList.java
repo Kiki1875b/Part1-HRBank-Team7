@@ -1,16 +1,16 @@
-package team7.hrbank.domain.Department.dto;
+package team7.hrbank.domain.department.dto;
 
 import java.util.List;
 
-public record DepartmentListResponse(
-    List<DepartmentResponse> content,
+public record DepartmentResponseDtoList(
+    List<DepartmentResponseDto> content,
     String nextCursor,
     Long nextIdAfter,
     Integer size,
     Long totalElements,
     boolean hasNext
 ) {
-    public DepartmentListResponse(List<DepartmentResponse> content, String nextCursor, Long nextIdAfter, Integer size, Long totalElements, boolean hasNext) {
+    public DepartmentResponseDtoList(List<DepartmentResponseDto> content, String nextCursor, Long nextIdAfter, Integer size, Long totalElements, boolean hasNext) {
         this.content = content;
         this.nextCursor = nextCursor;
         this.nextIdAfter = nextIdAfter;

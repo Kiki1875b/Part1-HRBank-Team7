@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
+import team7.hrbank.domain.employee.entity.Employee;
 
 public interface ChangeLogService {
   Page<ChangeLogDto> getChangeLogs(
@@ -24,5 +25,7 @@ public interface ChangeLogService {
 
   List<DiffDto> getChangeLogDetails(Long id);
   Instant getLatestChannelLogUpdateTime();
-
+  void logEmployeeCreated(Employee employee, String memo, String ipAddress);
+  void logEmployeeUpdated(Employee before, Employee after, String memo, String ipAddress);
+  void logEmployeeDeleted(Employee employee, String memo, String ipAddress);
 }
