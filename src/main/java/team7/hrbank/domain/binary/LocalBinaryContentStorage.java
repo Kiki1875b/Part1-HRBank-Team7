@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.stream.Stream;
+import team7.hrbank.domain.employee.entity.Employee;
 
 import static org.springframework.http.HttpHeaders.*;
 
@@ -28,7 +29,9 @@ public class LocalBinaryContentStorage {
 
     public void put(byte[] content, Long id, String fileType) {
         try {
-            Files.write(resolvePath(id, fileType), content);
+            Path savedPath = resolvePath(id, fileType);
+            Files.createFile(savedPath);
+            Files.write(savedPath, content);
         } catch (Exception e) {
             throw new RuntimeException("파일 저장 실패", e);
         }
@@ -46,11 +49,17 @@ public class LocalBinaryContentStorage {
                 .body(new FileSystemResource(profilePath));
     }
 
+    public void backUpEmployeeToCsv(List<Employee> employeeList){
+
+    }
+
+
     /**
      * 편의
      */
     private Path resolvePath(Long id, String fileType) {
-        return root.resolve(id.toString() + "." + fileType);
+        String realFileType = fileType.split("/")[1];
+        return root.resolve(id.toString() + "." + realFileType);
     }
 
     //루트 디렉토리를 초기화합니다.
@@ -75,4 +84,6 @@ public class LocalBinaryContentStorage {
             }
         }
     }
+
+
 }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.Backup;
 import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.domain.backup.entity.QBackup;
@@ -22,12 +23,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
   @Override
   public List<Backup> findBackups(
-      String worker,
-      BackupStatus status,
-      Instant startedAtFrom,
-      Instant startedAtTo,
-      Long idAfter,
-      Instant cursor,
+      BackupListRequestDto dto,
       int size,
       String sortField,
       String sortDirection
@@ -35,31 +31,32 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
     BooleanBuilder where = new BooleanBuilder();
 
-    if (worker != null) {
-      where.and(backup.worker.containsIgnoreCase(worker));
+
+    if (dto.worker() != null) {
+      where.and(backup.worker.containsIgnoreCase(dto.worker()));
     }
 
-    if (status != null) {
-      where.and(backup.status.eq(status));
+    if (dto.status() != null) {
+      where.and(backup.status.eq(dto.status()));
     }
 
-    if (startedAtFrom != null) {
-      where.and(backup.startedAt.goe(startedAtFrom));
+    if (dto.startedAtFrom() != null) {
+      where.and(backup.startedAt.goe(dto.startedAtFrom()));
     }
 
-    if (startedAtTo != null) {
-      where.and(backup.startedAt.loe(startedAtTo));
+    if (dto.startedAtTo() != null) {
+      where.and(backup.startedAt.loe(dto.startedAtTo()));
     }
 
-    if (idAfter != null) {
-      where.and(backup.id.goe(idAfter)); // 테스트 후 gt 로 변경해야 할 수도
+    if (dto.idAfter() != null) {
+      where.and(backup.id.goe(dto.idAfter())); // 테스트 후 gt 로 변경해야 할 수도
     }
 
-    if (cursor != null) {
+    if (dto.cursor() != null) {
       where.and(
           "DESC".equalsIgnoreCase(sortDirection)
-              ? backup.startedAt.lt(cursor)
-              : backup.startedAt.gt(cursor)
+              ? backup.startedAt.lt(dto.cursor())
+              : backup.startedAt.gt(dto.cursor())
       );
     }
 
@@ -69,7 +66,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
         .selectFrom(backup)
         .where(where)
         .orderBy(specifier)
-        .limit(size)
+        .limit(size )
         .fetch();
   }
 

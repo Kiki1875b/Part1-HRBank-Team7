@@ -4,22 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
-import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
+import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.dto.EmployeeUpdateRequest;
 import team7.hrbank.domain.employee.service.EmployeeService;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -41,21 +39,8 @@ public class EmployeeController {
 
     // 직원 목록 조회
     @GetMapping
-    public ResponseEntity<PageResponse> read(@RequestParam(required = false) String nameOrEmail,
-                                       @RequestParam(required = false) String employeeNumber,
-                                       @RequestParam(required = false) String departmentName,
-                                       @RequestParam(required = false) String position,
-                                       @RequestParam(required = false) LocalDate hireDateFrom,
-                                       @RequestParam(required = false) LocalDate hireDateTo,
-                                       @RequestParam(required = false) EmployeeStatus status,
-                                       @RequestParam(required = false) Long idAfter,
-                                       @RequestParam(required = false) String cursor,
-                                       @RequestParam(defaultValue = "25") int size,
-                                       @RequestParam(defaultValue = "name") String sortField,
-                                       @RequestParam(defaultValue = "asc") String sortDirection) {
-        
-        // 직원 목록 조회 로직
-        PageResponse<EmployeeDto> pageResponse = employeeService.find(nameOrEmail, employeeNumber, departmentName, position, hireDateFrom, hireDateTo, status, idAfter, cursor, size, sortField, sortDirection);
+    public ResponseEntity<PageResponse<EmployeeDto>> read(@ModelAttribute EmployeeFindRequest request) {
+        PageResponse<EmployeeDto> pageResponse = employeeService.find(request);
 
         return ResponseEntity.ok(pageResponse);
     }

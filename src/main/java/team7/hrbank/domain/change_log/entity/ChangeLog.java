@@ -23,7 +23,7 @@ import team7.hrbank.domain.employee.entity.Employee;
 
 @Getter
 @Entity
-@Table(name = "employee_history")
+@Table(name = "change_log")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)

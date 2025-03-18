@@ -19,7 +19,7 @@ public interface BinaryMapper {
             return Optional.empty();
         } else {
             try {
-                return Optional.of(new BinaryContentDto(file.getName(), file.getOriginalFilename(), file.getSize(), file.getBytes()));
+                return Optional.of(new BinaryContentDto(file.getOriginalFilename(), file.getContentType(), file.getSize(), file.getBytes()));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -37,7 +37,12 @@ public class Backup {
     this.worker = worker;
     this.startedAt = startedAt;
     this.status = BackupStatus.COMPLETED;
+  }
 
+  public Backup(Instant startedAt, BackupStatus status){
+    this.startedAt = startedAt;
+    this.worker = "system";
+    this.status = status;
   }
 
   @Id
@@ -70,6 +75,13 @@ public class Backup {
     endedAt = Instant.now();
   }
 
+  public void success(){
+    status = BackupStatus.COMPLETED;
+  }
+
+  public void fail(){
+    status = BackupStatus.FAILED;
+  }
   public void addFile(BinaryContent file) {
     this.file = file;
   }
