@@ -1,9 +1,12 @@
 package team7.hrbank.domain.department.dto;
 
+import java.util.List;
+
 public record DepartmentResponseDTO(
-        Long id,
-        String name,
-        String description,
-        String establishmentDate,
-        Long employeeCount) {
+        List<DepartmentPageContentDTO> contents,
+        String nextCursor,
+        Integer nextIdAfter,
+        Integer size,
+        Long totalElements,
+        boolean hasNext) {
 }

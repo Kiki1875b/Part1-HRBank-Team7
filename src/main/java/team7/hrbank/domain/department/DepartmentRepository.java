@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long>, CustomDepartmentRepository {
     Optional<Department> findByName(String name);
+
+    boolean existsByName(String name);
 }

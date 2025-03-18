@@ -1,6 +1,7 @@
 package team7.hrbank.domain.department;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team7.hrbank.domain.department.dto.DepartmentRequestDTO;
@@ -45,8 +46,15 @@ public class DepartmentService {
     // 부서 목록 조회하는 메서드
     // search : 조건 기반 검색임이 들어나는 이름이라네요
     public Department searchDepartments(DepartmentSearchCondition condition) {
+        //  "nextCursor": "eyJpZCI6MjB9",
+        //  "nextIdAfter": 20,
+        // 남은 활용할 것 :     private Integer idAfter; // 이전 페이지 마지막 요소 id
+        //    private String cursor; // 커서 (다음 페이지 시작점)
 
-        //departmentRepository.
+        String cursor = "eyJpZCI6MjB9";
+
+
+        Page<Department> pagingResult = departmentRepository.findPagingAll1(condition);
         return null;
     }
 
@@ -56,7 +64,7 @@ public class DepartmentService {
                 .orElseThrow(() -> new RuntimeException("id에 해당하는 부서가 존재하지 않습니다."));
 
         // employeeCount 필요
-        // 나중에 ㄱ
+        // 나중에 ㄱ : 아니면 employee 레이어에서 한번에 join해서 가져오기도 가능
         return new ArrayList<>();
     }
 
@@ -68,7 +76,7 @@ public class DepartmentService {
 
 
     private void validateDuplicateName(String name) {
-        if (departmentRepository.findByName(name).isPresent()) {
+        if (departmentRepository.existsByName(name)) {
             throw new RuntimeException("이미 존재하는 부서명입니다.");
         }
     }

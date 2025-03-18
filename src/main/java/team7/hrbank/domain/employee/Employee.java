@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
+import team7.hrbank.domain.department.Department;
 
 import java.time.Instant;
 
