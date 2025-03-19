@@ -3,10 +3,13 @@ package team7.hrbank.domain.department.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.*;
-import team7.hrbank.domain.base.BaseEntity;
-
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import team7.hrbank.domain.base.BaseEntity;
 
 @Entity @Getter  @Setter
 @Table(name = "departments")

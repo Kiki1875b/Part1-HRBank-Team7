@@ -1,13 +1,12 @@
 package team7.hrbank.domain.employee.repository;
 
+import java.util.List;
 import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
 
-import java.util.List;
-
 public interface CustomEmployeeRepository {
-    
+
     // 조건에 맞는 직원 검색
     List<Employee> findEmployees(EmployeeFindRequest employeeFindRequest);
 

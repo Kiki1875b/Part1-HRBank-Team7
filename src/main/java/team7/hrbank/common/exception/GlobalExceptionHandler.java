@@ -1,7 +1,7 @@
 package team7.hrbank.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.core.annotation.Order;
+import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.utils.ExceptionUtil;
-
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

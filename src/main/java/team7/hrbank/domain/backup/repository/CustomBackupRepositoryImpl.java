@@ -3,15 +3,11 @@ package team7.hrbank.domain.backup.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.Backup;
-import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.domain.backup.entity.QBackup;
 
 @Repository

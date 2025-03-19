@@ -10,14 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.department.entity.Department;
-
-import java.time.LocalDate;
 
 @Entity
 @Getter

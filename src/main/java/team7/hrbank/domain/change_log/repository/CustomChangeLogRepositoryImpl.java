@@ -3,6 +3,8 @@ package team7.hrbank.domain.change_log.repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -10,9 +12,6 @@ import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.entity.QChangeLog;
 import team7.hrbank.domain.employee.entity.QEmployee;
-
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor

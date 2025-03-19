@@ -1,21 +1,24 @@
 package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import team7.hrbank.domain.department.dto.*;
+import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
+import team7.hrbank.domain.department.dto.DepartmentMapper;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.dto.DepartmentResponseDtoList;
+import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
-
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,12 +32,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     @Override
     public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
-        
+
         checkName(requestDto.name());
-        
+
         Department department = departmentMapper.toEntity(requestDto);
         departmentRepository.save(department);
-        
+
         return departmentMapper.toDto(department);
     }
 
@@ -54,7 +57,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentMapper.toDto(department);
     }
 
-    
+
     //부서 삭제 메서드
     @Transactional
     @Override

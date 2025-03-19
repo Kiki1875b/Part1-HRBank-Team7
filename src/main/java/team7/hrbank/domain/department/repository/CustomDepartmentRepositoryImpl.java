@@ -1,12 +1,5 @@
 package team7.hrbank.domain.department.repository;
 
-import com.querydsl.core.BooleanBuilder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import team7.hrbank.domain.department.entity.Department;
-import team7.hrbank.domain.department.entity.QDepartment;
-
-import java.util.List;
 /*
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
