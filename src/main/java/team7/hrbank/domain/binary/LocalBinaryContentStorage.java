@@ -28,7 +28,6 @@ public class LocalBinaryContentStorage {
 
     public LocalBinaryContentStorage(@Value("${hrbank.storage.local.root-path}") String root) {
         this.root = Paths.get(root);
-        init();// 임시로
     }
 
     public void put(byte[] content, Long id, String fileType) {
@@ -41,28 +40,6 @@ public class LocalBinaryContentStorage {
         }
     }
 
-    public ResponseEntity<Resource> download(Long id, String fileType) {
-        Path profilePath = resolvePath(id, fileType);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(CONTENT_DISPOSITION, "attachment; filename= "+ profilePath.getFileName());
-        headers.add(CONTENT_TYPE, fileType);
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .body(new FileSystemResource(profilePath));
-    }
-
-
-    // 임시 메서드 - 요한님 나중에 동작하는 기능 만드시면 지워도 됩니다
-    public InputStream get(Path path) {
-        try {
-            return Files.newInputStream(path);
-        } catch (IOException e) {
-            throw new IllegalArgumentException();
-        }
-    }
-
     public ResponseEntity<Resource> downloadTmp(Long id, String fileType){
         Path filePath = resolvePath(id, fileType);
 
@@ -71,7 +48,7 @@ public class LocalBinaryContentStorage {
         }
 
         try {
-            InputStream inputStream = get(filePath);
+            InputStream inputStream = Files.newInputStream(filePath);
             String contentType = Files.probeContentType(filePath);
             if (contentType == null) {
                 contentType = "application/octet-stream";
@@ -92,45 +69,15 @@ public class LocalBinaryContentStorage {
         }
     }
 
-
-
     /*========================== 여기까지 지우셔도 됩니다 =======================================*/
 
     public void backUpEmployeeToCsv(List<Employee> employeeList){
 
     }
-
-
     /**
      * 편의
      */
     private Path resolvePath(Long id, String fileType) {
-        //String realFileType = fileType.split("/")[1];
         return root.resolve(id.toString() + "." + fileType);
     }
-
-    //루트 디렉토리를 초기화합니다.
-    void init() {
-        if (!Files.exists(root)) {
-            try {
-                Files.createDirectories(root);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            try (Stream<Path> list = Files.list(root)) {
-                list.forEach(path -> {
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-
 }

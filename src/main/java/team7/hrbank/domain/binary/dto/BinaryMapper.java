@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.domain.binary.BinaryContent;
 
 
-//@MapperConfig(mappingInheritanceStrategy = AUTO_INHERIT_ALL_FROM_CONFIG)
 @Mapper
 public interface BinaryMapper {
 
@@ -23,13 +22,6 @@ public interface BinaryMapper {
             }
         }
     }
-
-
     BinaryContent toEntity(BinaryContentDto binaryContentDtoSave);
-
-    @Mapping(target = "bytes", ignore = true)
-    BinaryContentDto toDto(BinaryContent binaryContent);
-
-    BinaryContentDto toDto(BinaryContent binaryContent, byte[] bytes);
 }
 
