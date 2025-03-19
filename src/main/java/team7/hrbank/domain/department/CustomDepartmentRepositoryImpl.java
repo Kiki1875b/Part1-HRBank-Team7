@@ -29,7 +29,6 @@ import static team7.hrbank.domain.employee.QEmployee.employee;
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final EntityManager em;
 
     public DepartmentResponseDTO findPagingAll1(DepartmentSearchCondition condition) {
         // 하나 더 가져오는 이유 : hasNext판단(로직 마지막에 버리고 추가)
@@ -42,29 +41,41 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         OrderSpecifier<?> orderSpecifier = getOrderSpecifier(sortedFieldName, sortDirection);
 
         // 2. query 기본값(getCursor가 null인 상황)
-        JPAQuery<DepartmentPageContentDTO> contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
-                        department.id,
-                        department.name,
-                        department.description,
-                        department.establishmentDate,
-                        employee.count()
-                ))
-                .from(department)
-                .where(nameOrDescriptionLike(condition.getNameOrDescription()))
-                .join(department, employee.department).on(department.id.eq(employee.department.id))
-                .orderBy(orderSpecifier, department.id.asc())
-                .limit(limitSize);
+        Long beforeLastId = Long.valueOf(condition.getIdAfter());   // 이전 페이지 마지막 요소 id
+        String jsonFormattedStartId = condition.getCursor();  //(다음 페이지 시작점)
 
-        // 3. cursor를 확인 - null이 아닌 상황
-        if (condition.getCursor() != null) {
-            // 커서 id 를 활용해서 lastDepartment를 가져온다.
+        // 상황 1. jsonFormattedStartId가 null인데 beforeLastId가 null인 경우
+        // 상황 2. jsonFormattedStartId가 null인데 beforeLastId가 있는 경우
+        // 상황 3. jsonFormattedStartId가 있는 경우 : 그냥 jsonFormattedStartId를 활용
+        JPAQuery<DepartmentPageContentDTO> contentQuery;
+
+        // 상황 1.
+        if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId <= 0)) {
+            contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
+                            department.id,
+                            department.name,
+                            department.description,
+                            department.establishmentDate,
+                            employee.count()
+                    ))
+                    .from(department)
+                    .where(nameOrDescriptionLike(condition.getNameOrDescription()))
+                    .join(department, employee.department).on(department.id.eq(employee.department.id))
+                    .orderBy(orderSpecifier, department.id.asc())
+                    .limit(limitSize);
+        }
+
+        // 상황 2. 커서가 null인데 beforeLastId가 있는 경우
+        // id가 잘못됐다면 기본 contentquery를 할지 오류를 보낼지 결정해야
+        if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId > 0)) {
+            // before 활용해서 lastDepartment를 가져온다.
             Department lastDepartment = queryFactory.selectFrom(department)
-                    .where(getCursorCondition(condition.getCursor()))
+                    .where(department.id.eq(beforeLastId))
                     .fetchOne();
 
             // 커서에 맞는 department가 없는 경우 에러 처리
             if (lastDepartment == null) {
-                throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + condition.getCursor());
+                throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + beforeLastId);
             }
 
             String lastName = lastDepartment.getName();
@@ -80,6 +91,48 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                         : department.establishmentDate.gt(lasEstablishmentDate);
                 default -> whereCondition = department.establishmentDate.gt(lasEstablishmentDate);
             }
+            // 이때 content 추가
+            contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
+                            department.id,
+                            department.name,
+                            department.description,
+                            department.establishmentDate,
+                            employee.count())
+                    )
+                    .from(department)
+                    .join(department).on(department.id.eq(employee.department.id))
+                    .where(whereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
+                    .orderBy(orderSpecifier)
+                    .limit(limitSize);
+        }
+
+
+        // 상황 3. cursor를 확인 - null이 아닌 상황
+        if (StringUtils.hasText(jsonFormattedStartId)) {
+            // 커서 id 를 활용해서 lastDepartment를 가져온다.
+            Department startDepartment = queryFactory.selectFrom(department)
+                    .where(getCursorCondition(jsonFormattedStartId))
+                    .fetchOne();
+
+            // 커서에 맞는 department가 없는 경우 에러 처리
+            if (startDepartment == null) {
+                throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + jsonFormattedStartId);
+            }
+
+            String startDepartmentName = startDepartment.getName();
+            LocalDate startEstablishmentDate = startDepartment.getEstablishmentDate();
+
+            BooleanExpression whereCondition = department.establishmentDate.gt(startEstablishmentDate);
+            switch (sortedFieldName) {
+                case "name" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.name.loe(startDepartmentName)
+                        : department.name.goe(startDepartmentName);
+                case "establishment" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.establishmentDate.loe(startEstablishmentDate)
+                        : department.establishmentDate.goe(startEstablishmentDate).and(department.id.gt(startDepartment.getId()));
+                default -> whereCondition = department.establishmentDate.goe(startEstablishmentDate);
+            }
+
             // 이때 content 추가
             contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
                             department.id,
@@ -146,8 +199,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         String sortDirection = direction != null ? direction.toLowerCase().trim() : "asc";
         return switch (fieldName) {
             case "name" -> sortDirection.equalsIgnoreCase("desc") ? department.name.desc() : department.name.asc();
-            case "description" ->
-                    sortDirection.equalsIgnoreCase("asc") ? department.description.desc() : department.description.asc();
+            case "establishmentDate" ->
+                    sortDirection.equalsIgnoreCase("asc") ? department.establishmentDate.desc() : department.establishmentDate.asc();
             default -> department.establishmentDate.asc();
         };
     }
