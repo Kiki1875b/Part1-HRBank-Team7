@@ -2,19 +2,21 @@ package team7.hrbank.domain.employee.service;
 
 import com.querydsl.core.util.StringUtils;
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
-import team7.hrbank.common.utils.EmailUtil;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.change_log.service.ChangeLogService;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+
 import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.DepartmentRepository;
+
 import team7.hrbank.domain.department.service.DepartmentService;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
@@ -23,6 +25,8 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BinaryMapper binaryMapper;
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
+    private final DepartmentRepository departmentRepository;
 
 
     // TODO: @Transactional 해결
@@ -47,31 +52,29 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile, String ipAddress) {
 
         // 사원번호 생성
-        int year = request.hireDate().getYear();   // 입사 연도
+        int year = request.getHireDate().getYear();   // 입사 연도
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        Department department = departmentService.getDepartmentEntityById(request.departmentId());
+        Department belongedDepartment = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
-        // 프로필 사진
-        BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
-                .map(binaryContentService::save)
-                .orElse(null);
 
-        // 이메일
-        String email = EmailUtil.emailValidation(request.email());
-
-        // Employee 생성
-        Employee employee = new Employee(department, binaryContent, employeeNumber, request.name(), email, request.position(), request.hireDate());
+        // 프로필 사진 유무 별 employee 생성
+        Employee createdEmployee = binaryMapper.convertFileToBinaryContent(profile)
+                .map((dto) -> {
+                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
+                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent, belongedDepartment, employeeNumber);
+                })
+                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment, employeeNumber));
 
         // DB 저장
-        employeeRepository.save(employee);
+        employeeRepository.save(createdEmployee);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeCreated(employee, request.memo(), ipAddress);
-
+        changeLogService.logEmployeeCreated(createdEmployee, request.getMemo(), ipAddress);
         // employeeDto로 반환
-        return employeeMapper.fromEntity(employee);
+        return employeeMapper.fromEntity(createdEmployee);
     }
 
     // 직원 목록 조회
@@ -125,21 +128,24 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile, String ipAddress) {
 
+
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         //수정로그를 위한 수정 전 직원 복사
         Employee before = employee.copy();
 
+        // TODO: departmentId 수정 로직 추가
         if (request.departmentId() != null) {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
+
         if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
             String name = request.name().trim();
             employee.updateName(name);
+
         }
         if (request.email() != null) {
-            String email = EmailUtil.emailValidation(request.email());
-            employee.updateEmail(email);
+            employee.updateEmail(request.email());
         }
         if (!StringUtils.isNullOrEmpty(request.position()) && !request.position().isBlank()) {
             String position = request.position().trim();
@@ -160,7 +166,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // DB 저장
         employeeRepository.save(employee);
 
-        // ChangeLog 저장
+        //ChangeLog 저장
         changeLogService.logEmployeeUpdated(before, employee, request.memo(), ipAddress);
 
         // employeeDto로 반환
@@ -172,10 +178,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void deleteById(Long id, String ipAddress) {
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
+
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeDeleted(employee, ipAddress);
+        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
     }
 
 
@@ -186,7 +193,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (lastEmployeeNumber != null) {
             lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
         }
-
         return String.format("EMP-%d-%03d", year, lastNumber + 1);
     }
 

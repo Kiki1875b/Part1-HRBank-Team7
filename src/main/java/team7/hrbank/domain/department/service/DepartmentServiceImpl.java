@@ -4,21 +4,15 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
-import team7.hrbank.domain.department.dto.DepartmentMapper;
-import team7.hrbank.domain.department.dto.DepartmentResponseDto;
-import team7.hrbank.domain.department.dto.DepartmentResponseDtoList;
-import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
+import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +20,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeRepository employeeRepository;
     private final DepartmentMapper departmentMapper = DepartmentMapper.INSTANCE;
+    private final CustomDepartmentRepository customDepartmentRepository;
 
 
 
@@ -45,7 +40,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     // 부서 수정 메서드
     @Transactional
     @Override
-    public DepartmentResponseDto update(Long id, DepartmentUpdateRequest requestDto) {
+    public DepartmentResponseDto update(Long id, UpdateRequest requestDto) {
 
         checkName(requestDto.name());
         // 기존 부서 조회
@@ -70,61 +65,27 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
 
-    @Override
-    public Integer getEmployeeCountByDepartment(Long departmentId) {
-        return employeeRepository.countEmployeesByDepartmentId(departmentId);
-    }
-
     //todo 아직 정상동작 안합니다 !!! 수정예정!
     //부서 조회 메서드
     @Override
-    public DepartmentResponseDtoList getDepartments(String nameOrDescription,
-                                                    Integer idAfter,
-                                                    String cursor,
-                                                    Integer size,
-                                                    String sortField,
-                                                    String sortDirection) {
-
-        // 정렬 방향 처리 (기본값: ASC)
-        Sort.Direction direction;
-        try {
-            direction = Sort.Direction.fromString(sortDirection);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            direction = Sort.Direction.ASC;
-        }
+    public PageDepartmentsResponseDto getDepartments(String nameOrDescription,
+                                                     Integer idAfter, // 마지막 요소의 id
+                                                     String cursor, // 마지막 정렬필드 값(idAfter의 요소와 같은 요소)
+                                                     Integer size, // 한페이지당 담을 요소 수
+                                                     String sortField, // 정렬 기준 필드
+                                                     String sortDirection) { //정렬 방향
 
         // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
+
+
         if (sortField == null || !List.of("name", "establishedDate").contains(sortField)) {
             sortField = "establishedDate"; // 기본 정렬 필드
+
         }
+        // 정렬 방향 처리 (기본값: ASC)
+        Sort.Direction newSortDirection = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-        Sort sort = Sort.by(direction, sortField);
-        Pageable pageable = PageRequest.of(0, size, sort);
-
-        // idAfter 또는 cursor 기반 필터링
-        Page<Department> departments;
-        if (idAfter != null) {
-            departments = departmentRepository.findByIdAfter(nameOrDescription, idAfter, pageable);
-        } else if (cursor != null) {
-            if ("name".equals(sortField)) {
-                departments = departmentRepository.findByNameAfter(nameOrDescription, cursor, pageable);
-            } else { // establishedDate 정렬 기준
-                departments = departmentRepository.findByEstablishedDateAfter(nameOrDescription, cursor, pageable);
-            }
-        } else {
-            departments = departmentRepository.findByCriteria(nameOrDescription, pageable);
-        }
-        //todo dto 이상하게 반환하고있는거아닌지 확인하자
-        List<DepartmentResponseDto> content = departments.getContent().stream()
-                .map(departmentMapper::toDto)
-                .collect(Collectors.toList());
-
-        String nextCursor = departments.hasNext() ? generateNextCursor(departments.getContent(), sortField) : null;
-        Long nextIdAfter = departments.hasNext() ? departments.getContent().get(departments.getNumberOfElements() - 1).getId() : null;
-        boolean hasNext = departments.hasNext();
-
-        return new DepartmentResponseDtoList(content, nextCursor, nextIdAfter, size, departments.getTotalElements(), hasNext);
-
+        return customDepartmentRepository.findDepartments(nameOrDescription, idAfter, cursor, size, sortField, newSortDirection);
     }
 
     @Override
@@ -144,10 +105,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     //부서 단건 조회 메서드
-    public DepartmentResponseDto getDepartment(Long id) {
+    public WithEmployeeCountResponseDto getDepartment(Long id) {
         // 기존 부서 조회
         Department department = getOrElseThrow(id);
-        return departmentMapper.toDto(department);
+        return departmentMapper.toDto(department, getEmployeeCountByDepartment(id));
     }
 
     //성지님! 그대를 위해 준비한 메서드입니다... S2
@@ -174,5 +135,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (getEmployeeCountByDepartment(department.getId())!=0) {
             throw  new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
         }
+    }
+
+    public Long getEmployeeCountByDepartment(Long departmentId) {
+        return employeeRepository.countEmployeesByDepartmentId(departmentId);
     }
 }
