@@ -83,27 +83,19 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
         }
 
-
-        if (contentDTOList.isEmpty()) {
-            return new DepartmentResponseDTO(
-                    new ArrayList<>(),
-                    null,
-                    null,
-                    condition.getSize(),
-                    totalCount,
-                    hasNext
-            );
-        } else {
-            int nextIdAfter = Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id());
-            return new DepartmentResponseDTO(
-                    contentDTOList,
-                    encodedNextCursor,
-                    nextIdAfter,
-                    condition.getSize(),
-                    totalCount,
-                    hasNext
-            );
+        Integer nextIdAfter = null;
+        if (!contentDTOList.isEmpty()) {
+            nextIdAfter = Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id());
         }
+
+        return new DepartmentResponseDTO(
+                contentDTOList,
+                encodedNextCursor,
+                nextIdAfter,
+                condition.getSize(),
+                totalCount,
+                hasNext
+        );
     }
 
     private BooleanExpression getIdConditionByIdAfter(Long idAfter) {
