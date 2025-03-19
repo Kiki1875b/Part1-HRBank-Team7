@@ -1,8 +1,11 @@
 package team7.hrbank.common.exception;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -23,6 +26,22 @@ public class GlobalExceptionHandler {
                 ErrorCode.BAD_REQUEST.getStatus(),      // 오류 코드
                 ErrorCode.BAD_REQUEST.getMessage(),     // 오류 메시지
                 e.getMessage()                          // 오류 자세한 메시지
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Bad Request (입력 시 null 체크)
+    // 디버깅 과정에서 HttpMessageNotReadableException로 throw되는 것 발견해서 이렇게 처리
+    // Json이 잘못된 형식일 때 발생하는 예외로, request dto에서 컴팩트 생성자를 통해 예외처리를 할 때 이 메서드를 통해 처리될 것으로 예상
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(HttpMessageNotReadableException e, HttpServletRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),  // 오류 발생 시간
+                ErrorCode.BAD_REQUEST.getStatus(),      // 오류 코드
+                ErrorCode.BAD_REQUEST.getMessage(),     // 오류 메시지
+                e.getMostSpecificCause().getMessage()   // 오류 자세한 메시지
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -53,22 +72,18 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
-
-    // 위에 정의해둔 400이 나와야 할 때도 500 나와서 주석 처리
-    //  - 404의 경우 잘 뜸
-    //  - NoSuchElementException의 경우에도 Exception을 상속받은 건 동일한데 왜 400은 안되고 404는 되지??
+    
     // 500 - Internal Server Error
-//    @ExceptionHandler(Exception.class)
-//    @Order()
-//    public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {
-//
-//        ErrorResponse errorResponse = new ErrorResponse(
-//                ExceptionUtil.getRequestTime(request),
-//                ErrorCode.INTERNAL_SERVER_ERROR.getStatus(),
-//                ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
-//                e.getMessage()
-//        );
-//
-//        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),
+                ErrorCode.INTERNAL_SERVER_ERROR.getStatus(),
+                ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
+                e.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

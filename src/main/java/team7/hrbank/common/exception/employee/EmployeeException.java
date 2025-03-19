@@ -23,8 +23,8 @@ public class EmployeeException {
         if (message.contains("employees_email_key")) {  // 에러 메시지에 고유 제약 조건 이름 포함되어 있을 때
             ErrorResponse errorResponse = new ErrorResponse(
                     ExceptionUtil.getRequestTime(request),
-                    ErrorCode.EMAIL_DUPLICATION.getStatus(),
-                    ErrorCode.EMAIL_DUPLICATION.getMessage(),
+                    ErrorCode.BAD_REQUEST.getStatus(),
+                    ErrorCode.BAD_REQUEST.getMessage(),
                     "이미 존재하는 이메일입니다."
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
