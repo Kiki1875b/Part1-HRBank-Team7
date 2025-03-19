@@ -51,50 +51,74 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         query.orderBy(getOrderSpecifier(sortField, sortDirection,  department));
 
         // 전체 항목 수 조회
-        long totalElements = query.fetchCount();
+        Long totalCount = getTotalCount(department, nameOrDescription);
+
+
 
         //페이지네이션 처리
-        Pageable pageable = PageRequest.of(0, size);
+        Pageable pageable = PageRequest.of(0, size+1);
 
         query.limit(pageable.getPageSize()).offset(pageable.getOffset());
-        
+
         //결과 쿼리 실행
         List<Department> departments = query.fetch();
 
-
+        //size+1 결과에 따라 다음페이지 존재여부 설정 후, 추가로 받아온 요소 하나 삭제
+        boolean hasNext = (departments.size() > size);
+        departments = hasNext ? departments.subList(0, size) : departments;
 
         //필터링한 부서 객체들을 Dto로 변환
         List<WithEmployeeCountResponseDto> newDepartments = departments.stream().map(d->departmentMapper.toDto(d, d.getId())).collect(Collectors.toList());
 
-        boolean hasNext = isHasNext(newDepartments, pageable, totalElements);
-
         // 페이지의 마지막 항목을 가져와서 nextIdAfter와 nextCursor를 설정
         Long nextIdAfter = getNextIdAfter(departments);
         String nextCursor = getNextCursor(departments, sortField);
-        PageDepartmentsResponseDto responseDto = new PageDepartmentsResponseDto(newDepartments, nextCursor, nextIdAfter, size, totalElements, hasNext);
+        PageDepartmentsResponseDto responseDto = new PageDepartmentsResponseDto(newDepartments, nextCursor, nextIdAfter, size, totalCount, hasNext);
+
         return responseDto;
     }
 
 
 
-    private static boolean isHasNext(List<WithEmployeeCountResponseDto> newDepartments, Pageable pageable, long totalElements) {
-        return new PageImpl<>(newDepartments, pageable, totalElements).hasNext();
+
+    //검색된 전체 요소 수 반환
+    private Long getTotalCount(QDepartment department, String nameOrDescription) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (nameOrDescription != null && !nameOrDescription.trim().isEmpty()) {
+            builder.and(department.name.containsIgnoreCase(nameOrDescription)
+                    .or(department.description.containsIgnoreCase(nameOrDescription)));
+        }
+        Long totalCount = queryFactory
+                .select(department.count())
+                .from(department)
+                .where(builder)
+                .fetchOne();
+        return totalCount;
     }
 
-    private OrderSpecifier<?> getOrderSpecifier(String sortField, Sort.Direction sortDirection, QDepartment department) {
-        OrderSpecifier<?> orderSpecifier;
+    //정렬필드에 따라 order 조건 설정
+    private OrderSpecifier<?>[] getOrderSpecifier(String sortField, Sort.Direction sortDirection, QDepartment department) {
+        OrderSpecifier<?> primarySortSpecifier;
+        OrderSpecifier<?> secondarySortSpecifier;
         if ("name".equals(sortField)) {
-            orderSpecifier = sortDirection.equals(Sort.Direction.ASC)
+            primarySortSpecifier = sortDirection.equals(Sort.Direction.ASC)
                     ? department.name.asc()
                     : department.name.desc();
+            return new OrderSpecifier[]{primarySortSpecifier};
         } else {
-            orderSpecifier = sortDirection.equals(Sort.Direction.ASC)
+            primarySortSpecifier = sortDirection.equals(Sort.Direction.ASC)
                     ? department.establishedDate.asc()
                     : department.establishedDate.desc();
+
+            secondarySortSpecifier= sortDirection.equals(Sort.Direction.ASC)
+                    ? department.id.asc()
+                    : department.id.desc();
+
+            return new OrderSpecifier[]{primarySortSpecifier, secondarySortSpecifier};
         }
-        return orderSpecifier;
     }
 
+    //nameOrDescription, idAfter, cursor, sortField 를 고려하여 필터링 조건 빌드
     private BooleanBuilder buildSearchCondition(String nameOrDescription,
                                                 Integer idAfter,
                                                 String cursor,
@@ -109,13 +133,15 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         }
         //커서가 null이 아닐 경우, 정렬 기준이 되는 sortField에 따라 cursor의 타입이 정해지고, 그 커서의 값보다 큰 항목만 필터링하도록 함.
         if (cursor != null) {
-            String newCursor = Base64.getDecoder().decode(cursor).toString();
+            String newCursor = new String(Base64.getDecoder().decode(cursor));
             if (sortField.equals("name")) {
                 builder.and(department.name.gt(newCursor));
             } else {
                 try {
-                    builder.and(department.establishedDate.gt(LocalDate.parse(newCursor)));  // 날짜 기준으로 필터링
-                    builder.and(department.id.gt(idAfter)); //설립일이 중복될 경우, 이전페이지 마지막 Id보다 큰 id값만 조회한다.
+                    LocalDate cursorDate = LocalDate.parse(newCursor);
+                    builder.and(department.establishedDate.gt(cursorDate))  // 날짜 기준으로 필터링
+                        .or(department.establishedDate.eq(cursorDate)
+                                .and(department.id.gt(idAfter))); // 같은 설립일이라면 이전 페이지의 마지막 ID보다 큰 경우만 조회
                 } catch (DateTimeParseException e) {
                     // cursor가 유효한 날짜 형식이 아닐 경우 예외 처리
                     throw new IllegalArgumentException("필터링에 필요한 날짜 형식이 올바르지 않습니다.");
@@ -125,12 +151,13 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         return builder;
     }
 
-    // 커서 String->64 인코딩 메서드
+    // 커서 String->64바이트 인코딩 메서드
     private String encodeCursor(Department department, String sortField) {
         String cursor = sortField.equals("name")?department.getName():department.getEstablishedDate().toString();
         return Base64.getEncoder().encodeToString(cursor.getBytes());
     }
-    //
+
+    //페이지 마지막요소 Id 반환
     private Long getNextIdAfter(List<Department> departments) {
         if (departments.isEmpty()){
             return 0L;
@@ -139,6 +166,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             return lastDepartment.getId();
         }
     }
+
+    //페이지 마지막요소 정렬기준 필드값 64바이트로 반환
     private String getNextCursor(List<Department> departments, String sortField) {
         if (departments.isEmpty()){
             return null;
@@ -148,6 +177,3 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         }
     }
 }
-
-
-// todo 쿼리문 짜기 !!!!!
