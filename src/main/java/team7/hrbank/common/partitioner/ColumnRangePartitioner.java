@@ -1,14 +1,8 @@
 package team7.hrbank.common.partitioner;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import javax.sql.DataSource;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
@@ -16,26 +10,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
+/**
+ * This partitioner divides database records into equally sized partitions based on ID
+ * <br>
+ * This partitioner is used to process parallel BackupBatch
+ * <br>
+ * Each Partition is assigned unique ID for identification
+ */
 @Component
+@RequiredArgsConstructor
 public class ColumnRangePartitioner implements Partitioner {
 
   //  private final DataSource dataSource;
   private final EmployeeRepository employeeRepository;
 
-  @Autowired
-  public ColumnRangePartitioner(EmployeeRepository employeeRepository) {
-    this.employeeRepository = employeeRepository;
-  }
 
   @Override
   public Map<String, ExecutionContext> partition(int gridSize) {
     Map<String, ExecutionContext> partitions = new HashMap<>();
     long totalCount = employeeRepository.count(); // 전체 데이터 개수를 가져오는 메서드
     long partitionSize = (totalCount + gridSize - 1) / gridSize; // 파티션당 예상 데이터 개수
-    long minId = 1; // employees 테이블 id 시작값에 따라 변경
+    long minId = employeeRepository.findMinId();
     long partitionIndex = 0;
-
-    while (minId <= getMaxId()) {
+    long maximumId = getMaxId();
+    while (minId <= maximumId) {
       ExecutionContext context = new ExecutionContext();
       context.put("partitionId", "P" + partitionIndex);
 
@@ -62,6 +60,12 @@ public class ColumnRangePartitioner implements Partitioner {
     return partitions;
   }
 
+  /**
+   *
+   * @param minId minimum id in range
+   * @param rangeSize size of each range
+   * @return Actual Maximum Id In Range
+   */
   private long getActualMaxId(long minId, long rangeSize) {
     Optional<Long> maxId = employeeRepository.findMaxIdBetween(minId, minId + rangeSize);
     if (maxId.isPresent()) {

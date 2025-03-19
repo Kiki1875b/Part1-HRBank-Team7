@@ -12,6 +12,13 @@ import team7.hrbank.domain.backup.dto.BackupDto;
 import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.domain.backup.service.BackupService;
 
+/**
+ * Scheduler for automatted backup and cleanups.
+ * <br>
+ * Every o'clock, backup process is initiated
+ * <br>
+ * Every 30 past o'clock, cleanup process is initiated
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -41,6 +48,8 @@ public class BackupScheduler {
 
     log.info("Backup Initiated");
   }
+
+
 
   @Scheduled(cron = "0 30 * * * *")
   public void cleanup() {

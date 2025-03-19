@@ -1,11 +1,16 @@
 package team7.hrbank.domain.binary;
 
 
-import jakarta.persistence.*;
-import lombok.*;
-import team7.hrbank.domain.base.BaseEntity;
+import static lombok.AccessLevel.PROTECTED;
 
-import static lombok.AccessLevel.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import team7.hrbank.domain.base.BaseEntity;
 
 
 @EqualsAndHashCode(callSuper = true)

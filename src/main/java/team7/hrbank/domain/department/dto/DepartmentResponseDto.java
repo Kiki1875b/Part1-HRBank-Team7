@@ -1,7 +1,7 @@
 package team7.hrbank.domain.department.dto;
 
-import team7.hrbank.domain.department.entity.Department;
 import java.time.LocalDate;
+import team7.hrbank.domain.department.entity.Department;
 
 public record DepartmentResponseDto(
         Long id,

@@ -1,7 +1,6 @@
 package team7.hrbank.domain.employee.dto;
 
 import com.querydsl.core.util.StringUtils;
-
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -13,7 +12,7 @@ public record EmployeeCreateRequest(
         LocalDate hireDate,
         String memo
 ) {
-    
+
     // 컴팩트 생성자를 통한 예외처리
     public EmployeeCreateRequest {
         if (StringUtils.isNullOrEmpty(name)) {
