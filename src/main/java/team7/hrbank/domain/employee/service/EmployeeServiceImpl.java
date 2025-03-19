@@ -108,6 +108,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 상세 조회
     @Override
+    @Transactional
     public EmployeeDto findById(Long id) {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
@@ -163,7 +164,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);  // TODO: null일 경우 예외처리
+        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         employeeRepository.deleteById(id);
 
