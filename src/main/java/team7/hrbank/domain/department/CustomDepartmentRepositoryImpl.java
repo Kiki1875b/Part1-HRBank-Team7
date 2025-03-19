@@ -3,7 +3,6 @@ package team7.hrbank.domain.department;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
@@ -43,20 +42,12 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
         // 상황 2. 커서가 null인데 beforeLastId가 있는 경우
         if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId > 0)) {
-            Department lastDepartment = queryFactory.selectFrom(department)
-                    .where(department.id.eq(beforeLastId))
-                    .fetchOne();
-            if (lastDepartment == null) throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + beforeLastId);
-            else commonFieldCondition = getConditionByBeforeLast(lastDepartment, sortedFieldName, sortDirection);
+            commonFieldCondition = getConditionByBeforeLastId(beforeLastId, sortedFieldName, sortDirection);
         }
 
         // 상황 3. cursor(페이지 시작 요소)가 null이 아닌 상황 : CURSOR를 기본 베이스로 활용
         if (StringUtils.hasText(jsonFormattedStartId)) {
-            Department startDepartment = queryFactory.selectFrom(department)
-                    .where(getCursorCondition(jsonFormattedStartId))
-                    .fetchOne();
-            if (startDepartment == null) throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + jsonFormattedStartId);
-            else commonFieldCondition = getConditionByCursor(startDepartment, sortedFieldName, sortDirection);
+            commonFieldCondition = getConditionByCursor(jsonFormattedStartId, sortedFieldName, sortDirection);
         }
 
         // 상황1, 2, 3 고려했으니 query 만들기
@@ -97,7 +88,13 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         );
     }
 
-    private static BooleanExpression getConditionByBeforeLast(Department lastDepartment, String sortedFieldName, String sortDirection) {
+    private BooleanExpression getConditionByBeforeLastId(Long beforeLastId, String sortedFieldName, String sortDirection){
+        Department lastDepartment = queryFactory.selectFrom(department)
+                .where(department.id.eq(beforeLastId))
+                .fetchOne();
+        if (lastDepartment == null) {
+            throw new RuntimeException("이전 id 맞는 Department를 찾을 수 없습니다: " + beforeLastId);
+        }
         String lastName = lastDepartment.getName();
         LocalDate lasEstablishmentDate = lastDepartment.getEstablishmentDate();
         Long lastDepartmentId = lastDepartment.getId();
@@ -115,7 +112,14 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         return fieldWhereCondition;
     }
 
-    private static BooleanExpression getConditionByCursor(Department startDepartment, String sortedFieldName, String sortDirection) {
+    private BooleanExpression getConditionByCursor(String jsonFormattedStartId, String sortedFieldName, String sortDirection) {
+        Department startDepartment = queryFactory.selectFrom(department)
+                .where(getCursorCondition(jsonFormattedStartId))
+                .fetchOne();
+        if (startDepartment == null) {
+            throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + jsonFormattedStartId);
+        }
+
         String startDepartmentName = startDepartment.getName();
         LocalDate startEstablishmentDate = startDepartment.getEstablishmentDate();
         
