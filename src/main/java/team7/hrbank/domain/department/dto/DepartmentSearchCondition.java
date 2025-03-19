@@ -25,6 +25,10 @@ public class DepartmentSearchCondition {
     private String sortedField; // 정렬 필드(name or establishmentDate)
     private String sortDirection; // 정렬 방향(asc or desc, 기본값은 asc)
 
+    public Long getIdAfter() {
+        return idAfter != null ? Long.valueOf(idAfter) : null;
+    }
+
     public int getSize() {
         return size != null ? size : DEFAULT_SIZE; // 기본값 10
     }

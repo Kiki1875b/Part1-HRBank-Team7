@@ -45,7 +45,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
         String cursorBeforeChange = condition.getCursor();  //(다음 페이지 시작점)
         String sortDirection = condition.getSortDirection() != null ? condition.getSortDirection().toLowerCase().trim() : "asc";
-        Long beforeLastId = Long.valueOf(condition.getIdAfter());   // 이전 페이지 마지막 요소 id
+        Long beforeLastId = condition.getIdAfter(); // 이전 페이지 마지막 요소 id
 
         BooleanExpression fieldWhereCondition = null;
         if (StringUtils.hasText(cursorBeforeChange)) {
