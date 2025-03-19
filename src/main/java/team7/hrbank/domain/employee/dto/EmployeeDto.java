@@ -1,6 +1,8 @@
 package team7.hrbank.domain.employee.dto;
 
 import java.time.LocalDate;
+
+import jakarta.validation.constraints.NotBlank;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public record EmployeeDto(
