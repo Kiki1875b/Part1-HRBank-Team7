@@ -12,7 +12,6 @@ import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.entity.QChangeLog;
-import team7.hrbank.domain.employee.entity.QEmployee;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,7 +19,6 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
 
   private final JPAQueryFactory queryFactory;
   private final QChangeLog qChangeLog = QChangeLog.changeLog;
-  private final QEmployee qEmployee = QEmployee.employee;
 
   //수정 이력 건수 조건별 조회
   @Override
@@ -28,9 +26,8 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
 
     return queryFactory
         .selectFrom(qChangeLog)
-        .join(qChangeLog.employee, qEmployee)
         .where(
-            containsEmployeeNumber(dto.employeeNumber(), qEmployee),
+            containsEmployeeNumber(dto.employeeNumber()),
             eqChangeLogType(dto.type(), qChangeLog),
             containsMemo(dto.memo(), qChangeLog),
             containsIpAddress(dto.ipAddress(), qChangeLog),
@@ -48,9 +45,9 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
 
   //부분 일치 조건
   //사번
-  private BooleanExpression containsEmployeeNumber(String employeeNumber, QEmployee qEmployee) {
+  private BooleanExpression containsEmployeeNumber(String employeeNumber) {
     return Optional.ofNullable(employeeNumber)
-        .map(e -> qEmployee.employeeNumber.containsIgnoreCase(e))
+        .map(e -> qChangeLog.employeeNumber.containsIgnoreCase(e))
         .orElse(null);
   }
 
@@ -147,9 +144,8 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
     Long count = queryFactory
         .select(qChangeLog.count())
         .from(qChangeLog)
-        .join(qChangeLog.employee, qEmployee)
         .where(
-            containsEmployeeNumber(dto.employeeNumber(), qEmployee),
+            containsEmployeeNumber(dto.employeeNumber()),
             eqChangeLogType(dto.type(), qChangeLog),
             containsMemo(dto.memo(), qChangeLog),
             containsIpAddress(dto.ipAddress(), qChangeLog),

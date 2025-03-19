@@ -16,7 +16,7 @@ public record ChangeLogDto(
     return new ChangeLogDto(
         entity.getId(),
         entity.getType(),
-        entity.getEmployee().getEmployeeNumber(),
+        entity.getEmployeeNumber(),
         entity.getMemo(),
         entity.getIpAddress(),
         entity.getCreatedAt()

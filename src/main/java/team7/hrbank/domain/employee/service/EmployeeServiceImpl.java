@@ -72,7 +72,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(createdEmployee);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeCreated(createdEmployee, request.memo(), ipAddress);
+        changeLogService.logEmployeeCreated(employeeMapper.fromEntity(createdEmployee), request.memo(), ipAddress);
+
         // employeeDto로 반환
         return employeeMapper.fromEntity(createdEmployee);
     }
@@ -132,7 +133,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         //수정로그를 위한 수정 전 직원 복사
-        Employee before = employee.copy();
+        EmployeeDto before = employeeMapper.fromEntity(employee);
 
         // TODO: departmentId 수정 로직 추가
         if (request.departmentId() != null) {
@@ -166,8 +167,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         // DB 저장
         employeeRepository.save(employee);
 
-        //ChangeLog 저장
-        changeLogService.logEmployeeUpdated(before, employee, request.memo(), ipAddress);
+        // ChangeLog 저장
+        changeLogService.logEmployeeUpdated(before, employeeMapper.fromEntity(employee), request.memo(), ipAddress);
 
         // employeeDto로 반환
         return employeeMapper.fromEntity(employee);
@@ -178,11 +179,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void deleteById(Long id, String ipAddress) {
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
+        EmployeeDto delete = employeeMapper.fromEntity(employee);
 
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
+        changeLogService.logEmployeeDeleted(delete, ipAddress);
     }
 
 
