@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
 import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
@@ -21,7 +22,12 @@ import static team7.hrbank.domain.employee.QEmployee.employee;
 // 남은 활용할 것 :     private Integer idAfter; // 이전 페이지 마지막 요소 id
 //    private String cursor; // 커서 (다음 페이지 시작점)
 // 일단 id : 20 으로 넘어오는거롤 찾기
+// 상황 2. 커서가 null인데 beforeLastId가 있는 경우 - 그냥 cursor가 잘못되면 null로 할지 아니면 idAftre로 쿼리한번더 나가게하고 찾을지 고민
+//        if (!StringUtils.hasText(cursorBeforeChange) && (beforeLastId > 0)) {
+//            fieldWhereCondition = getConditionByBeforeLastId(beforeLastId, sortedFieldName, sortDirection);
+//        }
 
+@Slf4j
 @RequiredArgsConstructor
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
@@ -31,26 +37,19 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         // 하나 더 가져오는 이유 : hasNext판단(로직 마지막에 버리고 추가)
         int limitSize = condition.getSize() + 1;
 
+        log.info("condition 인자 확인: {}", condition);
+
         // 0. 공통으로 필요한 것들
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
+        String cursorBeforeChange = condition.getCursor();  //(다음 페이지 시작점)
         String sortDirection = condition.getSortDirection() != null ? condition.getSortDirection().toLowerCase().trim() : "asc";
         Long beforeLastId = Long.valueOf(condition.getIdAfter());   // 이전 페이지 마지막 요소 id
-        String jsonFormattedStartId = condition.getCursor();  //(다음 페이지 시작점)
 
-        // 상황 1. jsonFormattedStartId가 null인데 beforeLastId가 0이하인 경우 : null로 조건 자체를 무효화
-        BooleanExpression commonFieldCondition = null;
-
-        // 상황 2. 커서가 null인데 beforeLastId가 있는 경우
-        if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId > 0)) {
-            commonFieldCondition = getConditionByBeforeLastId(beforeLastId, sortedFieldName, sortDirection);
+        BooleanExpression fieldWhereCondition = null;
+        if (StringUtils.hasText(cursorBeforeChange)) {
+            fieldWhereCondition = getConditionByCursor(cursorBeforeChange, sortedFieldName, sortDirection);
         }
 
-        // 상황 3. cursor(페이지 시작 요소)가 null이 아닌 상황 : CURSOR를 기본 베이스로 활용
-        if (StringUtils.hasText(jsonFormattedStartId)) {
-            commonFieldCondition = getConditionByCursor(jsonFormattedStartId, sortedFieldName, sortDirection);
-        }
-
-        // 상황1, 2, 3 고려했으니 query 만들기
         List<DepartmentPageContentDTO> contentDTOList = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
                         department.id,
                         department.name,
@@ -59,7 +58,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                         employee.count()
                 ))
                 .from(department)
-                .where(commonFieldCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
+                .where(fieldWhereCondition, getIdConditionByIdAfter(beforeLastId), nameOrDescriptionLike(condition.getNameOrDescription()))
                 .join(department, employee.department).on(department.id.eq(employee.department.id))
                 .orderBy(getOrderFieldSpecifier(sortedFieldName, sortDirection), department.id.asc())
                 .limit(limitSize).fetch();
@@ -74,9 +73,11 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         boolean hasNext = contentDTOList.size() == limitSize;
         String encodedNextCursor = null;
         if (hasNext) {
-            encodedNextCursor = Base64.getEncoder().encodeToString(String.format("{\"id\":%d}", contentDTOList.get(condition.getSize()).id()).getBytes());
+            DepartmentPageContentDTO lastContent = contentDTOList.get(contentDTOList.size() - 1);
+            encodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
+                    ? Base64.getEncoder().encodeToString(lastContent.name().getBytes())
+                    : Base64.getEncoder().encodeToString(lastContent.establishmentDate().getBytes());
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
-            // JSON 형태의 문자열 예: {"id":20}
         }
         return new DepartmentResponseDTO(
                 contentDTOList,
@@ -88,66 +89,36 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         );
     }
 
-    private BooleanExpression getConditionByBeforeLastId(Long beforeLastId, String sortedFieldName, String sortDirection){
-        Department lastDepartment = queryFactory.selectFrom(department)
-                .where(department.id.eq(beforeLastId))
-                .fetchOne();
-        if (lastDepartment == null) {
-            throw new RuntimeException("이전 id 맞는 Department를 찾을 수 없습니다: " + beforeLastId);
+    private BooleanExpression getIdConditionByIdAfter(Long idAfter) {
+        if (idAfter == null) {
+            return null;
         }
-        String lastName = lastDepartment.getName();
-        LocalDate lasEstablishmentDate = lastDepartment.getEstablishmentDate();
-        Long lastDepartmentId = lastDepartment.getId();
-
-        BooleanExpression fieldWhereCondition;
-        switch (sortedFieldName) {
-            case "name" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
-                    ? department.name.lt(lastName)
-                    : department.name.gt(lastName);
-            case "establishmentDate" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
-                    ? department.establishmentDate.loe(lasEstablishmentDate).and(department.id.lt(lastDepartmentId))
-                    : department.establishmentDate.goe(lasEstablishmentDate).and(department.id.gt(lastDepartmentId));
-            default -> fieldWhereCondition = department.establishmentDate.gt(lasEstablishmentDate);
-        }
-        return fieldWhereCondition;
+        return department.id.gt(idAfter);
     }
 
-    private BooleanExpression getConditionByCursor(String jsonFormattedStartId, String sortedFieldName, String sortDirection) {
-        Department startDepartment = queryFactory.selectFrom(department)
-                .where(getCursorCondition(jsonFormattedStartId))
-                .fetchOne();
-        if (startDepartment == null) {
-            throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + jsonFormattedStartId);
-        }
+    // 커서 (다음 페이지 시작점)
+    private BooleanExpression getConditionByCursor(String cursorBeforeChange, String sortedFieldName, String sortDirection) {
+        // sortfilename에 따라 cursor스타일이 바뀜
 
-        String startDepartmentName = startDepartment.getName();
-        LocalDate startEstablishmentDate = startDepartment.getEstablishmentDate();
-        
-        BooleanExpression fieldWhereCondition;
+        BooleanExpression cursorCondition = null;
         switch (sortedFieldName) {
-            case "name" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
-                    ? department.name.loe(startDepartmentName) // 이건 포함시켜야 함
-                    : department.name.goe(startDepartmentName);
-            case "establishment" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
-                    ? department.establishmentDate.loe(startEstablishmentDate).and(department.id.lt(startDepartment.getId()))
-                    : department.establishmentDate.goe(startEstablishmentDate).and(department.id.gt(startDepartment.getId()));
-            default -> fieldWhereCondition = department.establishmentDate.goe(startEstablishmentDate);
-        }
-        return fieldWhereCondition;
-    }
-
-    private BooleanExpression getCursorCondition(String cursor) {
-        if (cursor != null) {
-            String decodedCursor = new String(Base64.getDecoder().decode(cursor));
-            // JSON 형태의 문자열 예: {"id":20}
-            // 포맷 검증로직
-            long id = Long.parseLong(decodedCursor.split(":")[1]);
-            if (!decodedCursor.startsWith("{\"id\":") || !decodedCursor.endsWith("}") || id < 0) {
-                throw new IllegalArgumentException("Invalid cursor format: " + cursor);
+            case "name" -> {
+                cursorCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.name.loe(cursorBeforeChange)
+                        : department.name.goe(cursorBeforeChange);
             }
-            return department.id.gt(id);
+            case "establishmentDate" -> {
+                // 일단 검증먼저
+                if (!cursorBeforeChange.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    throw new IllegalArgumentException("유효하지 않은 커서 포맷입니다. : " + cursorBeforeChange);
+                }
+                LocalDate cursorDate = LocalDate.parse(cursorBeforeChange);
+                cursorCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.establishmentDate.loe(cursorDate)
+                        : department.establishmentDate.goe(cursorDate);
+            }
         }
-        return null;
+        return cursorCondition;
     }
 
     private BooleanExpression nameOrDescriptionLike(String nameOrDescription) {

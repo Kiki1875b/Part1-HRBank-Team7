@@ -9,6 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import team7.hrbank.domain.department.Department;
 import team7.hrbank.domain.department.DepartmentService;
+import team7.hrbank.domain.department.dto.DepartmentRequestDTO;
+import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
+import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
 
 import java.time.LocalDate;
 import java.util.Base64;
@@ -33,13 +36,21 @@ public class CursorTest {
     @BeforeEach
     void setting(){
         for (int i = 0; i < 100; i++) {
-            em.persist(new Department("부서"+i, "설명"+i, LocalDate.now()));
+            Department department = departmentService.create(new DepartmentRequestDTO("테스트 부서" + i, "설명" + i, LocalDate.now()));
         }
+        System.out.println("부서 100개 생성 완료");
+    }
+
+    @Test
+    void test(){
+
     }
 
     @Test
     void pagingTest(){
-
+        DepartmentSearchCondition departmentSearchCondition = new DepartmentSearchCondition("설", 15, "eyJpZCI6MjB9", 10, "name", "desc");
+        DepartmentResponseDTO departmentResponseDTO = departmentService.searchDepartments(departmentSearchCondition);
+        System.out.println("departmentResponseDTO = " + departmentResponseDTO);
     }
     //public class DepartmentSearchCondition {
     //
