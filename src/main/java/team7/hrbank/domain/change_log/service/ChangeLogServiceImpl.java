@@ -6,13 +6,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
-import team7.hrbank.domain.change_log.dto.CursorPageResponseChangeLogDto;
+import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
@@ -111,28 +113,21 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 
   @Override
   @Transactional
-  public CursorPageResponseChangeLogDto<ChangeLogDto> getChangeLogs(
-      String employeeNumber,
-      ChangeLogType type,
-      String memo,
-      String ipAddress,
-      Instant atFrom,
-      Instant atTo,
-      Long idAfter,
-      Integer size,
+  public PageResponse<ChangeLogDto> getChangeLogs(
+      ChangeLogRequestDto dto,
+      int size,
       String sortField,
       String sortDirection) {
 
-    if (!sortField.equals("ipAddress") && !sortField.equals("createdAt")) {
+    Set<String> validSortFields = Set.of("ipAddress", "createdAt");
+    if (!validSortFields.contains(sortField)) {
       sortField = "createdAt";
     }
 
     Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-
     Pageable pageable = PageRequest.of(0, size + 1, Sort.by(direction, sortField));
 
-    List<ChangeLog> changeLogs = changeLogRepository.findChangeLogs(
-        employeeNumber, type, memo, ipAddress, atFrom, atTo, idAfter, pageable);
+    List<ChangeLog> changeLogs = changeLogRepository.findChangeLogs(dto, pageable);
 
     boolean hasNext = changeLogs.size() > size;
     List<ChangeLogDto> content = changeLogs.stream()
@@ -147,11 +142,12 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         ))
         .toList();
 
-    Long lastId =  hasNext ? content.get(content.size() - 1).id() : null;
+    Long lastId = !content.isEmpty() ? content.get(content.size() - 1).id() : null;
+    String nextCursor = (lastId != null) ? lastId.toString() : null;
 
-    return new CursorPageResponseChangeLogDto<>(
+    return new PageResponse<>(
         content,
-        lastId != null ? String.valueOf(lastId) : null,
+        nextCursor,
         lastId,
         size,
         content.size(),

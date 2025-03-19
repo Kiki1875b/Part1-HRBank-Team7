@@ -8,6 +8,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.entity.QChangeLog;
@@ -23,20 +24,18 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
 
   @Override
   public List<ChangeLog> findChangeLogs(
-      String employeeNumber, ChangeLogType type, String memo,
-      String ipAddress, Instant atFrom, Instant atTo,
-      Long idAfter, Pageable pageable) {
+      ChangeLogRequestDto dto, Pageable pageable) {
 
     return queryFactory
         .selectFrom(qChangeLog)
         .join(qChangeLog.employee, qEmployee)
         .where(
-            containsEmployeeNumber(employeeNumber, qEmployee),
-            eqChangeLogType(type, qChangeLog),
-            containsMemo(memo, qChangeLog),
-            containsIpAddress(ipAddress, qChangeLog),
-            betweenCreatedAt(atFrom, atTo, qChangeLog),
-            gtIdAfter(idAfter, qChangeLog)
+            containsEmployeeNumber(dto.employeeNumber(), qEmployee),
+            eqChangeLogType(dto.type(), qChangeLog),
+            containsMemo(dto.memo(), qChangeLog),
+            containsIpAddress(dto.ipAddress(), qChangeLog),
+            betweenCreatedAt(dto.atFrom(), dto.atTo(), qChangeLog),
+            gtIdAfter(dto.idAfter(), qChangeLog)
         )
         .orderBy(qChangeLog.id.asc())
         .limit(pageable.getPageSize() + 1)
