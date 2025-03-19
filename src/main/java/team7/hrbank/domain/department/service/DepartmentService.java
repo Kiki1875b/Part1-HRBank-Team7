@@ -9,11 +9,11 @@ import java.util.List;
 public interface DepartmentService {
     //부서 생성 메서드
     @Transactional
-    ResponseDto create(CreateRequest requestDto);
+    DepartmentResponseDto create(DepartmentCreateRequest requestDto);
 
     // 부서 수정 메서드
     @Transactional
-    ResponseDto update(Long id, UpdateRequest requestDto);
+    DepartmentResponseDto update(Long id, UpdateRequest requestDto);
 
     //부서 삭제 메서드
     @Transactional

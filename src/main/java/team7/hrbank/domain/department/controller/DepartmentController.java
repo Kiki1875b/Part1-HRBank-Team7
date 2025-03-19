@@ -15,15 +15,15 @@ public class DepartmentController {
 
     // 부서 등록 API
     @PostMapping
-    public ResponseEntity<ResponseDto> createDepartment(@RequestBody CreateRequest requestDto) {
-        ResponseDto responseDto = departmentServiceImpl.create(requestDto);
+    public ResponseEntity<DepartmentResponseDto> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
+        DepartmentResponseDto responseDto = departmentServiceImpl.create(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     // 부서 수정 API
     @PatchMapping("/{id}")
-    public ResponseEntity<ResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody UpdateRequest requestDto) {
-        ResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
+    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody UpdateRequest requestDto) {
+        DepartmentResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);

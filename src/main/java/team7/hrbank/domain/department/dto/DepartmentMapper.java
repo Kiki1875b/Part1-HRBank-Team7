@@ -10,11 +10,11 @@ import team7.hrbank.domain.department.entity.Department;
 public interface DepartmentMapper {
     DepartmentMapper INSTANCE = Mappers.getMapper(DepartmentMapper.class);
 
-    ResponseDto toDto(Department department);
+    DepartmentResponseDto toDto(Department department);
 
     WithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
 
-    Department toEntity(CreateRequest dto);
+    Department toEntity(DepartmentCreateRequest dto);
 
     @Mapping(target = "id", ignore = true) // ID는 변경하지 않음
     void updateFromDto(UpdateRequest dto, @MappingTarget Department entity);

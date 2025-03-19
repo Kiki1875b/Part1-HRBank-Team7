@@ -2,22 +2,17 @@ package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
-import team7.hrbank.domain.department.repository.CustomDepartmentRepositoryImpl;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +26,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     @Transactional
     @Override
-    public ResponseDto create(CreateRequest requestDto) {
+    public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
         
         checkName(requestDto.name());
         
@@ -45,7 +40,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     // 부서 수정 메서드
     @Transactional
     @Override
-    public ResponseDto update(Long id, UpdateRequest requestDto) {
+    public DepartmentResponseDto update(Long id, UpdateRequest requestDto) {
 
         checkName(requestDto.name());
         // 기존 부서 조회
