@@ -39,6 +39,7 @@ dependencies {
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	implementation 'com.opencsv:opencsv:5.7.1'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	compileOnly 'org.projectlombok:lombok'
 
@@ -73,6 +74,7 @@ def querydslDir = "build/generated/querydsl"
 
 tasks.withType(JavaCompile) {
 	options.generatedSourceOutputDirectory = file(querydslDir)
+	options.compilerArgs << "-parameters"
 }
 
 clean {

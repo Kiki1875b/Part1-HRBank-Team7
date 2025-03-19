@@ -10,18 +10,28 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import team7.hrbank.domain.base.BaseUpdatableEntity;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.LastModifiedDate;
+import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.department.entity.Department;
+
+import java.beans.ConstructorProperties;
+import java.time.Instant;
+import java.time.LocalDate;
+import team7.hrbank.domain.department.entity.Department;
+
+import static lombok.AccessLevel.*;
+
 
 @Entity
 @Getter
 @Table(name = "employees")
-@NoArgsConstructor
+@NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
 public class Employee extends BaseUpdatableEntity {
 
@@ -49,23 +59,29 @@ public class Employee extends BaseUpdatableEntity {
   @Column(name = "hire_date", nullable = false)
   private LocalDate hireDate;   // 입사일
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
 
+    @Column(name = "hire_date", nullable = false)
+    private LocalDate hireDate;   // 입사일
 
-    // 생성자
-    public Employee(Department department, BinaryContent profile, String employeeNumber,
-                    String name, String email, String position, LocalDate hireDate) {
-        this.department = department;
-        this.profile = profile;
-        this.employeeNumber = employeeNumber;
-        this.name = name;
-        this.email = email;
-        this.position = position;
-        this.hireDate = hireDate;
-        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private Instant updatedAt;  // 수정일
+
+//    public Employee(BinaryContent profile, String employeeNumber, String name, String email,
+//        String position, LocalDate hireDate, Department department) {
+//        this.profile = profile;
+//        this.employeeNumber = employeeNumber;
+//        this.name = name;
+//        this.email = email;
+//        this.position = position;
+//        this.hireDate = hireDate;
+//        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+//        this.department = department;
+//    }
 
 
 

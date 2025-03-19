@@ -1,6 +1,7 @@
 package team7.hrbank.domain.employee.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,11 +32,12 @@ public class EmployeeController {
 
     // 직원 등록
     @PostMapping
-    public ResponseEntity<EmployeeDto> create(@RequestPart(value = "employee") EmployeeCreateRequest employee,
+    public ResponseEntity<EmployeeDto> create(@Valid EmployeeCreateRequest employee,
                                               @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         //IP 주소 받기
         String ipAddress = IpUtil.getClientIp(request);
+
         // 직원 생성 로직
         EmployeeDto employeeDto = employeeService.create(employee, profile, ipAddress);
 
