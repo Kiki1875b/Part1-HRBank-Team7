@@ -12,9 +12,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId")
     Integer countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 
+    // id 최대값 확인
     @Query("SELECT MAX(e.id) FROM Employee e")
     long findMaxId();
 
+    // 범위 내 id 최대값 확인
     @Query("SELECT MAX(e.id) FROM Employee e WHERE e.id >= :minId AND e.id <= :maxId")
     Optional<Long> findMaxIdBetween(@Param("minId") long minId, @Param("maxId") long maxId);
 }

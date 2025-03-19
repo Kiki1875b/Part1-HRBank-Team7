@@ -79,12 +79,8 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
         return queryFactory
                 .select(qEmployee.employeeNumber)
                 .from(qEmployee)
-                .where(
-                        qEmployee.hireDate.between(startOfYear, endOfYear)
-                )
-                .orderBy(
-                        qEmployee.id.desc()
-                )
+                .where(qEmployee.hireDate.between(startOfYear, endOfYear))
+                .orderBy(qEmployee.id.desc())  // 정렬 후
                 .limit(1)
                 .fetchOne();
     }

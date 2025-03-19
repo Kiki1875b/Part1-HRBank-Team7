@@ -1,7 +1,9 @@
 package team7.hrbank.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,7 +31,7 @@ public class GlobalExceptionHandler {
 
     // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ExceptionUtil.getRequestTime(request),
                 ErrorCode.NOT_FOUND.getStatus(),

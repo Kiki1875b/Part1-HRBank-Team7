@@ -54,18 +54,19 @@ public class Employee extends BaseUpdatableEntity {
   private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
 
 
-  // 생성자
-  public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
-      String email, String position, LocalDate hireDate) {
-    this.department = department;
-    this.profile = profile;
-    this.employeeNumber = employeeNumber;
-    this.name = name;
-    this.email = email;
-    this.position = position;
-    this.hireDate = hireDate;
-    this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
-  }
+    // 생성자
+    public Employee(Department department, BinaryContent profile, String employeeNumber,
+                    String name, String email, String position, LocalDate hireDate) {
+        this.department = department;
+        this.profile = profile;
+        this.employeeNumber = employeeNumber;
+        this.name = name;
+        this.email = email;
+        this.position = position;
+        this.hireDate = hireDate;
+        this.status = EmployeeStatus.ACTIVE;    // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
+    }
+
 
 
   // update 메서드
@@ -104,17 +105,19 @@ public class Employee extends BaseUpdatableEntity {
     this.status = status;
   }
 
-  //직원 복사
-  public Employee copy() {
-    Employee copied = new Employee();
-    copied.profile = this.profile;
-    copied.employeeNumber = this.employeeNumber;
-    copied.name = this.name;
-    copied.email = this.email;
-    copied.position = this.position;
-    copied.hireDate = this.hireDate;
-    copied.status = this.status;
-    copied.department = this.department;
+
+    //직원 복사
+    public Employee copy() {
+        Employee copied = new Employee();
+        copied.profile = this.profile;
+        copied.employeeNumber = this.employeeNumber;
+        copied.name = this.name;
+        copied.email = this.email;
+        copied.position = this.position;
+        copied.hireDate = this.hireDate;
+        copied.status = this.status;
+        copied.department = this.department;
+
 
     return copied;
   }

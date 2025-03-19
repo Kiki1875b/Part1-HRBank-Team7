@@ -27,8 +27,8 @@ public class ColumnRangePartitioner implements Partitioner {
     long partitionSize = (totalCount + gridSize - 1) / gridSize; // 파티션당 예상 데이터 개수
     long minId = 1; // employees 테이블 id 시작값에 따라 변경
     long partitionIndex = 0;
-
-    while (minId <= getMaxId()) {
+    long maximumId = getMaxId();
+    while (minId <= maximumId) {
       ExecutionContext context = new ExecutionContext();
       context.put("partitionId", "P" + partitionIndex);
 
