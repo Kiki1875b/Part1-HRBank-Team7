@@ -25,16 +25,8 @@ public class ChangeLogController {
   private final ChangeLogService changeLogService;
 
   @GetMapping
-  public ResponseEntity<PageResponse<ChangeLogDto>> getChangeLogs(
-      @ModelAttribute ChangeLogRequestDto dto,
-      @RequestParam(name = "size", required = false, defaultValue = "10") int size,
-      @RequestParam(name = "sortField", required = false, defaultValue = "startedAt") String sortField,
-      @RequestParam(name = "sortDirection", required = false, defaultValue = "DESC") String sortDirection
-  ) {
-
-    PageResponse<ChangeLogDto> response = changeLogService.getChangeLogs(
-        dto, size, sortField, sortDirection
-    );
+  public ResponseEntity<PageResponse<ChangeLogDto>> getChangeLogs(@ModelAttribute ChangeLogRequestDto dto) {
+    PageResponse<ChangeLogDto> response = changeLogService.getChangeLogs(dto);
     return ResponseEntity.ok(response);
   }
 

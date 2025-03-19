@@ -9,11 +9,7 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.common.dto.PageResponse;
 
 public interface ChangeLogService {
-  PageResponse<ChangeLogDto> getChangeLogs(
-      ChangeLogRequestDto dto,
-      int size,
-      String sortField,
-      String sortDirection);
+  PageResponse<ChangeLogDto> getChangeLogs(ChangeLogRequestDto dto);
 
   List<DiffDto> getChangeLogDetails(Long id);
   Long getChangeLogsCount(Instant fromDate, Instant toDate);
