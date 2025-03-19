@@ -7,6 +7,8 @@ public class EmailUtil {
 
     // 이메일 유효성 검사
     public static String emailValidation(String email) {
+        email = email.trim();
+
         if (email.matches(EMAIL_REGEX)) {
             return email;
         }

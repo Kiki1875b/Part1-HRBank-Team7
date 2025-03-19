@@ -31,5 +31,9 @@ public record EmployeeCreateRequest(
         if (Objects.isNull(hireDate)) {
             throw new IllegalArgumentException("입사일은 필수입니다.");
         }
+
+        name = name.trim();
+        email = email.trim();
+        position = position.trim();
     }
 }

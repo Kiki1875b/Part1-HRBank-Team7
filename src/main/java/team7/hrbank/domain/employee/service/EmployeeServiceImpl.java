@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.service;
 
+import com.querydsl.core.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BinaryMapper binaryMapper;
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
+
+
+    // TODO: @Transactional 해결
+    //  LazyInitializationException(Department 부분) 문제때문에 걸어놨지만 안티패턴임 -> 수정 고민
 
     // 직원 등록
     @Override
@@ -129,15 +134,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (request.departmentId() != null) {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
-        if (request.name() != null) {
-            employee.updateName(request.name());
+        if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
+            String name = request.name().trim();
+            employee.updateName(name);
         }
         if (request.email() != null) {
             String email = EmailUtil.emailValidation(request.email());
             employee.updateEmail(email);
         }
-        if (request.position() != null) {
-            employee.updatePosition(request.position());
+        if (!StringUtils.isNullOrEmpty(request.position()) && !request.position().isBlank()) {
+            String position = request.position().trim();
+            employee.updatePosition(position);
         }
         if (request.hireDate() != null) {
             employee.updateHireDate(request.hireDate());
