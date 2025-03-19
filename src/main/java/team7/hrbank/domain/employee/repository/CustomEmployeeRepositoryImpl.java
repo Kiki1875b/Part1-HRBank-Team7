@@ -3,6 +3,7 @@ package team7.hrbank.domain.employee.repository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.util.StringUtils;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -81,12 +82,13 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .select(qEmployee.employeeNumber)
                 .from(qEmployee)
                 .where(
-                        qEmployee.hireDate.between(startOfYear, endOfYear)
+                        qEmployee.id.eq(
+                                JPAExpressions
+                                        .select(qEmployee.id.max())
+                                        .from(qEmployee)
+                                        .where(qEmployee.hireDate.between(startOfYear, endOfYear))
+                        )
                 )
-                .orderBy(
-                        qEmployee.id.desc()
-                )
-                .limit(1)
                 .fetchOne();
     }
 
