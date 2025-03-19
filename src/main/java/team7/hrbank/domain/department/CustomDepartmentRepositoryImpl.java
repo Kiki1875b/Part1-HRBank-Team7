@@ -105,7 +105,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
                 .fetchOne();
 
-        // hasNext 판단 1. content의 사이즈가 10인 경우 + content의 사이즈가 size보다 작은 경우
+        // hasNext 판단 1. content의 사이즈가 11인 경우
         Boolean hasNext = contentDTOList.size() == condition.getSize() + 1;
         String encodedNextCursor = null;
         if (hasNext) {

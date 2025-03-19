@@ -20,6 +20,4 @@ public class DepartmentSearchCondition {
     private Integer size; // 페이지 사이즈(기본값 10)
     private String sortedField; // 정렬 필드(name or establishmentDate)
     private String sortDirection; // 정렬 방향(asc or desc, 기본값은 asc)
-
-
 }
