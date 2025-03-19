@@ -74,11 +74,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     //부서 조회 메서드
     @Override
     public PageDepartmentsResponseDto getDepartments(String nameOrDescription,
-                                          Integer idAfter,
-                                          String cursor,
-                                          Integer size,
-                                          String sortField,
-                                          String sortDirection) {
+                                          Integer idAfter, // 마지막 요소의 id
+                                          String cursor, // 마지막 정렬필드 값(idAfter의 요소와 같은 요소)
+                                          Integer size, // 한페이지당 담을 요소 수
+                                          String sortField, // 정렬 기준 필드
+                                          String sortDirection) { //정렬 방향
 
         // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
         if (!List.of("name", "establishedDate").contains(sortField)) {

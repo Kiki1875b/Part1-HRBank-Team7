@@ -1,5 +1,7 @@
 package team7.hrbank.domain.department.dto;
 
+import org.springframework.data.domain.PageImpl;
+
 import java.util.List;
 
 public record PageDepartmentsResponseDto(
