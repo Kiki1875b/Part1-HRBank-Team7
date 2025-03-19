@@ -3,6 +3,7 @@ package team7.hrbank.domain.department.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import team7.hrbank.domain.department.dto.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -14,8 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
-import team7.hrbank.domain.department.dto.DepartmentResponseDtoList;
-import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
+
 import team7.hrbank.domain.department.service.DepartmentServiceImpl;
 
 @RestController
@@ -33,7 +33,7 @@ public class DepartmentController {
 
     // 부서 수정 API
     @PatchMapping("/{id}")
-    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody DepartmentUpdateRequest requestDto) {
+    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody UpdateRequest requestDto) {
         DepartmentResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -51,15 +51,15 @@ public class DepartmentController {
 
     //부서 목록 조회 API
     @GetMapping
-    public ResponseEntity<DepartmentResponseDtoList> getDepartments(
+    public ResponseEntity<PageDepartmentsResponseDto> getDepartments(
         @RequestParam(name = "nameOrDescription", required = false) String nameOrDescription,
         @RequestParam(name = "idAfter", required = false) Integer idAfter, // 이전 페이지의 마지막 id
         @RequestParam(name = "cursor", required = false) String cursor, //다음 페이지 시작점
-        @RequestParam(name = "size", defaultValue = "10") Integer size, //한페이지당 보여질 페이지 수
-        @RequestParam(name = "sortField", required = false) String sortField,
+        @RequestParam(name = "size", required = false, defaultValue = "10") Integer size, //한페이지당 보여질 페이지 수
+        @RequestParam(name = "sortField", required = false, defaultValue = "establishedDate") String sortField,
         @RequestParam(name = "sortDirection", required = false, defaultValue = "asc") String sortDirection
     ){
-        DepartmentResponseDtoList departmentResponseDtoList = departmentServiceImpl.getDepartments(
+        PageDepartmentsResponseDto pageDepartmentsResponseDto = departmentServiceImpl.getDepartments(
                 nameOrDescription,
                 idAfter,
                 cursor,
@@ -70,13 +70,13 @@ public class DepartmentController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(departmentResponseDtoList);
+                .body(pageDepartmentsResponseDto);
     }
 
     //부서 단건 상세 조회 API
     @GetMapping("/{id}")
-    public ResponseEntity<DepartmentResponseDto> getDepartmentDetail(@PathVariable("id") Long id) {
-        DepartmentResponseDto responseDto = departmentServiceImpl.getDepartment(id);
+    public ResponseEntity<WithEmployeeCountResponseDto> getDepartmentDetail(@PathVariable("id") Long id) {
+        WithEmployeeCountResponseDto responseDto = departmentServiceImpl.getDepartment(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);

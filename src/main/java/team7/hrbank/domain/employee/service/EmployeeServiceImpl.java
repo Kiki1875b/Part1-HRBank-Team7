@@ -1,19 +1,18 @@
 package team7.hrbank.domain.employee.service;
 
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
-import team7.hrbank.common.utils.EmailUtil;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.change_log.service.ChangeLogService;
-import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.dto.WithEmployeeCountResponseDto;
 import team7.hrbank.domain.department.service.DepartmentService;
+import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
@@ -22,6 +21,9 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,18 +48,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        Department department = departmentService.getDepartmentEntityById(request.departmentId());
+        WithEmployeeCountResponseDto departmentResponse = departmentService.getDepartment(request.departmentId());
 
         // 프로필 사진
         BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
                 .map(binaryContentService::save)
                 .orElse(null);
 
-        // 이메일
-        String email = EmailUtil.emailValidation(request.email());
-
         // Employee 생성
-        Employee employee = new Employee(department, binaryContent, employeeNumber, request.name(), email, request.position(), request.hireDate());
+        Employee employee = new Employee(departmentService.getDepartmentEntityById(request.departmentId()), binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
 
         // DB 저장
         employeeRepository.save(employee);
@@ -119,20 +118,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile, String ipAddress) {
 
+
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         //수정로그를 위한 수정 전 직원 복사
         Employee before = employee.copy();
 
+        // TODO: departmentId 수정 로직 추가
         if (request.departmentId() != null) {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
+
         if (request.name() != null) {
             employee.updateName(request.name());
         }
         if (request.email() != null) {
-            String email = EmailUtil.emailValidation(request.email());
-            employee.updateEmail(email);
+            employee.updateEmail(request.email());
         }
         if (request.position() != null) {
             employee.updatePosition(request.position());
@@ -152,7 +153,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // DB 저장
         employeeRepository.save(employee);
 
-        // ChangeLog 저장
+        //ChangeLog 저장
         changeLogService.logEmployeeUpdated(before, employee, request.memo(), ipAddress);
 
         // employeeDto로 반환
@@ -162,12 +163,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
-        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);  // TODO: null일 경우 예외처리
+
+        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeDeleted(employee, ipAddress);
+        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
     }
 
 
