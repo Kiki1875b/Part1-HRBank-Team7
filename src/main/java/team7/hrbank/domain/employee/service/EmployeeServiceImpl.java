@@ -10,8 +10,10 @@ import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
+
 import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
@@ -51,6 +53,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
+
 
         // 프로필 사진 유무 별 employee 생성
         Employee createdEmployee = binaryMapper.convertFileToBinaryContent(profile)
@@ -164,18 +167,19 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
+
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
         employeeRepository.deleteById(id);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeDeleted(employee, ipAddress);
+        //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
     }
 
 
     // 사원번호 생성
     private String getEmployeeNumber(int year) {
-        String lastEmployeeNumber = customEmployeeRepository.selectEmployeeNumberByHireDateYearAndCreateAt(year);
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
         long lastNumber = 0;
         if (lastEmployeeNumber != null) {
             lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}

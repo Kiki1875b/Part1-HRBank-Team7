@@ -7,7 +7,7 @@ public record PageResponse<T>(
    Object nextCursor,
    Long nextIdAfter,
    int size,
-   int totalElements,
+   int totalElements, // TODO : long 변환
    boolean hasNext
 ) {
 }

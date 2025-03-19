@@ -1,13 +1,11 @@
 package team7.hrbank.domain.binary.dto;
 
+import java.io.IOException;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.domain.binary.BinaryContent;
-
-import javax.management.ConstructorParameters;
-import java.io.IOException;
-import java.util.Optional;
 
 
 //@MapperConfig(mappingInheritanceStrategy = AUTO_INHERIT_ALL_FROM_CONFIG)

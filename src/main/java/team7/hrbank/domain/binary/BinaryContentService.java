@@ -1,16 +1,14 @@
 package team7.hrbank.domain.binary;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-
-import java.util.List;
 
 @Slf4j
 @Service

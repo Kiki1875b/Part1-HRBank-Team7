@@ -4,6 +4,8 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.department.entity.QDepartment;
@@ -12,9 +14,6 @@ import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.entity.QEmployee;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -70,17 +69,18 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     @Override
-    public String selectEmployeeNumberByHireDateYearAndCreateAt(int year) {
+    public String selectLatestEmployeeNumberByHireDateYear(int year) {
+
+        // 해당 년도의 첫날과 마지막날 구하기
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+        LocalDate endOfYear = LocalDate.of(year, 12, 31);
+
         // 해당 년도에 입사한 직원 중 id가 가장 큰 직원의 사원번호 반환
         return queryFactory
                 .select(qEmployee.employeeNumber)
                 .from(qEmployee)
-                .where(
-                        qEmployee.hireDate.year().eq(year)
-                )
-                .orderBy(
-                        qEmployee.id.desc()
-                )
+                .where(qEmployee.hireDate.between(startOfYear, endOfYear))
+                .orderBy(qEmployee.id.desc())  // 정렬 후
                 .limit(1)
                 .fetchOne();
     }
@@ -196,7 +196,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
         return null;
     }
-    
+
     // idAfter 세팅
     private BooleanExpression idAfterCondition(Long idAfter) {
         if (idAfter != null) {

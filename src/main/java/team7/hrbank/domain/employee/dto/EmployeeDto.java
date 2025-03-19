@@ -1,8 +1,7 @@
 package team7.hrbank.domain.employee.dto;
 
-import team7.hrbank.domain.employee.entity.EmployeeStatus;
-
 import java.time.LocalDate;
+import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public record EmployeeDto(
         Long id,

@@ -1,6 +1,7 @@
 package team7.hrbank.domain.employee.dto;
 
 import com.querydsl.core.util.StringUtils;
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class EmployeeCreateRequest {
 
     public EmployeeStatus getStatus() {
         return EmployeeStatus.ACTIVE;
+
     }
 }
 

@@ -3,15 +3,11 @@ package team7.hrbank.domain.backup.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.Backup;
-import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.domain.backup.entity.QBackup;
 
 @Repository
@@ -20,7 +16,14 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QBackup backup = QBackup.backup;
-
+  /**
+   * Custom repository implementation for querying backup records using QueryDSL.
+   *
+   * <p>This repository provides methods for retrieving backup records with dynamic filtering
+   * and sorting criteria based on request parameters.</p>
+   *
+   * @see team7.hrbank.domain.backup.repository.CustomBackupRepository
+   */
   @Override
   public List<Backup> findBackups(
       BackupListRequestDto dto,
@@ -53,11 +56,20 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
     }
 
     if (dto.cursor() != null) {
-      where.and(
-          "DESC".equalsIgnoreCase(sortDirection)
-              ? backup.startedAt.lt(dto.cursor())
-              : backup.startedAt.gt(dto.cursor())
-      );
+
+      if("startedat".equalsIgnoreCase(sortField)) {
+        where.and(
+            "DESC".equalsIgnoreCase(sortDirection)
+                ? backup.startedAt.lt(dto.cursor())
+                : backup.startedAt.gt(dto.cursor())
+        );
+      }else{
+        where.and(
+            "DESC".equalsIgnoreCase(sortDirection)
+                ? backup.endedAt.lt(dto.cursor())
+                : backup.endedAt.gt(dto.cursor())
+        );
+      }
     }
 
     OrderSpecifier<?> specifier = getOrderSpecifier(sortField, sortDirection);
@@ -66,7 +78,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
         .selectFrom(backup)
         .where(where)
         .orderBy(specifier)
-        .limit(size )
+        .limit(size)
         .fetch();
   }
 

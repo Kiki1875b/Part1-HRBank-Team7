@@ -1,7 +1,6 @@
 package team7.hrbank.domain.change_log.controller;
 
 import java.time.Instant;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.CursorPageResponseChangeLogDto;
-import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.dto.DiffDto;
+import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 @RestController

@@ -12,8 +12,10 @@ public interface DepartmentMapper {
 
     DepartmentResponseDto toDto(Department department);
 
+    WithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
+
     Department toEntity(DepartmentCreateRequest dto);
 
     @Mapping(target = "id", ignore = true) // ID는 변경하지 않음
-    void updateFromDto(DepartmentUpdateRequest dto, @MappingTarget Department entity);
+    void updateFromDto(UpdateRequest dto, @MappingTarget Department entity);
 }
