@@ -14,7 +14,6 @@ import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
-import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 
 @RestController

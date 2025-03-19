@@ -39,7 +39,7 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
             cursorCondition(dto.cursor(), qChangeLog, dto.sortField(), dto.sortDirection())
         )
         .orderBy(
-            getSortOrderBySortField(dto.sortField(), dto.sortDirection()), // ✅ 정렬 기준 적용
+            getSortOrderBySortField(dto.sortField(), dto.sortDirection()),
             qChangeLog.id.desc()
         )
         .limit(dto.size() + 1)

@@ -10,6 +10,8 @@ import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team7.hrbank.common.dto.PageResponse;
+import team7.hrbank.common.exception.change_log.ChangeLogNoDetectedException;
+import team7.hrbank.common.exception.change_log.ChangeLogNotFoundException;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.dto.DiffDto;
@@ -75,7 +77,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
     }
 
     if (details.isEmpty()) {
-      throw new IllegalStateException("변경된 사항이 없습니다.");
+      throw new ChangeLogNoDetectedException();
     }
 
       ChangeLog log = new ChangeLog(
@@ -151,7 +153,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   @Transactional
   public List<DiffDto> getChangeLogDetails(Long id) {
     ChangeLog changeLog = changeLogRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("이력을 찾을 수 없습니다."));
+        .orElseThrow(ChangeLogNotFoundException::new);
 
     return changeLog.getDetails();
   }

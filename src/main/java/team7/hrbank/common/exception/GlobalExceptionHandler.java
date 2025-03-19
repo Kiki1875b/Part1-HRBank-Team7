@@ -58,6 +58,30 @@ public class GlobalExceptionHandler {
                 ErrorCode.NOT_FOUND.getMessage(),
                 "해당 경로를 찾을 수 없습니다."
         );
+  //400 - Bad Request (IllegalStateException이 발생한 경우. 아무값도 안넣었을때?)
+  @ExceptionHandler(IllegalStateException.class)
+  public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e,
+      HttpServletRequest request) {
+    ErrorResponse errorResponse = new ErrorResponse(
+        ExceptionUtil.getRequestTime(request),
+        ErrorCode.BAD_REQUEST.getStatus(),
+        ErrorCode.BAD_REQUEST.getMessage(),
+        e.getMessage()
+    );
+
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
+
+  // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
+  @ExceptionHandler(NoHandlerFoundException.class)
+  public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
+    ErrorResponse errorResponse = new ErrorResponse(
+        ExceptionUtil.getRequestTime(request),
+        ErrorCode.NOT_FOUND.getStatus(),
+        ErrorCode.NOT_FOUND.getMessage(),
+        "해당 경로를 찾을 수 없습니다."
+    );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
