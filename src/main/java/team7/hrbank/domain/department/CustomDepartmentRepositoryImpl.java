@@ -52,16 +52,14 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .from(department)
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
                 .join(department, employee.department).on(department.id.eq(employee.department.id))
-                .orderBy(orderSpecifier)
+                .orderBy(orderSpecifier, department.id.asc())
                 .limit(limitSize);
 
         // 3. cursor를 확인 - null이 아닌 상황
         if (condition.getCursor() != null) {
-
-            BooleanExpression cursorCondition = getCursorCondition(condition.getCursor());
             // 커서 id 를 활용해서 lastDepartment를 가져온다.
             Department lastDepartment = queryFactory.selectFrom(department)
-                    .where(cursorCondition)
+                    .where(getCursorCondition(condition.getCursor()))
                     .fetchOne();
 
             // 커서에 맞는 department가 없는 경우 에러 처리
