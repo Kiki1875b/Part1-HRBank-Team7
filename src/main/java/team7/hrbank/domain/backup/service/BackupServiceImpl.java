@@ -53,8 +53,8 @@ public class BackupServiceImpl implements BackupService {
   private final BinaryContentRepository binaryContentRepository;
 
 
-  @Value("${hrbank.storage.backup}")
-  private String backupDir;
+  @Value("${hrbank.storage.local.root-path}")
+  private String BACKUP_DIR;
   private static final String TEMP_BACKUP = "/tmpBackup.csv"; // TODO : yml 파일로 이전
 
   @PersistenceContext
@@ -134,7 +134,7 @@ public class BackupServiceImpl implements BackupService {
   public BackupDto startBackup(Long backupId) {
 
     Backup backup = backupRepository.findById(backupId).orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND)); // TODO : Exception 추가
-    File backupFile = new File(backupDir, TEMP_BACKUP);
+    File backupFile = new File(BACKUP_DIR, TEMP_BACKUP);
     BinaryContent saved = binaryContentRepository.save(new BinaryContent("EmployeeBackup-" + backup.getId(), "application/csv", backupFile.length()));
     try {
       JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
@@ -163,7 +163,7 @@ public class BackupServiceImpl implements BackupService {
       throw new BackupException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
-    File renamedFile = new File(backupDir, saved.getId() + ".csv");
+    File renamedFile = new File(BACKUP_DIR, saved.getId() + ".csv");
 
     if (backupFile.renameTo(renamedFile)) {
       log.info("Backup file renamed to {}", renamedFile.getAbsolutePath());
@@ -178,12 +178,12 @@ public class BackupServiceImpl implements BackupService {
 
   private void onBackupFail(Backup backup, BinaryContent saved, Long backupId, Exception e){
     log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
-    File logFile = new File(backupDir, saved.getId() + ".log");
+    File logFile = new File(BACKUP_DIR, saved.getId() + ".log");
     backup.fail();
     saved.updateFields("BackupFailLog-" + backup.getId(), "text/plain", 0L);
 
     try {
-      Path path = Path.of(backupDir + "/" + saved.getId() + ".csv");
+      Path path = Path.of(BACKUP_DIR + "/" + saved.getId() + ".csv");
       Files.deleteIfExists(path);
     } catch (IOException exception) {
       log.error("Failed To delete");

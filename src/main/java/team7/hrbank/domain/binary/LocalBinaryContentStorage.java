@@ -1,9 +1,14 @@
 package team7.hrbank.domain.binary;
 
+import java.io.InputStream;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
@@ -49,6 +54,49 @@ public class LocalBinaryContentStorage {
                 .body(new FileSystemResource(profilePath));
     }
 
+
+    // 임시 메서드 - 요한님 나중에 동작하는 기능 만드시면 지워도 됩니다
+    public InputStream get(Path path) {
+        try {
+            return Files.newInputStream(path);
+        } catch (IOException e) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public ResponseEntity<Resource> downloadTmp(Long id, String fileType){
+        Path filePath = resolvePath(id, fileType);
+
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        try {
+            InputStream inputStream = get(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            long fileSize = Files.size(filePath);
+            String fileName = filePath.getFileName().toString();
+            Resource resource = new InputStreamResource(inputStream);
+
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileSize))
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+
+    /*========================== 여기까지 지우셔도 됩니다 =======================================*/
+
     public void backUpEmployeeToCsv(List<Employee> employeeList){
 
     }
@@ -58,8 +106,8 @@ public class LocalBinaryContentStorage {
      * 편의
      */
     private Path resolvePath(Long id, String fileType) {
-        String realFileType = fileType.split("/")[1];
-        return root.resolve(id.toString() + "." + realFileType);
+        //String realFileType = fileType.split("/")[1];
+        return root.resolve(id.toString() + "." + fileType);
     }
 
     //루트 디렉토리를 초기화합니다.

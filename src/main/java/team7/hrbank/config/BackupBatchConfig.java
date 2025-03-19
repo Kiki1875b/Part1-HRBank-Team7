@@ -48,7 +48,7 @@ public class BackupBatchConfig {
 
   private final ColumnRangePartitioner partitioner;
 
-  @Value("${hrbank.storage.backup}")
+  @Value("${hrbank.storage.local.root-path}")
   private String BACKUP_DIR;
 
   private static final String MERGED_CSV = "/tmpBackup.csv";
