@@ -25,12 +25,6 @@ public interface EmployeeMapper {
     @Mapping(target = "profileImageId", source = "profile.id", defaultValue = "-1L")
     List<EmployeeDto> fromEntity(List<Employee> employees);
 
-    Employee fromDto(EmployeeDto employeeDto);
-
-//    @Mapping(target = "hireDate", source = "requestDto.hireDate", defaultValue = "-1L")
-//    @Mapping(target = "status", expression = "java(requestDto.getStatus())")  // 직원 등록 시 상태는 ACTIVE(재직중)로 초기화
-//    Employee toEntityWithProfile(EmployeeCreateRequest requestDto, BinaryContent profile, Department department, String employeeNumber);
-
     @Mapping(target = "department", source = "department")
     @Mapping(target = "employeeNumber", source = "employeeNumber", defaultValue = "-1L")
     @Mapping(target = "profile", source = "profile")
