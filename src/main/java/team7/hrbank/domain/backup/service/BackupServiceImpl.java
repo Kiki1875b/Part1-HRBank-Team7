@@ -75,7 +75,6 @@ public class BackupServiceImpl implements BackupService {
   }
 
 
-  // TODO : 최적화 필요
   @Override
   @Transactional(readOnly = true)
   public PageResponse<BackupDto> findBackupsOfCondition(
@@ -95,7 +94,7 @@ public class BackupServiceImpl implements BackupService {
           null,
           null,
           size,
-          0L,
+          0,
           false
       );
     }
@@ -108,7 +107,7 @@ public class BackupServiceImpl implements BackupService {
 
     Long nextIdAfter = backups.get(backups.size() - 1).getId();
     Instant nextCursor = calculateNextCursor(sortField, sortDirection, backups);
-    Long totalElements = backupRepository.getTotalElements();
+    int totalElements = (int) backupRepository.getTotalElements();
 
     return new PageResponse<>(
         backupMapper.fromEntityList(backups),
@@ -120,7 +119,8 @@ public class BackupServiceImpl implements BackupService {
     );
   }
 
-  private Instant calculateNextCursor(String sortField, String sortDirection, List<Backup> backups){
+  private Instant calculateNextCursor(String sortField, String sortDirection,
+      List<Backup> backups) {
     Instant nextCursor = null;
 
     if ("startedat".equalsIgnoreCase(sortField)) {
@@ -128,7 +128,7 @@ public class BackupServiceImpl implements BackupService {
           .map(Backup::getStartedAt)
           .sorted(
               "DESC".equalsIgnoreCase(sortDirection)
-                  ?  Comparator.naturalOrder() : Comparator.reverseOrder()
+                  ? Comparator.naturalOrder() : Comparator.reverseOrder()
           ).findFirst()
           .orElse(null);
     } else if ("endedat".equalsIgnoreCase(sortField)) {
@@ -154,13 +154,19 @@ public class BackupServiceImpl implements BackupService {
 
     BinaryContent saved = binaryContentRepository.save(
         new BinaryContent("EmployeeBackup-" + backup.getId(), "application/csv",
-            backupFile.length()));
+            backupFile.length())
+    );
+
     try {
-      JobParameters params = new JobParametersBuilder().addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+
+      JobParameters params = new JobParametersBuilder().addLong("timestamp",
+          System.currentTimeMillis()).toJobParameters();
       JobExecution execution = jobLauncher.run(employeeBackupJob, params);
 
       if (execution.getStatus() == BatchStatus.COMPLETED) {
         onBackupSuccess(backupFile, saved, backup);
+      } else {
+        throw new Exception();
       }
 
     } catch (Exception e) {
@@ -180,7 +186,7 @@ public class BackupServiceImpl implements BackupService {
     return backupMapper.fromEntity(backup);
   }
 
-  private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup)  {
+  private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup) {
     if (!backupFile.exists()) {
       throw new BackupException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
@@ -242,7 +248,7 @@ public class BackupServiceImpl implements BackupService {
     return latestBackup == null ? Instant.EPOCH : latestBackup.getStartedAt();
   }
 
-  private BackupDto skipBackup(){
+  private BackupDto skipBackup() {
     Backup backup = new Backup(Instant.now(), BackupStatus.SKIPPED);
     backup.endBackup();
     backupRepository.save(backup);

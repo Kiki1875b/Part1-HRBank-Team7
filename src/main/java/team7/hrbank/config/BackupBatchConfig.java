@@ -72,20 +72,7 @@ public class BackupBatchConfig {
     reader.setFetchSize(FETCH_SIZE);
     reader.setRowMapper(new EmployeeRowMapper());
 
-    SqlPagingQueryProviderFactoryBean provider = new SqlPagingQueryProviderFactoryBean();
-    provider.setDataSource(dataSource);
-
-    provider.setSelectClause(
-        "employee_id, employee_number, name, email, job_title, hire_date, status, department_name"
-    );
-    provider.setFromClause("(SELECT\n" +
-        "    e.id AS employee_id, e.employee_number, e.name, e.email, e.job_title, e.hire_date, e.status, d.name AS department_name\n"
-        +
-        "    FROM employees e\n" +
-        "    JOIN departments d ON e.department_id = d.id\n" +
-        "    WHERE e.id BETWEEN :minId AND :maxId) AS employee_data");
-    provider.setWhereClause("");
-    provider.setSortKeys(Collections.singletonMap("employee_id", Order.ASCENDING));
+    SqlPagingQueryProviderFactoryBean provider = getSqlPagingQueryProviderFactoryBean(dataSource);
 
     try {
       reader.setQueryProvider(provider.getObject());
@@ -96,10 +83,29 @@ public class BackupBatchConfig {
     Map<String, Object> parameterValues = new HashMap<>();
     parameterValues.put("minId", minId);
     parameterValues.put("maxId", maxId);
-    parameterValues.put("_employee_number", "0");
+//    parameterValues.put("_employee_number", "0");
     reader.setParameterValues(parameterValues);
 
     return reader;
+  }
+
+  private static SqlPagingQueryProviderFactoryBean getSqlPagingQueryProviderFactoryBean(DataSource dataSource) {
+
+    SqlPagingQueryProviderFactoryBean provider = new SqlPagingQueryProviderFactoryBean();
+    provider.setDataSource(dataSource);
+
+    provider.setSelectClause(
+        "employee_id, employee_number, name, email, job_title, hire_date, status, department_name"
+    );
+
+    provider.setFromClause("(SELECT\n"
+        + "    e.id AS employee_id, e.employee_number, e.name, e.email, e.job_title, e.hire_date, e.status, d.name AS department_name\n"
+        + "    FROM employees e\n"
+        + "    JOIN departments d ON e.department_id = d.id\n"
+        + "    WHERE e.id BETWEEN :minId AND :maxId) AS employee_data");
+    provider.setWhereClause("");
+    provider.setSortKeys(Collections.singletonMap("employee_id", Order.ASCENDING));
+    return provider;
   }
 
   /**

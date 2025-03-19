@@ -94,7 +94,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
 
         // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
-        if (!List.of("name", "establishedDate").contains(sortField)) {
+        if (sortField == null || !List.of("name", "establishedDate").contains(sortField)) {
             sortField = "establishedDate"; // 기본 정렬 필드
         }
 

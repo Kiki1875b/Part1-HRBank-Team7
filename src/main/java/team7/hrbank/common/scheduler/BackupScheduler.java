@@ -24,6 +24,9 @@ public class BackupScheduler {
   private String backupFilePrefix = "backup_part_";
   private String backupFilePrefixMerged = "tmpBackup";
 
+  /**
+   * Scheduler for processing backup every o'clock.
+   */
   @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
   public void runBackup() {
     log.info("Backup Scheduler Initiated");
@@ -41,6 +44,8 @@ public class BackupScheduler {
 
     log.info("Backup Initiated");
   }
+
+
 
   @Scheduled(cron = "0 30 * * * *")
   public void cleanup() {
