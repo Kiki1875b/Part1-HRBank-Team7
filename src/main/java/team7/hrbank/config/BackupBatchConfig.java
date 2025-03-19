@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -36,6 +37,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import team7.hrbank.common.dto.EmployeeDepartmentDto;
+import team7.hrbank.common.exception.BackupException;
+import team7.hrbank.common.exception.ErrorCode;
 import team7.hrbank.common.extractor.EmployeeDepartmentExtractor;
 import team7.hrbank.common.extractor.EmployeeRowMapper;
 import team7.hrbank.common.partitioner.ColumnRangePartitioner;
@@ -51,7 +54,9 @@ public class BackupBatchConfig {
   @Value("${hrbank.storage.local.root-path}")
   private String BACKUP_DIR;
 
-  private static final String MERGED_CSV = "/tmpBackup.csv";
+  @Value("${hrbank.storage.file-name}")
+  private String MERGED_CSV;
+
   private static final String HEADER = "id,employeeNumber,name,email,department,position,hireDate,status";
   private static final int FETCH_SIZE = 1000;
 
@@ -85,7 +90,7 @@ public class BackupBatchConfig {
     try {
       reader.setQueryProvider(provider.getObject());
     } catch (Exception e) {
-      throw new RuntimeException("Failed to set query provider", e);
+      throw new BackupException(ErrorCode.BACKUP_FAILED, e.getMessage());
     }
 
     Map<String, Object> parameterValues = new HashMap<>();
@@ -103,7 +108,8 @@ public class BackupBatchConfig {
   @Bean
   @StepScope
   public MultiResourceItemWriter<EmployeeDepartmentDto> multiFileItemWriter(
-      @Value("#{stepExecutionContext['partitionId']}") String partitionId) {
+      @Value("#{stepExecutionContext['partitionId']}") String partitionId
+  ) {
 
     MultiResourceItemWriter<EmployeeDepartmentDto> writer = new MultiResourceItemWriter<>();
     String fileName = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
@@ -186,7 +192,7 @@ public class BackupBatchConfig {
           File[] backupFiles = backupFolder.listFiles(
               (dir, name) -> name.startsWith("backup_part_") && name.endsWith(".csv"));
           if (backupFiles == null || backupFiles.length == 0) {
-            throw new RuntimeException("No backup files found to merge");
+            throw new BackupException(ErrorCode.BACKUP_FAILED, "No backup files found to merge"); // TODO : 메시지 상수화
           }
 
           File finalCsvFile = new File(BACKUP_DIR + MERGED_CSV);
@@ -213,7 +219,7 @@ public class BackupBatchConfig {
               }
             }
           } catch (IOException e) {
-            throw new RuntimeException("Error merging CSV files", e);
+            throw new BackupException(ErrorCode.BACKUP_FAILED, "Error merging CSV files");
           }
 
           log.info("Merged CSV file created: {}", finalCsvFile.getAbsolutePath());
@@ -235,12 +241,35 @@ public class BackupBatchConfig {
 
     long totalRows = employeeRepository.count();
     int gridSize = Math.min((int) (totalRows / 20000) + 1, 10); // 병렬 실행할 파티션 개수 , 최대 10개 제한
-    System.out.println(gridSize);
     return new StepBuilder("partitionedStep", jobRepository)
         .partitioner("backupStep", partitioner) // 파티셔너 적용
         .step(employeeBackupStep(jobRepository, transactionManager))
         .gridSize(gridSize)  // 병렬 실행할 파티션 개수
         .taskExecutor(taskExecutor())  // 병렬 실행
+        .allowStartIfComplete(true)
+        .build();
+  }
+
+  @Bean
+  public Step deleteStep(JobRepository jobRepository,
+      PlatformTransactionManager transactionManager) {
+    return new StepBuilder("deleteStep", jobRepository)
+        .tasklet((contribution, chunkContext) -> {
+          File backupFolder = new File(BACKUP_DIR);
+          File[] backupFiles = backupFolder.listFiles(
+              (dir, name) -> name.startsWith("backup_part_") && name.endsWith(".csv"));
+
+          if (backupFiles != null) {
+            for (File file : backupFiles) {
+              if (file.delete()) {
+                log.info("Deleted backup file: {}", file.getAbsolutePath());
+              } else {
+                log.warn("Failed to delete backup file: {}", file.getAbsolutePath());
+              }
+            }
+          }
+          return RepeatStatus.FINISHED;
+        }, transactionManager)
         .allowStartIfComplete(true)
         .build();
   }
@@ -253,10 +282,13 @@ public class BackupBatchConfig {
       PlatformTransactionManager transactionManager,
       EmployeeRepository employeeRepository) {
     return new JobBuilder("employeeBackupJob", jobRepository)
-        .start(partitionedStep(jobRepository, transactionManager, employeeRepository))
+        .start(deleteStep(jobRepository, transactionManager))
+        .next(partitionedStep(jobRepository, transactionManager, employeeRepository))
         .next(mergeCsvStep(jobRepository, transactionManager))
+        .preventRestart()
         .build();
   }
+
 
   /**
    * 멀티 쓰레드 TaskExecutor

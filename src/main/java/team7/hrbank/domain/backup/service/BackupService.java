@@ -21,7 +21,5 @@ public interface BackupService {
       String sortDirection
   );
 
-  BackupDto startBackup(Long backupId);
-
   BackupDto findLatestBackupByStatus(BackupStatus status);
 }

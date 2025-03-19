@@ -19,10 +19,12 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.BackupException;
 import team7.hrbank.common.exception.ErrorCode;
@@ -52,11 +54,9 @@ public class BackupServiceImpl implements BackupService {
 
   @Value("${hrbank.storage.local.root-path}")
   private String BACKUP_DIR;
-  private static final String TEMP_BACKUP = "/tmpBackup.csv"; // TODO : yml 파일로 이전
 
-  @PersistenceContext
-  private final EntityManager em;
-
+  @Value("${hrbank.storage.file-name}")
+  private String TEMP_BACKUP;
 
   @Async
   @Override
@@ -68,17 +68,16 @@ public class BackupServiceImpl implements BackupService {
   @Override
   public BackupDto createBackupRecord() {
     if (!isBackupNeeded()) {
-      Backup skippedBackup = new Backup(Instant.now(), BackupStatus.SKIPPED);
-      backupRepository.save(skippedBackup);
-      return backupMapper.fromEntity(skippedBackup);
+      return skipBackup();
     }
-
     Backup backup = backupRepository.save(new Backup(Instant.now(), BackupStatus.IN_PROGRESS));
     return backupMapper.fromEntity(backup);
   }
 
+
   // TODO : 최적화 필요
   @Override
+  @Transactional(readOnly = true)
   public PageResponse<BackupDto> findBackupsOfCondition(
       BackupListRequestDto dto,
       int size,
@@ -96,7 +95,7 @@ public class BackupServiceImpl implements BackupService {
           null,
           null,
           size,
-          0,
+          0L,
           false
       );
     }
@@ -108,36 +107,62 @@ public class BackupServiceImpl implements BackupService {
     }
 
     Long nextIdAfter = backups.get(backups.size() - 1).getId();
-
-    Instant nextCursor = backups.stream()
-        .map(Backup::getStartedAt)
-        .sorted(
-            "DESC".equalsIgnoreCase(sortDirection)
-                ? Comparator.reverseOrder() : Comparator.naturalOrder()
-        ).findFirst()
-        .orElse(null);
+    Instant nextCursor = calculateNextCursor(sortField, sortDirection, backups);
+    Long totalElements = backupRepository.getTotalElements();
 
     return new PageResponse<>(
         backupMapper.fromEntityList(backups),
         nextCursor,
         nextIdAfter,
         size,
-        0,
+        totalElements,
         hasNext
     );
   }
 
-  @Override
-  public BackupDto startBackup(Long backupId) {
+  private Instant calculateNextCursor(String sortField, String sortDirection, List<Backup> backups){
+    Instant nextCursor = null;
 
-    Backup backup = backupRepository.findById(backupId).orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND)); // TODO : Exception 추가
+    if ("startedat".equalsIgnoreCase(sortField)) {
+      nextCursor = backups.stream()
+          .map(Backup::getStartedAt)
+          .sorted(
+              "DESC".equalsIgnoreCase(sortDirection)
+                  ?  Comparator.naturalOrder() : Comparator.reverseOrder()
+          ).findFirst()
+          .orElse(null);
+    } else if ("endedat".equalsIgnoreCase(sortField)) {
+      nextCursor = backups.stream()
+          .map(Backup::getEndedAt)
+          .sorted(
+              "ASC".equalsIgnoreCase(sortDirection)
+                  ? Comparator.nullsFirst(Comparator.reverseOrder())
+                  : Comparator.nullsLast(Comparator.naturalOrder())
+          ).findFirst()
+          .orElse(null);
+    }
+
+    return nextCursor;
+  }
+
+  private BackupDto startBackup(Long backupId) {
+
+    Backup backup = backupRepository.findById(backupId)
+        .orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND));
+
     File backupFile = new File(BACKUP_DIR, TEMP_BACKUP);
-    BinaryContent saved = binaryContentRepository.save(new BinaryContent("EmployeeBackup-" + backup.getId(), "application/csv", backupFile.length()));
+
+    BinaryContent saved = binaryContentRepository.save(
+        new BinaryContent("EmployeeBackup-" + backup.getId(), "application/csv",
+            backupFile.length()));
     try {
-      JobExecution execution = jobLauncher.run(employeeBackupJob, new JobParameters());
+      JobParameters params = new JobParametersBuilder().addLong("timestamp", System.currentTimeMillis()).toJobParameters();
+      JobExecution execution = jobLauncher.run(employeeBackupJob, params);
+
       if (execution.getStatus() == BatchStatus.COMPLETED) {
         onBackupSuccess(backupFile, saved, backup);
       }
+
     } catch (Exception e) {
       onBackupFail(backup, saved, backupId, e);
     } finally {
@@ -148,14 +173,14 @@ public class BackupServiceImpl implements BackupService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
-    // 에러 처리 방식 논의
     Backup backup = backupRepository.findFirstByStatusOrderByStartedAtDesc(status)
         .orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND));
     return backupMapper.fromEntity(backup);
   }
 
-  private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup) throws Exception {
+  private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup)  {
     if (!backupFile.exists()) {
       throw new BackupException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
@@ -173,7 +198,7 @@ public class BackupServiceImpl implements BackupService {
     backup.success();
   }
 
-  private void onBackupFail(Backup backup, BinaryContent saved, Long backupId, Exception e){
+  private void onBackupFail(Backup backup, BinaryContent saved, Long backupId, Exception e) {
     log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
     File logFile = new File(BACKUP_DIR, saved.getId() + ".log");
     backup.fail();
@@ -183,7 +208,7 @@ public class BackupServiceImpl implements BackupService {
       Path path = Path.of(BACKUP_DIR + "/" + saved.getId() + ".csv");
       Files.deleteIfExists(path);
     } catch (IOException exception) {
-      log.error("Failed To delete");
+      log.error("Failed To delete failed backup file: {}", saved.getId());
     }
 
     try (
@@ -199,7 +224,7 @@ public class BackupServiceImpl implements BackupService {
     saved.updateSize(logFile.length());
   }
 
-  private void finishBackupProcess(Backup backup, BinaryContent saved){
+  private void finishBackupProcess(Backup backup, BinaryContent saved) {
     backup.endBackup();
     binaryContentRepository.save(saved);
     backupRepository.save(backup);
@@ -215,5 +240,12 @@ public class BackupServiceImpl implements BackupService {
   private Instant getLatestBackupTime() {
     Backup latestBackup = backupRepository.findFirstByOrderByStartedAtDesc().orElse(null);
     return latestBackup == null ? Instant.EPOCH : latestBackup.getStartedAt();
+  }
+
+  private BackupDto skipBackup(){
+    Backup backup = new Backup(Instant.now(), BackupStatus.SKIPPED);
+    backup.endBackup();
+    backupRepository.save(backup);
+    return backupMapper.fromEntity(backup);
   }
 }

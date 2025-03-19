@@ -49,11 +49,20 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
     }
 
     if (dto.cursor() != null) {
-      where.and(
-          "DESC".equalsIgnoreCase(sortDirection)
-              ? backup.startedAt.lt(dto.cursor())
-              : backup.startedAt.gt(dto.cursor())
-      );
+
+      if("startedat".equalsIgnoreCase(sortField)) {
+        where.and(
+            "DESC".equalsIgnoreCase(sortDirection)
+                ? backup.startedAt.lt(dto.cursor())
+                : backup.startedAt.gt(dto.cursor())
+        );
+      }else{
+        where.and(
+            "DESC".equalsIgnoreCase(sortDirection)
+                ? backup.endedAt.lt(dto.cursor())
+                : backup.endedAt.gt(dto.cursor())
+        );
+      }
     }
 
     OrderSpecifier<?> specifier = getOrderSpecifier(sortField, sortDirection);
@@ -62,7 +71,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
         .selectFrom(backup)
         .where(where)
         .orderBy(specifier)
-        .limit(size )
+        .limit(size)
         .fetch();
   }
 
