@@ -38,9 +38,9 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         Long beforeLastId = Long.valueOf(condition.getIdAfter());   // 이전 페이지 마지막 요소 id
         String jsonFormattedStartId = condition.getCursor();  //(다음 페이지 시작점)
 
-
         // 상황 1. jsonFormattedStartId가 null인데 beforeLastId가 0이하인 경우 : null로 조건 자체를 무효화
         BooleanExpression commonFieldCondition = null;
+
         // 상황 2. 커서가 null인데 beforeLastId가 있는 경우
         if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId > 0)) {
             Department lastDepartment = queryFactory.selectFrom(department)
@@ -49,7 +49,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             if (lastDepartment == null) throw new RuntimeException("커서에 맞는 Department를 찾을 수 없습니다: " + beforeLastId);
             else commonFieldCondition = getConditionByBeforeLast(lastDepartment, sortedFieldName, sortDirection);
         }
-        // 상황 3. cursor(페이지 시작 요소)id를 확인 - null이 아닌 상황 : CURSOR를 기본 베이스로 활용
+
+        // 상황 3. cursor(페이지 시작 요소)가 null이 아닌 상황 : CURSOR를 기본 베이스로 활용
         if (StringUtils.hasText(jsonFormattedStartId)) {
             Department startDepartment = queryFactory.selectFrom(department)
                     .where(getCursorCondition(jsonFormattedStartId))
@@ -134,7 +135,12 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     private BooleanExpression getCursorCondition(String cursor) {
         if (cursor != null) {
             String decodedCursor = new String(Base64.getDecoder().decode(cursor));
-            Long id = Long.valueOf(decodedCursor.split(":")[1]);
+            // JSON 형태의 문자열 예: {"id":20}
+            // 포맷 검증로직
+            long id = Long.parseLong(decodedCursor.split(":")[1]);
+            if (!decodedCursor.startsWith("{\"id\":") || !decodedCursor.endsWith("}") || id < 0) {
+                throw new IllegalArgumentException("Invalid cursor format: " + cursor);
+            }
             return department.id.gt(id);
         }
         return null;
