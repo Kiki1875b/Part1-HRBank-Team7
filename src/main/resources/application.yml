@@ -13,7 +13,7 @@ spring:
       initialize-schema: always
   web:
     resources:
-      add-mappings: false   # NpHandlerFoundException을 핸들링하기 위해 설정
+      add-mappings: false   # NoHandlerFoundException을 핸들링하기 위해 설정
 
 hrbank:
   storage:

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
+import team7.hrbank.common.utils.EmailUtil;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
@@ -53,8 +54,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .map(binaryContentService::save)
                 .orElse(null);
 
+        // 이메일
+        String email = EmailUtil.emailValidation(request.email());
+
         // Employee 생성
-        Employee employee = new Employee(department, binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
+        Employee employee = new Employee(department, binaryContent, employeeNumber, request.name(), email, request.position(), request.hireDate());
 
         // DB 저장
         employeeRepository.save(employee);
@@ -116,7 +120,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile, String ipAddress) {
 
-
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
         //수정로그를 위한 수정 전 직원 복사
@@ -125,12 +128,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (request.departmentId() != null) {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
-
         if (request.name() != null) {
             employee.updateName(request.name());
         }
         if (request.email() != null) {
-            employee.updateEmail(request.email());
+            String email = EmailUtil.emailValidation(request.email());
+            employee.updateEmail(email);
         }
         if (request.position() != null) {
             employee.updatePosition(request.position());
@@ -150,7 +153,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // DB 저장
         employeeRepository.save(employee);
 
-        //ChangeLog 저장
+        // ChangeLog 저장
         changeLogService.logEmployeeUpdated(before, employee, request.memo(), ipAddress);
 
         // employeeDto로 반환
