@@ -17,7 +17,7 @@ public class DepartmentSearchCondition {
 
     // 여기다가 조건 및 get메서드 재정의해서 default값 정의
     @Getter private String nameOrDescription;
-    @Getter private Integer idAfter; // 이전 페이지 마지막 요소 id
+    private Integer idAfter; // 이전 페이지 마지막 요소 id
     @Getter private String cursor; // 커서 (다음 페이지 시작점)
 
     // 최소 최대 조건이 요구사항에 있엇나??

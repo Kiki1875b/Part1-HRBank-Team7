@@ -15,6 +15,7 @@ import java.sql.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 
 import static team7.hrbank.domain.department.QDepartment.*;
@@ -72,20 +73,20 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
                 .fetchOne();
 
+
+
         // hasNext 판단 1. content의 사이즈가 11인 경우
         boolean hasNext = contentDTOList.size() == limitSize;
         String encodedNextCursor = null;
+        Integer nextIdAfter = null;
+        //if (hasNext && !contentDTOList.isEmpty()) {
         if (hasNext) {
             DepartmentPageContentDTO lastContent = contentDTOList.get(contentDTOList.size() - 1);
+            nextIdAfter = Math.toIntExact(lastContent.id());
             encodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
                     ? Base64.getEncoder().encodeToString(lastContent.name().getBytes())
                     : Base64.getEncoder().encodeToString(lastContent.establishmentDate().toString().getBytes());
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
-        }
-
-        Integer nextIdAfter = null;
-        if (!contentDTOList.isEmpty()) {
-            nextIdAfter = Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id());
         }
 
         return new DepartmentResponseDTO(
