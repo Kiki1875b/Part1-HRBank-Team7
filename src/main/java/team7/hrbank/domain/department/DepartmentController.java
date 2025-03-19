@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import team7.hrbank.domain.department.dto.DepartmentRequestDTO;
+import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
 
 @RestController
@@ -21,7 +22,7 @@ public class DepartmentController {
 
 
     @GetMapping
-    public Department getDepartment(@Valid DepartmentSearchCondition condition) {
+    public DepartmentResponseDTO getDepartment(@Valid DepartmentSearchCondition condition) {
         // 부서 목록조회
         return departmentService.searchDepartments(condition);
     }

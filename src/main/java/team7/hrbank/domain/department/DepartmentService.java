@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team7.hrbank.domain.department.dto.DepartmentRequestDTO;
 import team7.hrbank.domain.department.dto.DepartmentMapper;
+import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
 
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ public class DepartmentService {
         departmentMapper.update(updateDTO, updatingDepartment);
         return updatingDepartment;
     }
-
     //- **{이름 또는 설명}**으로 부서 목록을 조회할 수 있습니다.
     //    - **{이름 또는 설명}**는 부분 일치 조건입니다.
     //    - 조회 조건이 여러 개인 경우 모든 조건을 만족한 결과로 조회합니다.
@@ -45,17 +45,9 @@ public class DepartmentService {
 
     // 부서 목록 조회하는 메서드
     // search : 조건 기반 검색임이 들어나는 이름이라네요
-    public Department searchDepartments(DepartmentSearchCondition condition) {
-        //  "nextCursor": "eyJpZCI6MjB9",
-        //  "nextIdAfter": 20,
-        // 남은 활용할 것 :     private Integer idAfter; // 이전 페이지 마지막 요소 id
-        //    private String cursor; // 커서 (다음 페이지 시작점)
-
-        String cursor = "eyJpZCI6MjB9";
-
-
-        Page<Department> pagingResult = departmentRepository.findPagingAll1(condition);
-        return null;
+    public DepartmentResponseDTO searchDepartments(DepartmentSearchCondition condition) {
+        //String cursor = "eyJpZCI6MjB9";
+        return departmentRepository.findPagingAll1(condition);
     }
 
     // 부서 상세 조회
