@@ -43,4 +43,14 @@ public class ChangeLogController {
     List<DiffDto> diffs = changeLogService.getChangeLogDetails(id);
     return ResponseEntity.ok(diffs);
   }
+
+  @GetMapping("/count")
+  public ResponseEntity<Long> getChangeLogsCount(
+      @RequestParam(name = "fromDate", required = false) Instant fromDate,
+      @RequestParam(name = "toDate", required = false) Instant toDate
+  ){
+    Long count = changeLogService.getChangeLogsCount(fromDate, toDate);
+    return ResponseEntity.ok(count);
+  }
+
 }

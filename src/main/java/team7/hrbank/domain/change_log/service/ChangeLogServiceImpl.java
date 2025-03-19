@@ -3,6 +3,7 @@ package team7.hrbank.domain.change_log.service;
 
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -162,6 +163,18 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         .orElseThrow(() -> new NoSuchElementException("이력을 찾을 수 없습니다."));
 
     return changeLog.getDetails();
+  }
+
+  @Override
+  public Long getChangeLogsCount(Instant fromDate, Instant toDate) {
+    if(fromDate==null){
+      fromDate = Instant.now().minus(7, ChronoUnit.DAYS);
+    }
+    if(toDate==null){
+      toDate = Instant.now();
+    }
+
+    return changeLogRepository.countChangeLogs(fromDate, toDate);
   }
 
   @Override

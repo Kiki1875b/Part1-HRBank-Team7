@@ -43,8 +43,6 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
   }
 
   // 필터 조건들
-
-
   private BooleanExpression eqChangeLogType(ChangeLogType type, QChangeLog qChangeLog) {
     return Optional.ofNullable(type)
         .map(qChangeLog.type::eq)
@@ -84,5 +82,14 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
     return Optional.ofNullable(idAfter)
         .map(qChangeLog.id::gt)
         .orElse(null);
+  }
+
+  @Override
+  public Long countChangeLogs(Instant fromDate, Instant toDate) {
+    return queryFactory
+        .select(qChangeLog.count())
+        .from(qChangeLog)
+        .where(betweenCreatedAt(fromDate, toDate, qChangeLog))
+        .fetchOne();
   }
 }
