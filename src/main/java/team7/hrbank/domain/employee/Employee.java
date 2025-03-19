@@ -23,6 +23,7 @@ public class Employee extends BaseEntity {
     private EmployStatus status;
 
     @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "department_id")
     private Department department;
 
     @OneToOne(fetch = LAZY)

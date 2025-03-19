@@ -11,7 +11,9 @@ import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
 import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
 
+import java.sql.Array;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -59,7 +61,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 ))
                 .from(department)
                 .where(fieldWhereCondition, getIdConditionByIdAfter(beforeLastId), nameOrDescriptionLike(condition.getNameOrDescription()))
-                .join(department, employee.department).on(department.id.eq(employee.department.id))
+                .leftJoin(employee).on(department.id.eq(employee.department.id))
+                .groupBy(department.id)
                 .orderBy(getOrderFieldSpecifier(sortedFieldName, sortDirection), department.id.asc())
                 .limit(limitSize).fetch();
 
@@ -76,17 +79,31 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             DepartmentPageContentDTO lastContent = contentDTOList.get(contentDTOList.size() - 1);
             encodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
                     ? Base64.getEncoder().encodeToString(lastContent.name().getBytes())
-                    : Base64.getEncoder().encodeToString(lastContent.establishmentDate().getBytes());
+                    : Base64.getEncoder().encodeToString(lastContent.establishmentDate().toString().getBytes());
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
         }
-        return new DepartmentResponseDTO(
-                contentDTOList,
-                encodedNextCursor,
-                Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id()),
-                condition.getSize(),
-                totalCount,
-                hasNext
-        );
+
+
+        if (contentDTOList.isEmpty()) {
+            return new DepartmentResponseDTO(
+                    new ArrayList<>(),
+                    null,
+                    null,
+                    condition.getSize(),
+                    totalCount,
+                    hasNext
+            );
+        } else {
+            int nextIdAfter = Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id());
+            return new DepartmentResponseDTO(
+                    contentDTOList,
+                    encodedNextCursor,
+                    nextIdAfter,
+                    condition.getSize(),
+                    totalCount,
+                    hasNext
+            );
+        }
     }
 
     private BooleanExpression getIdConditionByIdAfter(Long idAfter) {

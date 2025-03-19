@@ -48,7 +48,7 @@ public class CursorTest {
 
     @Test
     void pagingTest(){
-        DepartmentSearchCondition departmentSearchCondition = new DepartmentSearchCondition("설", 15, "eyJpZCI6MjB9", 10, "name", "desc");
+        DepartmentSearchCondition departmentSearchCondition = new DepartmentSearchCondition("설", 15, "테스트 부서 16", 10, "name", "desc");
         DepartmentResponseDTO departmentResponseDTO = departmentService.searchDepartments(departmentSearchCondition);
         System.out.println("departmentResponseDTO = " + departmentResponseDTO);
     }
