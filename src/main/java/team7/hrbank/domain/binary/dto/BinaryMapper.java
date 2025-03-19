@@ -23,13 +23,6 @@ public interface BinaryMapper {
             }
         }
     }
-
-
     BinaryContent toEntity(BinaryContentDto binaryContentDtoSave);
-
-    @Mapping(target = "bytes", ignore = true)
-    BinaryContentDto toDto(BinaryContent binaryContent);
-
-    BinaryContentDto toDto(BinaryContent binaryContent, byte[] bytes);
 }
 
