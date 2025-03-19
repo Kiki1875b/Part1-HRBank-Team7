@@ -52,11 +52,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile, String ipAddress) {
 
         // 사원번호 생성
-        int year = request.getHireDate().getYear();   // 입사 연도
+        int year = request.hireDate().getYear();   // 입사 연도
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        Department belongedDepartment = departmentRepository.findById(request.getDepartmentId())
+        Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
 
@@ -72,7 +72,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(createdEmployee);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeCreated(createdEmployee, request.getMemo(), ipAddress);
+        changeLogService.logEmployeeCreated(createdEmployee, request.memo(), ipAddress);
         // employeeDto로 반환
         return employeeMapper.fromEntity(createdEmployee);
     }
