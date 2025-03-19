@@ -110,7 +110,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         String encodedNextCursor = null;
         if (hasNext) {
             encodedNextCursor = Base64.getEncoder().encodeToString(String.format("{\"id\":%d}", contentDTOList.get(condition.getSize()).id()).getBytes());
-            contentDTOList.remove(condition.getSize() + 1);
+            contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
             // JSON 형태의 문자열 예: {"id":20}
         }
         Integer idAfter = Math.toIntExact(contentDTOList.get(contentDTOList.size() - 1).id());
