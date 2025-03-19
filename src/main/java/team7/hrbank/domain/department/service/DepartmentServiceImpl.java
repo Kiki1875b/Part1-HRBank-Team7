@@ -1,6 +1,9 @@
 package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -10,9 +13,6 @@ import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +27,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     @Override
     public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
-        
+
         checkName(requestDto.name());
-        
+
         Department department = departmentMapper.toEntity(requestDto);
         departmentRepository.save(department);
-        
+
         return departmentMapper.toDto(department);
     }
 
@@ -52,7 +52,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentMapper.toDto(department);
     }
 
-    
+
     //부서 삭제 메서드
     @Transactional
     @Override
@@ -69,15 +69,18 @@ public class DepartmentServiceImpl implements DepartmentService {
     //부서 조회 메서드
     @Override
     public PageDepartmentsResponseDto getDepartments(String nameOrDescription,
-                                          Integer idAfter, // 마지막 요소의 id
-                                          String cursor, // 마지막 정렬필드 값(idAfter의 요소와 같은 요소)
-                                          Integer size, // 한페이지당 담을 요소 수
-                                          String sortField, // 정렬 기준 필드
-                                          String sortDirection) { //정렬 방향
+                                                     Integer idAfter, // 마지막 요소의 id
+                                                     String cursor, // 마지막 정렬필드 값(idAfter의 요소와 같은 요소)
+                                                     Integer size, // 한페이지당 담을 요소 수
+                                                     String sortField, // 정렬 기준 필드
+                                                     String sortDirection) { //정렬 방향
 
         // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
-        if (!List.of("name", "establishedDate").contains(sortField)) {
-            sortField = "establishedDate";
+
+
+        if (sortField == null || !List.of("name", "establishedDate").contains(sortField)) {
+            sortField = "establishedDate"; // 기본 정렬 필드
+
         }
         // 정렬 방향 처리 (기본값: ASC)
         Sort.Direction newSortDirection = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;

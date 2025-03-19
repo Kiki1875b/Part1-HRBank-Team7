@@ -10,60 +10,53 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
-import team7.hrbank.domain.base.BaseEntity;
+import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.department.entity.Department;
-
-import java.time.Instant;
-import java.time.LocalDate;
 
 @Entity
 @Getter
 @Table(name = "employees")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employee extends BaseEntity {
+public class Employee extends BaseUpdatableEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
-    private Department department;  // 부서
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "department_id", nullable = false)
+  private Department department;  // 부서
 
-    // 직원 삭제 시 프로필 사진도 삭제, 직원과 관계가 끊긴 사진도 삭제
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "binary_content_id")
-    private BinaryContent profile;  // 프로필 사진
+  // 직원 삭제 시 프로필 사진도 삭제, 직원과 관계가 끊긴 사진도 삭제
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "binary_content_id")
+  private BinaryContent profile;  // 프로필 사진
 
-    @Column(name = "employee_number", unique = true, nullable = false)
-    private String employeeNumber;  // 사원번호
+  @Column(name = "employee_number", unique = true, nullable = false)
+  private String employeeNumber;  // 사원번호
 
-    @Column(name = "name", nullable = false)
-    private String name;    // 이름
+  @Column(name = "name", nullable = false)
+  private String name;    // 이름
 
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;   // 이메일
+  @Column(name = "email", unique = true, nullable = false)
+  private String email;   // 이메일
 
-    @Column(name = "job_title", nullable = false)
-    private String position;    // 직함
+  @Column(name = "job_title", nullable = false)
+  private String position;    // 직함
 
-    @Column(name = "hire_date", nullable = false)
-    private LocalDate hireDate;   // 입사일
+  @Column(name = "hire_date", nullable = false)
+  private LocalDate hireDate;   // 입사일
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;  // 수정일
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
 
 
     // 생성자
-    public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
-                    String email, String position, LocalDate hireDate) {
+    public Employee(Department department, BinaryContent profile, String employeeNumber,
+                    String name, String email, String position, LocalDate hireDate) {
         this.department = department;
         this.profile = profile;
         this.employeeNumber = employeeNumber;
@@ -75,41 +68,43 @@ public class Employee extends BaseEntity {
     }
 
 
-    // update 메서드
-    // 부서 수정
-    public void updateDepartment(Department department) {
-        this.department = department;
-    }
 
-    // 프로필 사진 수정
-    public void updateProfile(BinaryContent profile) {
-        this.profile = profile;
-    }
+  // update 메서드
+  // 부서 수정
+  public void updateDepartment(Department department) {
+    this.department = department;
+  }
 
-    // 이름 수정
-    public void updateName(String name) {
-        this.name = name;
-    }
+  // 프로필 사진 수정
+  public void updateProfile(BinaryContent profile) {
+    this.profile = profile;
+  }
 
-    // 이메일 수정
-    public void updateEmail(String email) {
-        this.email = email;
-    }
+  // 이름 수정
+  public void updateName(String name) {
+    this.name = name;
+  }
 
-    // 직함 수정
-    public void updatePosition(String position) {
-        this.position = position;
-    }
+  // 이메일 수정
+  public void updateEmail(String email) {
+    this.email = email;
+  }
 
-    // 입사일 수정
-    public void updateHireDate(LocalDate hireDate) {
-        this.hireDate = hireDate;
-    }
+  // 직함 수정
+  public void updatePosition(String position) {
+    this.position = position;
+  }
 
-    // 상태 수정
-    public void updateStatus(EmployeeStatus status) {
-        this.status = status;
-    }
+  // 입사일 수정
+  public void updateHireDate(LocalDate hireDate) {
+    this.hireDate = hireDate;
+  }
+
+  // 상태 수정
+  public void updateStatus(EmployeeStatus status) {
+    this.status = status;
+  }
+
 
     //직원 복사
     public Employee copy() {
@@ -123,6 +118,7 @@ public class Employee extends BaseEntity {
         copied.status = this.status;
         copied.department = this.department;
 
-        return copied;
-    }
+
+    return copied;
+  }
 }

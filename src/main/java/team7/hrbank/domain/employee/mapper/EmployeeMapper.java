@@ -1,13 +1,12 @@
 package team7.hrbank.domain.employee.mapper;
 
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
 import team7.hrbank.domain.employee.dto.EmployeeDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
-
-import java.util.List;
 
 @Mapper
 public interface EmployeeMapper {

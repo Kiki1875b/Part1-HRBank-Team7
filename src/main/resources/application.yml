@@ -9,11 +9,14 @@ spring:
     show-sql: true
     open-in-view: false
   batch:
+    job:
+      enabled: false
     jdbc:
       initialize-schema: always
 
 
 hrbank:
   storage:
-    local.root-path: "C:\\hrbank-storage"
-    backup: "${user.dir}/backups"
+    local.root-path: "C:\\hrbank-storage" # users.dir 고려
+    backup: "$C:\\backups"
+    file-name: "/tmpBackup.csv"

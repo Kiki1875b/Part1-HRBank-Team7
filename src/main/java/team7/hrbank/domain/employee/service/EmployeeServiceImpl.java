@@ -9,7 +9,8 @@ import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.dto.WithEmployeeCountResponseDto;
 import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
@@ -47,7 +48,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        Department department = departmentService.getDepartmentEntityById(request.departmentId());
+        WithEmployeeCountResponseDto departmentResponse = departmentService.getDepartment(request.departmentId());
 
         // 프로필 사진
         BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
@@ -162,6 +163,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
+
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
         employeeRepository.deleteById(id);
@@ -173,7 +175,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 사원번호 생성
     private String getEmployeeNumber(int year) {
-        String lastEmployeeNumber = customEmployeeRepository.selectEmployeeNumberByHireDateYearAndCreateAt(year);
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
         long lastNumber = 0;
         if (lastEmployeeNumber != null) {
             lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}

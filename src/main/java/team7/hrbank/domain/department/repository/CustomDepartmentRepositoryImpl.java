@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
+
+
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
     private final JPAQueryFactory queryFactory;

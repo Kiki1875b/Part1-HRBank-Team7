@@ -1,10 +1,13 @@
 package team7.hrbank.domain.department.service;
 
 import jakarta.transaction.Transactional;
+
 import team7.hrbank.domain.department.dto.*;
-import team7.hrbank.domain.department.entity.Department;
 
 import java.util.List;
+import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
+import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.entity.Department;
 
 public interface DepartmentService {
     //부서 생성 메서드

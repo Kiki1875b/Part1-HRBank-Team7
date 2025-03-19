@@ -40,7 +40,7 @@ CREATE TABLE change_log (
     type VARCHAR(20) NOT NULL CHECK (type IN ('CREATED', 'UPDATED', 'DELETED')),
     details JSONB NULL,
     memo TEXT NULL,
-    ip_address INET NOT NULL,
+    ip_address VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     CONSTRAINT fk_change_log_employee FOREIGN KEY (employee_number) REFERENCES employees (employee_number) ON delete SET NULL
 );
@@ -52,6 +52,6 @@ CREATE TABLE backup_history (
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NULL,
     status VARCHAR(50) NOT NULL CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'FAILED', 'SKIPPED')),
-    file_id BIGINT NOT NULL,
+    file_id BIGINT NULL,
     CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );

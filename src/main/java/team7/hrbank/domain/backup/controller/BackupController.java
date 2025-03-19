@@ -1,16 +1,7 @@
 package team7.hrbank.domain.backup.controller;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,7 +14,6 @@ import team7.hrbank.domain.backup.dto.BackupDto;
 import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.BackupStatus;
 import team7.hrbank.domain.backup.service.BackupService;
-import team7.hrbank.domain.backup.service.BackupServiceImpl;
 
 @RestController
 @RequestMapping("/api/backups")
