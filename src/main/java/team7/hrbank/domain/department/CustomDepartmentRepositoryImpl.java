@@ -5,7 +5,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
@@ -38,7 +37,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
         String sortDirection = condition.getSortDirection() != null ? condition.getSortDirection().toLowerCase().trim() : "asc";
 
-        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(sortedFieldName, sortDirection);
+        OrderSpecifier<?> orderFieldSpecifier = getOrderFieldSpecifier(sortedFieldName, sortDirection);
+        OrderSpecifier<Long> idOrderSpecifier = department.id.asc();
 
         // 2. query 기본값(getCursor가 null인 상황)
         Long beforeLastId = Long.valueOf(condition.getIdAfter());   // 이전 페이지 마지막 요소 id
@@ -47,23 +47,20 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         // 상황 1. jsonFormattedStartId가 null인데 beforeLastId가 null인 경우
         // 상황 2. jsonFormattedStartId가 null인데 beforeLastId가 있는 경우
         // 상황 3. jsonFormattedStartId가 있는 경우 : 그냥 jsonFormattedStartId를 활용
-        JPAQuery<DepartmentPageContentDTO> contentQuery;
 
-        // 상황 1.
-        if (!StringUtils.hasText(jsonFormattedStartId) && (beforeLastId <= 0)) {
-            contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
-                            department.id,
-                            department.name,
-                            department.description,
-                            department.establishmentDate,
-                            employee.count()
-                    ))
-                    .from(department)
-                    .where(nameOrDescriptionLike(condition.getNameOrDescription()))
-                    .join(department, employee.department).on(department.id.eq(employee.department.id))
-                    .orderBy(orderSpecifier, department.id.asc())
-                    .limit(limitSize);
-        }
+        // 상황 1. jsonFormattedStartId가 null인데 beforeLastId가 0이하인 경우
+        JPAQuery<DepartmentPageContentDTO> contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
+                        department.id,
+                        department.name,
+                        department.description,
+                        department.establishmentDate,
+                        employee.count()
+                ))
+                .from(department)
+                .where(nameOrDescriptionLike(condition.getNameOrDescription()))
+                .join(department, employee.department).on(department.id.eq(employee.department.id))
+                .orderBy(orderFieldSpecifier, idOrderSpecifier)
+                .limit(limitSize);
 
         // 상황 2. 커서가 null인데 beforeLastId가 있는 경우
         // id가 잘못됐다면 기본 contentquery를 할지 오류를 보낼지 결정해야
@@ -80,16 +77,17 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
             String lastName = lastDepartment.getName();
             LocalDate lasEstablishmentDate = lastDepartment.getEstablishmentDate();
+            Long lastDepartmentId = lastDepartment.getId();
 
-            BooleanExpression whereCondition = department.establishmentDate.gt(lasEstablishmentDate);
+            BooleanExpression fieldwhereCondition = department.establishmentDate.gt(lasEstablishmentDate);
             switch (sortedFieldName) {
-                case "name" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
-                        ? department.name.loe(lastName)
+                case "name" -> fieldwhereCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.name.lt(lastName)
                         : department.name.gt(lastName);
-                case "establishment" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
-                        ? department.establishmentDate.loe(lasEstablishmentDate)
-                        : department.establishmentDate.gt(lasEstablishmentDate);
-                default -> whereCondition = department.establishmentDate.gt(lasEstablishmentDate);
+                case "establishment" -> fieldwhereCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.establishmentDate.loe(lasEstablishmentDate).and(department.id.lt(lastDepartmentId))
+                        : department.establishmentDate.goe(lasEstablishmentDate).and(department.id.gt(lastDepartmentId));
+                default -> fieldwhereCondition = department.establishmentDate.gt(lasEstablishmentDate);
             }
             // 이때 content 추가
             contentQuery = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
@@ -101,8 +99,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                     )
                     .from(department)
                     .join(department).on(department.id.eq(employee.department.id))
-                    .where(whereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
-                    .orderBy(orderSpecifier)
+                    .where(fieldwhereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
+                    .orderBy(orderFieldSpecifier, idOrderSpecifier)
                     .limit(limitSize);
         }
 
@@ -122,15 +120,15 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             String startDepartmentName = startDepartment.getName();
             LocalDate startEstablishmentDate = startDepartment.getEstablishmentDate();
 
-            BooleanExpression whereCondition = department.establishmentDate.gt(startEstablishmentDate);
+            BooleanExpression fieldWhereCondition;
             switch (sortedFieldName) {
-                case "name" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
+                case "name" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.name.loe(startDepartmentName)
                         : department.name.goe(startDepartmentName);
-                case "establishment" -> whereCondition = sortDirection.equalsIgnoreCase("desc")
-                        ? department.establishmentDate.loe(startEstablishmentDate)
+                case "establishment" -> fieldWhereCondition = sortDirection.equalsIgnoreCase("desc")
+                        ? department.establishmentDate.loe(startEstablishmentDate).and(department.id.lt(startDepartment.getId()))
                         : department.establishmentDate.goe(startEstablishmentDate).and(department.id.gt(startDepartment.getId()));
-                default -> whereCondition = department.establishmentDate.goe(startEstablishmentDate);
+                default -> fieldWhereCondition = department.establishmentDate.goe(startEstablishmentDate);
             }
 
             // 이때 content 추가
@@ -143,13 +141,14 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                     )
                     .from(department)
                     .join(department).on(department.id.eq(employee.department.id))
-                    .where(whereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
-                    .orderBy(orderSpecifier)
+                    .where(fieldWhereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
+                    .orderBy(orderFieldSpecifier, idOrderSpecifier)
                     .limit(limitSize);
         }
-        List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
 
-        contentDTOList = contentQuery.fetch();
+        List<DepartmentPageContentDTO> contentDTOList = contentQuery.fetch();
+
+        // 이것도 최적화해서 이전에 가져올 수 있을것 같은데...코드가 너무 지저분
         Long totalCount = queryFactory.select(department.count())
                 .from(department)
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
@@ -194,7 +193,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         return null;
     }
 
-    private OrderSpecifier<?> getOrderSpecifier(String field, String direction) {
+    private OrderSpecifier<?> getOrderFieldSpecifier(String field, String direction) {
         String fieldName = field != null ? field.toLowerCase().trim() : "establishmentDate";
         String sortDirection = direction != null ? direction.toLowerCase().trim() : "asc";
         return switch (fieldName) {
