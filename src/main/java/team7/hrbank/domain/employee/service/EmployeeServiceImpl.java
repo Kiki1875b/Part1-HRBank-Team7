@@ -10,6 +10,8 @@ import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
+import team7.hrbank.domain.department.entity.Department;
+import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.employee.dto.EmployeeCreateRequest;
@@ -22,7 +24,6 @@ import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BinaryMapper binaryMapper;
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
+    private final DepartmentRepository departmentRepository;
 
     // 직원 등록
     @Override
@@ -43,28 +45,28 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile, String ipAddress) {
 
         // 사원번호 생성
-        int year = request.hireDate().getYear();   // 입사 연도
+        int year = request.getHireDate().getYear();   // 입사 연도
         String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
 
         // 부서
-        DepartmentResponseDto departmentResponse = departmentService.getDepartment(request.departmentId());
+        Department belongedDepartment = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
-        // 프로필 사진
-        BinaryContent binaryContent = binaryMapper.convertFileToBinaryContent(profile)
-                .map(binaryContentService::save)
-                .orElse(null);
-
-        // Employee 생성
-        Employee employee = new Employee(departmentService.getDepartmentEntityById(request.departmentId()), binaryContent, employeeNumber, request.name(), request.email(), request.position(), request.hireDate());
+        // 프로필 사진 유무 별 employee 생성
+        Employee createdEmployee = binaryMapper.convertFileToBinaryContent(profile)
+                .map((dto) -> {
+                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
+                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent, belongedDepartment, employeeNumber);
+                })
+                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment, employeeNumber));
 
         // DB 저장
-        employeeRepository.save(employee);
+        employeeRepository.save(createdEmployee);
 
         //ChangeLog 저장
-        changeLogService.logEmployeeCreated(employee, request.memo(), ipAddress);
-
+        changeLogService.logEmployeeCreated(createdEmployee, request.getMemo(), ipAddress);
         // employeeDto로 반환
-        return employeeMapper.fromEntity(employee);
+        return employeeMapper.fromEntity(createdEmployee);
     }
 
     // 직원 목록 조회
@@ -178,7 +180,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (lastEmployeeNumber != null) {
             lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
         }
-
         return String.format("EMP-%d-%03d", year, lastNumber + 1);
     }
 
