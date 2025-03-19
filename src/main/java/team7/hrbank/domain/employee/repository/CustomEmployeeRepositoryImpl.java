@@ -45,7 +45,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         getSortOrderBySortField(request.sortField(), request.sortDirection()),  // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
                         qEmployee.id.asc()
                 )
-                .limit(request.size())
+                .limit(request.size() + 1)
                 .fetch();
     }
 
