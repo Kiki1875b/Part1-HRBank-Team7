@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.domain.binary.BinaryContent;
 
 
-//@MapperConfig(mappingInheritanceStrategy = AUTO_INHERIT_ALL_FROM_CONFIG)
 @Mapper
 public interface BinaryMapper {
 
