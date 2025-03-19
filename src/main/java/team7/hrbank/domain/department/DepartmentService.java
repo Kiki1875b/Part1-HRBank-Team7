@@ -64,7 +64,8 @@ public class DepartmentService {
                 .orElseThrow(() -> new RuntimeException("id에 해당하는 부서가 존재하지 않습니다."));
 
         // employeeCount 필요
-        // 나중에 ㄱ : 아니면 employee 레이어에서 한번에 join해서 가져오기도 가능
+        // 다른 방안1. employee 레이어에서 한번에 join해서 가져오기도 가능
+        // 다른 방안2. DepartmentRepository에서 Querydsl써서 join해서 가져옥
         return new ArrayList<>();
     }
 
