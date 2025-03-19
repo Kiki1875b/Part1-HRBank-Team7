@@ -56,8 +56,8 @@ public class Employee extends BaseUpdatableEntity {
 
 
     // 생성자
-    public Employee(Department department, BinaryContent profile, String employeeNumber, String name,
-                    String email, String position, LocalDate hireDate) {
+    public Employee(Department department, BinaryContent profile, String employeeNumber,
+                    String name, String email, String position, LocalDate hireDate) {
         this.department = department;
         this.profile = profile;
         this.employeeNumber = employeeNumber;
@@ -104,6 +104,7 @@ public class Employee extends BaseUpdatableEntity {
     public void updateStatus(EmployeeStatus status) {
         this.status = status;
     }
+
 
     //직원 복사
     public Employee copy() {
