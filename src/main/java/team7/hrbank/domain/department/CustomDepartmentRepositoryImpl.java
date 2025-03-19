@@ -79,12 +79,12 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             LocalDate lasEstablishmentDate = lastDepartment.getEstablishmentDate();
             Long lastDepartmentId = lastDepartment.getId();
 
-            BooleanExpression fieldwhereCondition = department.establishmentDate.gt(lasEstablishmentDate);
+            BooleanExpression fieldwhereCondition;
             switch (sortedFieldName) {
                 case "name" -> fieldwhereCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.name.lt(lastName)
                         : department.name.gt(lastName);
-                case "establishment" -> fieldwhereCondition = sortDirection.equalsIgnoreCase("desc")
+                case "establishmentDate" -> fieldwhereCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.establishmentDate.loe(lasEstablishmentDate).and(department.id.lt(lastDepartmentId))
                         : department.establishmentDate.goe(lasEstablishmentDate).and(department.id.gt(lastDepartmentId));
                 default -> fieldwhereCondition = department.establishmentDate.gt(lasEstablishmentDate);
@@ -105,7 +105,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         }
 
 
-        // 상황 3. cursor를 확인 - null이 아닌 상황
+        // 상황 3. cursor를 확인 - null이 아닌 상황 : CURSOR를 기본 베이스로 활용
         if (StringUtils.hasText(jsonFormattedStartId)) {
             // 커서 id 를 활용해서 lastDepartment를 가져온다.
             Department startDepartment = queryFactory.selectFrom(department)
