@@ -17,6 +17,7 @@ public record EmployeeCreateRequest(
         @DateTimeFormat(pattern = "yyyy-MM-dd")
         LocalDate hireDate,
         String memo) {
+
     public EmployeeStatus getStatus() {
         return EmployeeStatus.ACTIVE;
     }
