@@ -16,7 +16,14 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QBackup backup = QBackup.backup;
-
+  /**
+   * Custom repository implementation for querying backup records using QueryDSL.
+   *
+   * <p>This repository provides methods for retrieving backup records with dynamic filtering
+   * and sorting criteria based on request parameters.</p>
+   *
+   * @see team7.hrbank.domain.backup.repository.CustomBackupRepository
+   */
   @Override
   public List<Backup> findBackups(
       BackupListRequestDto dto,

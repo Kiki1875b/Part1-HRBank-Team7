@@ -3,6 +3,9 @@ package team7.hrbank.common.extractor;
 import org.springframework.batch.item.file.transform.FieldExtractor;
 import team7.hrbank.domain.employee.entity.Employee;
 
+/**
+ * Deprecated
+ */
 public class EmployeeFieldExtractor implements FieldExtractor<Employee> {
 
   @Override

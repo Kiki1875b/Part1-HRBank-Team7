@@ -58,6 +58,11 @@ public class BackupServiceImpl implements BackupService {
   @Value("${hrbank.storage.file-name}")
   private String TEMP_BACKUP;
 
+  /**
+   * Asynchronously starts the backup process for a given backup ID.
+   * @param backupId ID of the backup to start
+   * @return CompletableFuture containing the result of Backup Process
+   */
   @Async
   @Override
   public CompletableFuture<BackupDto> startBackupAsync(Long backupId) {
@@ -65,6 +70,10 @@ public class BackupServiceImpl implements BackupService {
     return CompletableFuture.completedFuture(result);
   }
 
+  /**
+   * Creates new backup record if needed
+   * @return new backup record
+   */
   @Override
   public BackupDto createBackupRecord() {
     if (!isBackupNeeded()) {
@@ -74,7 +83,14 @@ public class BackupServiceImpl implements BackupService {
     return backupMapper.fromEntity(backup);
   }
 
-
+  /**
+   * Retrieves a paginated list of backups based on the given filtering criteria.
+   * @param dto request DTO containing filter conditions
+   * @param size maximum size of data to retrieve
+   * @param sortField field used to sort
+   * @param sortDirection direction for sorting
+   * @return Paginated response based on parameters
+   */
   @Override
   @Transactional(readOnly = true)
   public PageResponse<BackupDto> findBackupsOfCondition(
@@ -119,6 +135,14 @@ public class BackupServiceImpl implements BackupService {
     );
   }
 
+  /**
+   * Determines the next cursor value based on sorting field and direction.
+   *
+   * @param sortField The field used for sorting.
+   * @param sortDirection The sorting direction ("ASC" or "DESC").
+   * @param backups The list of backup records.
+   * @return The next cursor value.
+   */
   private Instant calculateNextCursor(String sortField, String sortDirection,
       List<Backup> backups) {
     Instant nextCursor = null;
@@ -145,6 +169,12 @@ public class BackupServiceImpl implements BackupService {
     return nextCursor;
   }
 
+  /**
+   * Starts the backup process for a given backup ID.
+   *
+   * @param backupId The ID of the backup to start
+   * @return The updated backup record DTO
+   */
   private BackupDto startBackup(Long backupId) {
 
     Backup backup = backupRepository.findById(backupId)
@@ -178,6 +208,12 @@ public class BackupServiceImpl implements BackupService {
     return backupMapper.fromEntity(backup);
   }
 
+  /**
+   * Finds the most recent backup with the specified status
+   *
+   * @param status The backup status to filter by
+   * @return The latest backup DTO matching the status
+   */
   @Override
   @Transactional(readOnly = true)
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
@@ -186,6 +222,12 @@ public class BackupServiceImpl implements BackupService {
     return backupMapper.fromEntity(backup);
   }
 
+  /**
+   * Handels successful backup process
+   * @param backupFile temporary backup file
+   * @param saved saved metadata of backup file
+   * @param backup saved backup record for backup process
+   */
   private void onBackupSuccess(File backupFile, BinaryContent saved, Backup backup) {
     if (!backupFile.exists()) {
       throw new BackupException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -204,6 +246,13 @@ public class BackupServiceImpl implements BackupService {
     backup.success();
   }
 
+  /**
+   * handles failed backup process
+   * @param backup temporary  backup file
+   * @param saved saved metadata for backup file
+   * @param backupId id of backup process
+   * @param e exception that caused failure
+   */
   private void onBackupFail(Backup backup, BinaryContent saved, Long backupId, Exception e) {
     log.error("Backup failed for ID {}: {}", backupId, e.getMessage(), e);
     File logFile = new File(BACKUP_DIR, saved.getId() + ".log");
@@ -230,12 +279,20 @@ public class BackupServiceImpl implements BackupService {
     saved.updateSize(logFile.length());
   }
 
+  /**
+   * Method to finish backup process whether successful or not
+   * @param backup backup record of backup process
+   * @param saved saved metadata for backup process
+   */
   private void finishBackupProcess(Backup backup, BinaryContent saved) {
     backup.endBackup();
     binaryContentRepository.save(saved);
     backupRepository.save(backup);
   }
 
+  /**
+   * Determines whether backup is needed or not
+   */
   private boolean isBackupNeeded() {
     Instant latestBackupTime = getLatestBackupTime();
     Instant latestChangeLogTime = changeLogService.getLatestChannelLogUpdateTime();
@@ -243,11 +300,18 @@ public class BackupServiceImpl implements BackupService {
     return latestChangeLogTime.isAfter(latestBackupTime);
   }
 
+  /**
+   * retrieves latest backup time
+   */
   private Instant getLatestBackupTime() {
     Backup latestBackup = backupRepository.findFirstByOrderByStartedAtDesc().orElse(null);
     return latestBackup == null ? Instant.EPOCH : latestBackup.getStartedAt();
   }
 
+  /**
+   * Handles a situation where backup is not needed
+   * @return
+   */
   private BackupDto skipBackup() {
     Backup backup = new Backup(Instant.now(), BackupStatus.SKIPPED);
     backup.endBackup();

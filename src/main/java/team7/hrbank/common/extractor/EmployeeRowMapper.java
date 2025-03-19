@@ -9,6 +9,11 @@ import org.springframework.jdbc.core.RowMapper;
 import team7.hrbank.common.dto.EmployeeDepartmentDto;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
+/**
+ * RowMapper implementation for mapping a row from ResultSet to EmployeeDepartmentDto
+ * <br>
+ * This class is used in {@link team7.hrbank.config.BackupBatchConfig}
+ */
 public class EmployeeRowMapper implements RowMapper<EmployeeDepartmentDto> {
 
   @Override

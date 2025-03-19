@@ -3,22 +3,27 @@ package team7.hrbank.common.partitioner;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
+/**
+ * This partitioner divides database records into equally sized partitions based on ID
+ * <br>
+ * This partitioner is used to process parallel BackupBatch
+ * <br>
+ * Each Partition is assigned unique ID for identification
+ */
 @Component
+@RequiredArgsConstructor
 public class ColumnRangePartitioner implements Partitioner {
 
   //  private final DataSource dataSource;
   private final EmployeeRepository employeeRepository;
 
-  @Autowired
-  public ColumnRangePartitioner(EmployeeRepository employeeRepository) {
-    this.employeeRepository = employeeRepository;
-  }
 
   @Override
   public Map<String, ExecutionContext> partition(int gridSize) {
@@ -55,6 +60,12 @@ public class ColumnRangePartitioner implements Partitioner {
     return partitions;
   }
 
+  /**
+   *
+   * @param minId minimum id in range
+   * @param rangeSize size of each range
+   * @return Actual Maximum Id In Range
+   */
   private long getActualMaxId(long minId, long rangeSize) {
     Optional<Long> maxId = employeeRepository.findMaxIdBetween(minId, minId + rangeSize);
     if (maxId.isPresent()) {

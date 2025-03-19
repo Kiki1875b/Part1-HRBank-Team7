@@ -60,6 +60,16 @@ public class BackupBatchConfig {
   private static final String HEADER = "id,employeeNumber,name,email,department,position,hireDate,status";
   private static final int FETCH_SIZE = 1000;
 
+  /**
+   * Creates JdbcPagingItemReader for reading Employee, Department Data with pagination.
+   * <br>
+   * Migrated from JpaPagingItemReader to enhance performance
+   *
+   * @param dataSource Source for DB Connection
+   * @param minId      Minimum employeeID for each partition
+   * @param maxId      Maximum employeeID for each partition
+   * @return JdbcPagingItemReader configured for certain range of data
+   */
   @Bean
   @StepScope
   public JdbcPagingItemReader<EmployeeDepartmentDto> employeeItemReaderJdbc(
@@ -89,7 +99,11 @@ public class BackupBatchConfig {
     return reader;
   }
 
-  private static SqlPagingQueryProviderFactoryBean getSqlPagingQueryProviderFactoryBean(DataSource dataSource) {
+  /**
+   * Configures SQL paging query provider for Employee, Department retrieval
+   */
+  private static SqlPagingQueryProviderFactoryBean getSqlPagingQueryProviderFactoryBean(
+      DataSource dataSource) {
 
     SqlPagingQueryProviderFactoryBean provider = new SqlPagingQueryProviderFactoryBean();
     provider.setDataSource(dataSource);
@@ -109,7 +123,10 @@ public class BackupBatchConfig {
   }
 
   /**
-   * MultiResourceItemWriter (병렬 파일 쓰기)
+   * Creates a MultiResourceItemWriter for writing employee department data into multiple CSV
+   * files.
+   * <br>
+   * This process is parallel among partitions
    */
   @Bean
   @StepScope
@@ -128,8 +145,9 @@ public class BackupBatchConfig {
     return writer;
   }
 
+
   /**
-   * 파일 출력 Writer
+   * Configures writer for each partitions for parallel write process
    */
   @Bean
   @StepScope
@@ -175,7 +193,7 @@ public class BackupBatchConfig {
 
 
   /**
-   * 백업 Step (병렬 처리 가능)
+   * Defines a Step for backing up employee department data with chunk-based processing.
    */
   @Bean
   public Step employeeBackupStep(JobRepository jobRepository,
@@ -189,6 +207,9 @@ public class BackupBatchConfig {
         .build();
   }
 
+  /**
+   * Defines a Step for merging multiple backup CSV files into a single file
+   */
   @Bean
   public Step mergeCsvStep(JobRepository jobRepository,
       PlatformTransactionManager transactionManager) {
@@ -198,7 +219,8 @@ public class BackupBatchConfig {
           File[] backupFiles = backupFolder.listFiles(
               (dir, name) -> name.startsWith("backup_part_") && name.endsWith(".csv"));
           if (backupFiles == null || backupFiles.length == 0) {
-            throw new BackupException(ErrorCode.BACKUP_FAILED, "No backup files found to merge"); // TODO : 메시지 상수화
+            throw new BackupException(ErrorCode.BACKUP_FAILED,
+                "No backup files found to merge"); // TODO : 메시지 상수화
           }
 
           File finalCsvFile = new File(BACKUP_DIR + MERGED_CSV);
@@ -239,6 +261,8 @@ public class BackupBatchConfig {
 
   /**
    * Partitioned Step (병렬 실행)
+   * <br>
+   * partition size is determined by the number of items in Employee table
    */
   @Bean
   public Step partitionedStep(JobRepository jobRepository,
@@ -256,6 +280,9 @@ public class BackupBatchConfig {
         .build();
   }
 
+  /**
+   * Defineds a Step for deleting temp files before Job initiates
+   */
   @Bean
   public Step deleteStep(JobRepository jobRepository,
       PlatformTransactionManager transactionManager) {
