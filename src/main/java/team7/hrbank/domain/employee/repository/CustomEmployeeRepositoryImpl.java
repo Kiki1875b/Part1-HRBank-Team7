@@ -37,14 +37,13 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                         containsPosition(request.position()),
                         betweenHireDate(request.hireDateFrom(), request.hireDateTo()),
                         eqStatus(request.status()),
-                        cursorCondition(request.cursor(), request.sortField(), request.sortDirection()),
-                        idAfterCondition(request.idAfter())
+                        cursorCondition(request.cursor(), request.sortField(), request.sortDirection(), request.idAfter())
                 )
                 .orderBy(
                         getSortOrderBySortField(request.sortField(), request.sortDirection()),  // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
                         qEmployee.id.asc()
                 )
-                .limit(request.size())
+                .limit(request.size() + 1)
                 .fetch();
     }
 
@@ -180,21 +179,27 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     // 커서 기반 페이지네이션
     // 커서 세팅
-    private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection) {
+    private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection, Long idAfter) {
         boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
 
         if (!StringUtils.isNullOrEmpty(cursor)) {
             switch (sortField) {
                 case "name" :
-                    return isDesc ? qEmployee.name.lt(cursor) : qEmployee.name.gt(cursor);
+                    return isDesc
+                            ? qEmployee.name.lt(cursor).or(qEmployee.name.loe(cursor).and(idAfterCondition(idAfter)))
+                            : qEmployee.name.gt(cursor).or(qEmployee.name.goe(cursor).and(idAfterCondition(idAfter)));
                 case "employeeNumber" :
-                    return isDesc ? qEmployee.employeeNumber.lt(cursor) : qEmployee.employeeNumber.gt(cursor);
+                    return isDesc
+                            ? qEmployee.employeeNumber.lt(cursor)
+                            : qEmployee.employeeNumber.gt(cursor);
                 case "hireDate" :
-                    return isDesc ? qEmployee.hireDate.lt(LocalDate.parse(cursor)) : qEmployee.hireDate.gt(LocalDate.parse(cursor));
+                    return isDesc
+                            ? qEmployee.hireDate.lt(LocalDate.parse(cursor)).or(qEmployee.hireDate.loe(LocalDate.parse(cursor)).and(idAfterCondition(idAfter)))
+                            : qEmployee.hireDate.gt(LocalDate.parse(cursor)).or(qEmployee.hireDate.goe(LocalDate.parse(cursor)).and(idAfterCondition(idAfter)));
             }
         }
 
-        return null;
+        return idAfterCondition(idAfter);
     }
 
     // idAfter 세팅

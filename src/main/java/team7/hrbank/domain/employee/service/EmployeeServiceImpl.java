@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.service;
 
+import com.querydsl.core.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
+
+
+    // TODO: @Transactional 해결
+    //  LazyInitializationException(Department 부분) 문제때문에 걸어놨지만 안티패턴임 -> 수정 고민
 
     // 직원 등록
     @Override
@@ -110,6 +115,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 상세 조회
     @Override
+    @Transactional
     public EmployeeDto findById(Long id) {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
@@ -133,14 +139,17 @@ public class EmployeeServiceImpl implements EmployeeService {
             employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
         }
 
-        if (request.name() != null) {
-            employee.updateName(request.name());
+        if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
+            String name = request.name().trim();
+            employee.updateName(name);
+
         }
         if (request.email() != null) {
             employee.updateEmail(request.email());
         }
-        if (request.position() != null) {
-            employee.updatePosition(request.position());
+        if (!StringUtils.isNullOrEmpty(request.position()) && !request.position().isBlank()) {
+            String position = request.position().trim();
+            employee.updatePosition(position);
         }
         if (request.hireDate() != null) {
             employee.updateHireDate(request.hireDate());
@@ -167,8 +176,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     // 직원 삭제
     @Override
     public void deleteById(Long id, String ipAddress) {
+        Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
-        Employee employee = employeeRepository.findById(id).orElseThrow(() -> new NotFoundEmployeeException());  // TODO: null일 경우 예외처리
 
         employeeRepository.deleteById(id);
 
