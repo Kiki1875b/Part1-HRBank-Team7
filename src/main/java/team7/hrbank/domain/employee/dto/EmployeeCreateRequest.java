@@ -18,6 +18,7 @@ public record EmployeeCreateRequest(
         LocalDate hireDate,
         String memo) {
 
+
     public EmployeeStatus getStatus() {
         return EmployeeStatus.ACTIVE;
     }
