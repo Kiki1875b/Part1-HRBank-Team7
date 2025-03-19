@@ -204,6 +204,9 @@ public class BackupBatchConfig {
         .writer(multiFileItemWriter("#{stepExecutionContext['partitionId']}"))
         .allowStartIfComplete(true)
         .taskExecutor(taskExecutor())
+        .faultTolerant()
+        .retryLimit(3)
+        .retry(Exception.class)
         .build();
   }
 
