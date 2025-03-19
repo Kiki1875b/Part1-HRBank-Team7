@@ -1,6 +1,7 @@
 package team7.hrbank.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import team7.hrbank.common.utils.ExceptionUtil;
 
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -91,6 +93,9 @@ public class GlobalExceptionHandler {
     // 500 - Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {
+
+        // 콘솔에 log 남기기
+        log.error("[INTERNAL SERVER ERROR] - {} : {}", request.getRequestURI(), e.getMessage(), e);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 ExceptionUtil.getRequestTime(request),
