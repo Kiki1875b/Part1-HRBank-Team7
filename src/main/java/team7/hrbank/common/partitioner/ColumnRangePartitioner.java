@@ -25,7 +25,7 @@ public class ColumnRangePartitioner implements Partitioner {
     Map<String, ExecutionContext> partitions = new HashMap<>();
     long totalCount = employeeRepository.count(); // 전체 데이터 개수를 가져오는 메서드
     long partitionSize = (totalCount + gridSize - 1) / gridSize; // 파티션당 예상 데이터 개수
-    long minId = 1; // employees 테이블 id 시작값에 따라 변경
+    long minId = employeeRepository.findMinId();
     long partitionIndex = 0;
     long maximumId = getMaxId();
     while (minId <= maximumId) {

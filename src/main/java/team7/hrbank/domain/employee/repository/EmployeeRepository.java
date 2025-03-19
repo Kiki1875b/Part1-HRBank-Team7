@@ -16,6 +16,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT MAX(e.id) FROM Employee e")
     long findMaxId();
 
+    // id 최소값
+    @Query("SELECT MIN(e.id) FROM Employee e")
+    long findMinId();
+
     // 범위 내 id 최대값 확인
     @Query("SELECT MAX(e.id) FROM Employee e WHERE e.id >= :minId AND e.id <= :maxId")
     Optional<Long> findMaxIdBetween(@Param("minId") long minId, @Param("maxId") long maxId);

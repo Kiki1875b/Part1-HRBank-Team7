@@ -119,30 +119,10 @@ public class BackupBatchConfig {
   /**
    * 파일 출력 Writer
    */
-//  @Bean
-//  @StepScope
-//  public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
-//      @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
-//
-//    DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
-//    aggregator.setDelimiter(",");
-//    aggregator.setFieldExtractor(new EmployeeDepartmentExtractor());
-//
-//    FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
-//
-//    writer.setLineAggregator(aggregator);
-//    writer.setEncoding("UTF-8");
-//    writer.setAppendAllowed(true);
-//    return writer;
-//  }
-
   @Bean
   @StepScope
   public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
       @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
-
-    String filePath = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
-        UUID.randomUUID().toString());
 
     DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
     aggregator.setDelimiter(",");
@@ -150,16 +130,36 @@ public class BackupBatchConfig {
 
     FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
 
-    writer.setName("employeeWriter");
-    writer.setAppendAllowed(true);
-    writer.setResource(new FileSystemResource(filePath));
-    writer.setEncoding("UTF-8");
-
     writer.setLineAggregator(aggregator);
-    writer.open(new ExecutionContext());
-
+    writer.setEncoding("UTF-8");
+    writer.setAppendAllowed(true);
     return writer;
   }
+
+//  @Bean
+//  @StepScope
+//  public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
+//      @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
+//
+//    String filePath = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
+//        UUID.randomUUID().toString());
+//
+//    DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
+//    aggregator.setDelimiter(",");
+//    aggregator.setFieldExtractor(new EmployeeDepartmentExtractor());
+//
+//    FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
+//
+//    writer.setName("employeeWriter");
+//    writer.setAppendAllowed(true);
+//    writer.setResource(new FileSystemResource(filePath));
+//    writer.setEncoding("UTF-8");
+//
+//    writer.setLineAggregator(aggregator);
+////    writer.open(new ExecutionContext());
+//
+//    return writer;
+//  }
 
 
   /**
