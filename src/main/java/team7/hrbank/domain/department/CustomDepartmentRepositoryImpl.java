@@ -33,7 +33,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
     public DepartmentResponseDTO findPagingAll1(DepartmentSearchCondition condition) {
         // 하나 더 가져오는 이유 : hasNext판단(로직 마지막에 버리고 추가)
-        Integer limitSize = condition.getSize() + 1;
+        int limitSize = condition.getSize() + 1;
 
         // 1. sortedField, direction 을 확인하고 orderSpecifier를 만든다.(나중에 뒤에서 sortedFieldName, sortDirection이 필요해서 메서드로 안 만듬)
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
@@ -57,12 +57,11 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
         // 3. cursor를 확인 - null이 아닌 상황
         if (condition.getCursor() != null) {
-            String cursor = condition.getCursor();
-            Long id = Long.getLong(new String(Base64.getDecoder().decode(cursor)).split(":")[1]);
 
+            BooleanExpression cursorCondition = getCursorCondition(condition.getCursor());
             // 커서 id 를 활용해서 lastDepartment를 가져온다.
             Department lastDepartment = queryFactory.selectFrom(department)
-                    .where(department.id.eq(id))
+                    .where(cursorCondition)
                     .fetchOne();
 
             // 커서에 맞는 department가 없는 경우 에러 처리
@@ -106,7 +105,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .fetchOne();
 
         // hasNext 판단 1. content의 사이즈가 11인 경우
-        Boolean hasNext = contentDTOList.size() == condition.getSize() + 1;
+        boolean hasNext = contentDTOList.size() == condition.getSize() + 1;
         String encodedNextCursor = null;
         if (hasNext) {
             encodedNextCursor = Base64.getEncoder().encodeToString(String.format("{\"id\":%d}", contentDTOList.get(condition.getSize()).id()).getBytes());
@@ -123,6 +122,15 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 totalCount,
                 hasNext
         );
+    }
+
+    private BooleanExpression getCursorCondition(String cursor) {
+        if (cursor != null) {
+            String decodedCursor = new String(Base64.getDecoder().decode(cursor));
+            Long id = Long.valueOf(decodedCursor.split(":")[1]);
+            return department.id.gt(id);
+        }
+        return null;
     }
 
     private BooleanExpression nameOrDescriptionLike(String nameOrDescription) {
