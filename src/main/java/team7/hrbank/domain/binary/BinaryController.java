@@ -17,6 +17,7 @@ public class BinaryController {
 
     @GetMapping("/api/files/{id}/download")
     public ResponseEntity<Resource> downLoad(@PathVariable Long id) {
-        return localBinaryContentStorage.download(id, binaryContentService.findFileTypeById(id));
+        return localBinaryContentStorage.downloadTmp(id, binaryContentService.findFileTypeById(id));
+
     }
 }

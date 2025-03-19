@@ -10,11 +10,9 @@ import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.exception.ErrorCode;
 import team7.hrbank.common.utils.ExceptionUtil;
 
-import java.time.Instant;
-
 @RestControllerAdvice(basePackages = "team7.hrbank.domain.employee")
 public class EmployeeException {
-    
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handlerEmailDuplication(DataIntegrityViolationException e, HttpServletRequest request) {
         String message = e.getMostSpecificCause().getMessage();

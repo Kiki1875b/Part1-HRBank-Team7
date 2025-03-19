@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -35,10 +36,12 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
-import team7.hrbank.common.partitioner.ColumnRangePartitioner;
 import team7.hrbank.common.dto.EmployeeDepartmentDto;
+import team7.hrbank.common.exception.BackupException;
+import team7.hrbank.common.exception.ErrorCode;
 import team7.hrbank.common.extractor.EmployeeDepartmentExtractor;
 import team7.hrbank.common.extractor.EmployeeRowMapper;
+import team7.hrbank.common.partitioner.ColumnRangePartitioner;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 @Slf4j
@@ -48,13 +51,25 @@ public class BackupBatchConfig {
 
   private final ColumnRangePartitioner partitioner;
 
-  @Value("${hrbank.storage.backup}")
+  @Value("${hrbank.storage.local.root-path}")
   private String BACKUP_DIR;
 
-  private static final String MERGED_CSV = "/tmpBackup.csv";
+  @Value("${hrbank.storage.file-name}")
+  private String MERGED_CSV;
+
   private static final String HEADER = "id,employeeNumber,name,email,department,position,hireDate,status";
   private static final int FETCH_SIZE = 1000;
 
+  /**
+   * Creates JdbcPagingItemReader for reading Employee, Department Data with pagination.
+   * <br>
+   * Migrated from JpaPagingItemReader to enhance performance
+   *
+   * @param dataSource Source for DB Connection
+   * @param minId      Minimum employeeID for each partition
+   * @param maxId      Maximum employeeID for each partition
+   * @return JdbcPagingItemReader configured for certain range of data
+   */
   @Bean
   @StepScope
   public JdbcPagingItemReader<EmployeeDepartmentDto> employeeItemReaderJdbc(
@@ -67,43 +82,57 @@ public class BackupBatchConfig {
     reader.setFetchSize(FETCH_SIZE);
     reader.setRowMapper(new EmployeeRowMapper());
 
-    SqlPagingQueryProviderFactoryBean provider = new SqlPagingQueryProviderFactoryBean();
-    provider.setDataSource(dataSource);
-
-    provider.setSelectClause(
-        "employee_id, employee_number, name, email, job_title, hire_date, status, department_name"
-    );
-    provider.setFromClause("(SELECT\n" +
-        "    e.id AS employee_id, e.employee_number, e.name, e.email, e.job_title, e.hire_date, e.status, d.name AS department_name\n"
-        +
-        "    FROM employees e\n" +
-        "    JOIN departments d ON e.department_id = d.id\n" +
-        "    WHERE e.id BETWEEN :minId AND :maxId) AS employee_data");
-    provider.setWhereClause("");
-    provider.setSortKeys(Collections.singletonMap("employee_id", Order.ASCENDING));
+    SqlPagingQueryProviderFactoryBean provider = getSqlPagingQueryProviderFactoryBean(dataSource);
 
     try {
       reader.setQueryProvider(provider.getObject());
     } catch (Exception e) {
-      throw new RuntimeException("Failed to set query provider", e);
+      throw new BackupException(ErrorCode.BACKUP_FAILED, e.getMessage());
     }
 
     Map<String, Object> parameterValues = new HashMap<>();
     parameterValues.put("minId", minId);
     parameterValues.put("maxId", maxId);
-    parameterValues.put("_employee_number", "0");
+//    parameterValues.put("_employee_number", "0");
     reader.setParameterValues(parameterValues);
 
     return reader;
   }
 
   /**
-   * MultiResourceItemWriter (병렬 파일 쓰기)
+   * Configures SQL paging query provider for Employee, Department retrieval
+   */
+  private static SqlPagingQueryProviderFactoryBean getSqlPagingQueryProviderFactoryBean(
+      DataSource dataSource) {
+
+    SqlPagingQueryProviderFactoryBean provider = new SqlPagingQueryProviderFactoryBean();
+    provider.setDataSource(dataSource);
+
+    provider.setSelectClause(
+        "employee_id, employee_number, name, email, job_title, hire_date, status, department_name"
+    );
+
+    provider.setFromClause("(SELECT\n"
+        + "    e.id AS employee_id, e.employee_number, e.name, e.email, e.job_title, e.hire_date, e.status, d.name AS department_name\n"
+        + "    FROM employees e\n"
+        + "    JOIN departments d ON e.department_id = d.id\n"
+        + "    WHERE e.id BETWEEN :minId AND :maxId) AS employee_data");
+    provider.setWhereClause("");
+    provider.setSortKeys(Collections.singletonMap("employee_id", Order.ASCENDING));
+    return provider;
+  }
+
+  /**
+   * Creates a MultiResourceItemWriter for writing employee department data into multiple CSV
+   * files.
+   * <br>
+   * This process is parallel among partitions
    */
   @Bean
   @StepScope
   public MultiResourceItemWriter<EmployeeDepartmentDto> multiFileItemWriter(
-      @Value("#{stepExecutionContext['partitionId']}") String partitionId) {
+      @Value("#{stepExecutionContext['partitionId']}") String partitionId
+  ) {
 
     MultiResourceItemWriter<EmployeeDepartmentDto> writer = new MultiResourceItemWriter<>();
     String fileName = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
@@ -116,33 +145,14 @@ public class BackupBatchConfig {
     return writer;
   }
 
-  /**
-   * 파일 출력 Writer
-   */
-//  @Bean
-//  @StepScope
-//  public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
-//      @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
-//
-//    DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
-//    aggregator.setDelimiter(",");
-//    aggregator.setFieldExtractor(new EmployeeDepartmentExtractor());
-//
-//    FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
-//
-//    writer.setLineAggregator(aggregator);
-//    writer.setEncoding("UTF-8");
-//    writer.setAppendAllowed(true);
-//    return writer;
-//  }
 
+  /**
+   * Configures writer for each partitions for parallel write process
+   */
   @Bean
   @StepScope
   public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
       @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
-
-    String filePath = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
-        UUID.randomUUID().toString());
 
     DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
     aggregator.setDelimiter(",");
@@ -150,20 +160,40 @@ public class BackupBatchConfig {
 
     FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
 
-    writer.setName("employeeWriter");
-    writer.setAppendAllowed(true);
-    writer.setResource(new FileSystemResource(filePath));
-    writer.setEncoding("UTF-8");
-
     writer.setLineAggregator(aggregator);
-    writer.open(new ExecutionContext());
-
+    writer.setEncoding("UTF-8");
+    writer.setAppendAllowed(true);
     return writer;
   }
 
+//  @Bean
+//  @StepScope
+//  public FlatFileItemWriter<EmployeeDepartmentDto> delegateEmployeeItemWriter(
+//      @Value("#{stepExecutionContext['partitionId'] ?: 'P_default'}") String partitionId) {
+//
+//    String filePath = String.format("%s/backup_part_%s_%s.csv", BACKUP_DIR, partitionId,
+//        UUID.randomUUID().toString());
+//
+//    DelimitedLineAggregator<EmployeeDepartmentDto> aggregator = new DelimitedLineAggregator<>();
+//    aggregator.setDelimiter(",");
+//    aggregator.setFieldExtractor(new EmployeeDepartmentExtractor());
+//
+//    FlatFileItemWriter<EmployeeDepartmentDto> writer = new FlatFileItemWriter<>();
+//
+//    writer.setName("employeeWriter");
+//    writer.setAppendAllowed(true);
+//    writer.setResource(new FileSystemResource(filePath));
+//    writer.setEncoding("UTF-8");
+//
+//    writer.setLineAggregator(aggregator);
+////    writer.open(new ExecutionContext());
+//
+//    return writer;
+//  }
+
 
   /**
-   * 백업 Step (병렬 처리 가능)
+   * Defines a Step for backing up employee department data with chunk-based processing.
    */
   @Bean
   public Step employeeBackupStep(JobRepository jobRepository,
@@ -177,6 +207,9 @@ public class BackupBatchConfig {
         .build();
   }
 
+  /**
+   * Defines a Step for merging multiple backup CSV files into a single file
+   */
   @Bean
   public Step mergeCsvStep(JobRepository jobRepository,
       PlatformTransactionManager transactionManager) {
@@ -186,7 +219,8 @@ public class BackupBatchConfig {
           File[] backupFiles = backupFolder.listFiles(
               (dir, name) -> name.startsWith("backup_part_") && name.endsWith(".csv"));
           if (backupFiles == null || backupFiles.length == 0) {
-            throw new RuntimeException("No backup files found to merge");
+            throw new BackupException(ErrorCode.BACKUP_FAILED,
+                "No backup files found to merge"); // TODO : 메시지 상수화
           }
 
           File finalCsvFile = new File(BACKUP_DIR + MERGED_CSV);
@@ -213,7 +247,7 @@ public class BackupBatchConfig {
               }
             }
           } catch (IOException e) {
-            throw new RuntimeException("Error merging CSV files", e);
+            throw new BackupException(ErrorCode.BACKUP_FAILED, "Error merging CSV files");
           }
 
           log.info("Merged CSV file created: {}", finalCsvFile.getAbsolutePath());
@@ -227,6 +261,8 @@ public class BackupBatchConfig {
 
   /**
    * Partitioned Step (병렬 실행)
+   * <br>
+   * partition size is determined by the number of items in Employee table
    */
   @Bean
   public Step partitionedStep(JobRepository jobRepository,
@@ -235,12 +271,38 @@ public class BackupBatchConfig {
 
     long totalRows = employeeRepository.count();
     int gridSize = Math.min((int) (totalRows / 20000) + 1, 10); // 병렬 실행할 파티션 개수 , 최대 10개 제한
-    System.out.println(gridSize);
     return new StepBuilder("partitionedStep", jobRepository)
         .partitioner("backupStep", partitioner) // 파티셔너 적용
         .step(employeeBackupStep(jobRepository, transactionManager))
         .gridSize(gridSize)  // 병렬 실행할 파티션 개수
         .taskExecutor(taskExecutor())  // 병렬 실행
+        .allowStartIfComplete(true)
+        .build();
+  }
+
+  /**
+   * Defineds a Step for deleting temp files before Job initiates
+   */
+  @Bean
+  public Step deleteStep(JobRepository jobRepository,
+      PlatformTransactionManager transactionManager) {
+    return new StepBuilder("deleteStep", jobRepository)
+        .tasklet((contribution, chunkContext) -> {
+          File backupFolder = new File(BACKUP_DIR);
+          File[] backupFiles = backupFolder.listFiles(
+              (dir, name) -> name.startsWith("backup_part_") && name.endsWith(".csv"));
+
+          if (backupFiles != null) {
+            for (File file : backupFiles) {
+              if (file.delete()) {
+                log.info("Deleted backup file: {}", file.getAbsolutePath());
+              } else {
+                log.warn("Failed to delete backup file: {}", file.getAbsolutePath());
+              }
+            }
+          }
+          return RepeatStatus.FINISHED;
+        }, transactionManager)
         .allowStartIfComplete(true)
         .build();
   }
@@ -253,10 +315,13 @@ public class BackupBatchConfig {
       PlatformTransactionManager transactionManager,
       EmployeeRepository employeeRepository) {
     return new JobBuilder("employeeBackupJob", jobRepository)
-        .start(partitionedStep(jobRepository, transactionManager, employeeRepository))
+        .start(deleteStep(jobRepository, transactionManager))
+        .next(partitionedStep(jobRepository, transactionManager, employeeRepository))
         .next(mergeCsvStep(jobRepository, transactionManager))
+        .preventRestart()
         .build();
   }
+
 
   /**
    * 멀티 쓰레드 TaskExecutor

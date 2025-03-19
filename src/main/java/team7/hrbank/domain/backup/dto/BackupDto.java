@@ -1,6 +1,5 @@
 package team7.hrbank.domain.backup.dto;
 
-import java.net.InetAddress;
 import java.time.Instant;
 import team7.hrbank.domain.backup.entity.BackupStatus;
 

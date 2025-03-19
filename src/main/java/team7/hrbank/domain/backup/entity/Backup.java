@@ -13,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.net.InetAddress;
 import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

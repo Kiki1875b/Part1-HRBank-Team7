@@ -4,6 +4,8 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.department.entity.QDepartment;
@@ -12,9 +14,6 @@ import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.entity.QEmployee;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -202,7 +201,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
         return idAfterCondition(idAfter);
     }
-    
+
     // idAfter 세팅
     private BooleanExpression idAfterCondition(Long idAfter) {
         if (idAfter != null) {

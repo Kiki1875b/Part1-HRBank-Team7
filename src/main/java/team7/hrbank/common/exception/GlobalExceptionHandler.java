@@ -1,9 +1,8 @@
 package team7.hrbank.common.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,7 +18,8 @@ public class GlobalExceptionHandler {
 
     // 400 - Bad Request (IllegalArgumentException이 발생한 경우)
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequestException(IllegalArgumentException e, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleBadRequestException(IllegalArgumentException e,
+                                                                   HttpServletRequest request) {
 
         ErrorResponse errorResponse = new ErrorResponse(
                 ExceptionUtil.getRequestTime(request),  // 오류 발생 시간
@@ -62,7 +62,8 @@ public class GlobalExceptionHandler {
 
     // 404 - Not Found (NoSuchElementException이나 해당 예외 클래스를 상속한 예외가 발생한 경우)
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundException(NoSuchElementException e, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NoSuchElementException e,
+                                                                 HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ExceptionUtil.getRequestTime(request),
                 ErrorCode.NOT_FOUND.getStatus(),
@@ -72,7 +73,21 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
-    
+
+    @ExceptionHandler(BackupException.class)
+    public ResponseEntity<ErrorResponse> handleBackupException(BackupException e,
+                                                               HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),
+                e.getErrorCode().getStatus(),
+                e.getDetailMessage(),
+                e.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse,
+                HttpStatusCode.valueOf(e.getErrorCode().getStatus()));
+    }
+
     // 500 - Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {

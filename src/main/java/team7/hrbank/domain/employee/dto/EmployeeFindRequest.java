@@ -1,10 +1,9 @@
 package team7.hrbank.domain.employee.dto;
 
 import com.querydsl.core.util.StringUtils;
-import team7.hrbank.domain.employee.entity.EmployeeStatus;
-
 import java.time.LocalDate;
 import java.util.Objects;
+import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public record EmployeeFindRequest(
         String nameOrEmail,

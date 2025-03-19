@@ -1,7 +1,6 @@
 package team7.hrbank.common.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.time.Instant;
 
 public class ExceptionUtil {
