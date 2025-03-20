@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -121,31 +122,35 @@ public class EmployeeDashboardServiceImpl implements
 
     List<EmployeeTrendDto> trends = new ArrayList<>();
 
+    Map<LocalDate, Integer> prefixSum = new TreeMap<>();
+    int sum = 0;
+
+    for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
+      sum += dateMap.getOrDefault(date, 0);
+      prefixSum.put(date, sum);
+    }
+
     int previousCount = (int) startCount;
     trends.add(new EmployeeTrendDto(from.minus(1, unit), previousCount, 0, 0));
 
     LocalDate currentFrom = from;
 
     while (!currentFrom.isAfter(to)) {
-      LocalDate periodEnd = currentFrom.plus(1, unit).minusDays(1);
+      LocalDate periodEnd = currentFrom.plus(1, unit);
 
-      LocalDate finalCurrentFrom = currentFrom;
-      int currentChangeSum = dateMap.entrySet().stream()
-          .filter(entry -> !entry.getKey().isBefore(finalCurrentFrom) && !entry.getKey()
-              .isAfter(periodEnd))
-          .mapToInt(Map.Entry::getValue)
-          .sum();
+      int currentChangeSum = prefixSum.getOrDefault(periodEnd, 0)
+          - prefixSum.getOrDefault(currentFrom, 0);
 
       int currentTotal = previousCount + currentChangeSum;
       int diff = currentTotal - previousCount;
 
-      trends.add(new EmployeeTrendDto(currentFrom, currentTotal, diff,
+      trends.add(new EmployeeTrendDto(currentFrom.plus(1,unit), currentTotal, diff,
           calculateRate(previousCount, diff)));
 
       previousCount = currentTotal;
       currentFrom = currentFrom.plus(1, unit);
     }
-
+    trends.remove(trends.size() - 1);
     return trends;
   }
 
@@ -180,9 +185,6 @@ public class EmployeeDashboardServiceImpl implements
 
     return date;
   }
-
-
-
 
   private LocalDate getFromIfNull(String unit, LocalDate to) {
     switch (unit.toLowerCase()) {
