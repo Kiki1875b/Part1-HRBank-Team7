@@ -32,7 +32,7 @@ public class EmployeeController {
 
     // 직원 등록
     @PostMapping
-    public ResponseEntity<EmployeeDto> create(@Valid EmployeeCreateRequest employee,
+    public ResponseEntity<EmployeeDto> create(@Valid @RequestPart(value = "employee") EmployeeCreateRequest employee,
                                               @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         //IP 주소 받기
@@ -65,7 +65,7 @@ public class EmployeeController {
     // 직원 수정
     @PatchMapping("/{id}")
     public ResponseEntity<EmployeeDto> update(@PathVariable Long id,
-                                         @RequestPart(value = "employee") EmployeeUpdateRequest employee,
+                                         @Valid @RequestPart(value = "employee") EmployeeUpdateRequest employee,
                                          @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         //IP 주소 받기
