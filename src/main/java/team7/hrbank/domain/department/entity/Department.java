@@ -29,9 +29,9 @@ public class Department extends BaseEntity {
   private LocalDate establishedDate;
 
   public void update(DepartmentUpdateRequest request) {
-    this.name = !this.name.equals(request.name()) ? request.name() : this.name;
-    this.description = !this.description.equals(request.description()) ? request.description() : this.description;
-    this.establishedDate = !this.establishedDate.equals(request.establishedDate()) ? request.establishedDate() : this.establishedDate;
+    this.name = (!this.name.equals(request.name()) && (request.name()!=null)) ? request.name() : this.name;
+    this.description = (!this.description.equals(request.description()) && (request.description()!=null)) ? request.description() : this.description;
+    this.establishedDate = (!this.establishedDate.equals(request.establishedDate()) && (request.establishedDate()!=null)) ? request.establishedDate() : this.establishedDate;
 
   }
 
