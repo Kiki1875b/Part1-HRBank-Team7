@@ -35,6 +35,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    //400 - Bad Request (IllegalStateException이 발생한 경우. 아무값도 안넣었을때?)
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e, HttpServletRequest request) {
+      ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),
+                ErrorCode.BAD_REQUEST.getStatus(),
+                ErrorCode.BAD_REQUEST.getMessage(),
+                e.getMessage()
+      );
+
+      return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+
     // 400 - Bad Request (컴팩트 생성자에 의한 유효성 검사)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(HttpMessageNotReadableException e, HttpServletRequest request) {
