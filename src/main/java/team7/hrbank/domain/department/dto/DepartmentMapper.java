@@ -6,15 +6,15 @@ import team7.hrbank.domain.department.entity.Department;
 
 @Mapper(componentModel = "spring")
 public interface DepartmentMapper {
-    DepartmentMapper INSTANCE = Mappers.getMapper(DepartmentMapper.class);
+  DepartmentMapper INSTANCE = Mappers.getMapper(DepartmentMapper.class);
 
-    DepartmentResponseDto toDto(Department department);
+  DepartmentResponseDto toDto(Department department);
 
-    DepartmentWithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
+  DepartmentWithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
 
-    Department toEntity(DepartmentCreateRequest dto);
+  Department toEntity(DepartmentCreateRequest dto);
 
-    @Mapping(target = "id", ignore = true) // ID는 변경하지 않음
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateFromDto(DepartmentUpdateRequest dto, @MappingTarget Department entity);
+  @Mapping(target = "id", ignore = true) // ID는 변경하지 않음
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  void updateFromDto(DepartmentUpdateRequest dto, @MappingTarget Department entity);
 }
