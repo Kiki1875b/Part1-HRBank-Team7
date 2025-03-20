@@ -54,3 +54,10 @@ CREATE TABLE backup_history (
     file_id BIGINT NULL,
     CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
+
+CREATE TABLE employee_statistics (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    employee_count BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK(type IN ('YEAR', 'QUARTER', 'MONTH', 'WEEK', 'DAY')),
+    capture_date DATE NOT NULL
+)
