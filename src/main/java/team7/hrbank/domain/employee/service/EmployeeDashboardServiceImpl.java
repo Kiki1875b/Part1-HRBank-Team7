@@ -3,10 +3,8 @@ package team7.hrbank.domain.employee.service;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,12 +53,15 @@ public class EmployeeDashboardServiceImpl implements
 
     return trends;
   }
-  private long calculateNumberOfEmployeesBetween(List<Employee> employees, LocalDate from, LocalDate to){
+
+  private long calculateNumberOfEmployeesBetween(List<Employee> employees, LocalDate from,
+      LocalDate to) {
     return employees.stream().filter(e ->
         (e.getHireDate().isAfter(from) || e.getHireDate().isEqual(from))
-        && (e.getHireDate().isBefore(to) || e.getHireDate().isEqual(to))
+            && (e.getHireDate().isBefore(to) || e.getHireDate().isEqual(to))
     ).count();
   }
+
   @Override
   @Transactional
   public List<EmployeeDistributionDto> getEmployeeDistribution(String groupBy,
@@ -71,8 +72,10 @@ public class EmployeeDashboardServiceImpl implements
     int totalCount = employees.size();
 
     Map<String, Long> groupData = "department".equalsIgnoreCase(groupBy) ?
-        employees.stream().collect(Collectors.groupingBy(e -> e.getDepartment().getName(), Collectors.counting()))
-        : employees.stream().collect(Collectors.groupingBy(Employee::getPosition, Collectors.counting()));
+        employees.stream()
+            .collect(Collectors.groupingBy(e -> e.getDepartment().getName(), Collectors.counting()))
+        : employees.stream()
+            .collect(Collectors.groupingBy(Employee::getPosition, Collectors.counting()));
 
     return groupData.entrySet().stream()
         .map(entry -> new EmployeeDistributionDto(

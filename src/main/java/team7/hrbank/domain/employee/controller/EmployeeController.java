@@ -27,64 +27,66 @@ import team7.hrbank.domain.employee.service.EmployeeService;
 @RequiredArgsConstructor
 public class EmployeeController {
 
-    private final EmployeeService employeeService;
-    private final HttpServletRequest request;
+  private final EmployeeService employeeService;
+  private final HttpServletRequest request;
 
-    // 직원 등록
-    @PostMapping
-    public ResponseEntity<EmployeeDto> create(@Valid @RequestPart(value = "employee") EmployeeCreateRequest employee,
-                                              @RequestPart(value = "profile", required = false) MultipartFile profile) {
+  // 직원 등록
+  @PostMapping
+  public ResponseEntity<EmployeeDto> create(
+      @Valid @RequestPart(value = "employee") EmployeeCreateRequest employee,
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        //IP 주소 받기
-        String ipAddress = IpUtil.getClientIp(request);
+    //IP 주소 받기
+    String ipAddress = IpUtil.getClientIp(request);
 
-        // 직원 생성 로직
-        EmployeeDto employeeDto = employeeService.create(employee, profile, ipAddress);
+    // 직원 생성 로직
+    EmployeeDto employeeDto = employeeService.create(employee, profile, ipAddress);
 
-        return ResponseEntity.ok(employeeDto);
-    }
+    return ResponseEntity.ok(employeeDto);
+  }
 
-    // 직원 목록 조회
-    @GetMapping
-    public ResponseEntity<PageResponse<EmployeeDto>> read(@ModelAttribute EmployeeFindRequest request) {
-        PageResponse<EmployeeDto> pageResponse = employeeService.find(request);
+  // 직원 목록 조회
+  @GetMapping
+  public ResponseEntity<PageResponse<EmployeeDto>> read(
+      @ModelAttribute EmployeeFindRequest request) {
+    PageResponse<EmployeeDto> pageResponse = employeeService.find(request);
 
-        return ResponseEntity.ok(pageResponse);
-    }
+    return ResponseEntity.ok(pageResponse);
+  }
 
-    // 직원 상세 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDto> readById(@PathVariable Long id) {
+  // 직원 상세 조회
+  @GetMapping("/{id}")
+  public ResponseEntity<EmployeeDto> readById(@PathVariable Long id) {
 
-        // 조회 로직
-        EmployeeDto employeeDto = employeeService.findById(id);
+    // 조회 로직
+    EmployeeDto employeeDto = employeeService.findById(id);
 
-        return ResponseEntity.ok(employeeDto);
-    }
+    return ResponseEntity.ok(employeeDto);
+  }
 
-    // 직원 수정
-    @PatchMapping("/{id}")
-    public ResponseEntity<EmployeeDto> update(@PathVariable Long id,
-                                         @Valid @RequestPart(value = "employee") EmployeeUpdateRequest employee,
-                                         @RequestPart(value = "profile", required = false) MultipartFile profile) {
+  // 직원 수정
+  @PatchMapping("/{id}")
+  public ResponseEntity<EmployeeDto> update(@PathVariable Long id,
+      @Valid @RequestPart(value = "employee") EmployeeUpdateRequest employee,
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        //IP 주소 받기
-        String ipAddress = IpUtil.getClientIp(request);
-        // 직원 수정 로직
-        EmployeeDto employeeDto = employeeService.updateById(id, employee, profile, ipAddress);
+    //IP 주소 받기
+    String ipAddress = IpUtil.getClientIp(request);
+    // 직원 수정 로직
+    EmployeeDto employeeDto = employeeService.updateById(id, employee, profile, ipAddress);
 
-        return ResponseEntity.ok(employeeDto);
-    }
+    return ResponseEntity.ok(employeeDto);
+  }
 
-    // 직원 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+  // 직원 삭제
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
 
-        //IP 주소 받기
-        String ipAddress = IpUtil.getClientIp(request);
-        // 삭제 로직
-        employeeService.deleteById(id, ipAddress);
+    //IP 주소 받기
+    String ipAddress = IpUtil.getClientIp(request);
+    // 삭제 로직
+    employeeService.deleteById(id, ipAddress);
 
-        return ResponseEntity.noContent().build();
-    }
+    return ResponseEntity.noContent().build();
+  }
 }
