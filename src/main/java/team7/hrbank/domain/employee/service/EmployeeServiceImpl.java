@@ -196,7 +196,7 @@ public class EmployeeServiceImpl implements EmployeeService {
       employeeRepository.save(employee);
 
       // ChangeLog 저장
-//      changeLogService.logEmployeeUpdated(changeDetails, employee.getEmployeeNumber(), request.memo(), ipAddress);
+      changeLogService.logEmployeeUpdated(changeDetails, employee.getEmployeeNumber(), request.memo(), ipAddress);
     } else {
       throw new IllegalArgumentException("변경된 사항이 없습니다.");  // 변경된 사항 없으면 400 에러
     }

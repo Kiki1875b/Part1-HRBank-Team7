@@ -9,7 +9,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team7.hrbank.common.dto.PageResponse;
-import team7.hrbank.common.exception.change_log.ChangeLogNoDetectedException;
 import team7.hrbank.common.exception.change_log.ChangeLogNotFoundException;
 import team7.hrbank.domain.change_log.dto.ChangeLogDto;
 import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
@@ -52,45 +51,15 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   //직원 수정 시 로그 저장
   @Override
   @Transactional
-  public void logEmployeeUpdated(EmployeeDto before, EmployeeDto after, String memo,
+  public void logEmployeeUpdated(List<DiffDto> diffDto, String employeeNumber, String memo,
       String ipAddress) {
-    List<DiffDto> details = new ArrayList<>();
-    if (!before.hireDate().equals(after.hireDate())) {
-      details.add(
-          new DiffDto("hireDate", before.hireDate().toString(), after.hireDate().toString()));
-    }
-    if (!before.name().equals(after.name())) {
-      details.add(new DiffDto("name", before.name(), after.name()));
-    }
-    if (!before.position().equals(after.position())) {
-      details.add(new DiffDto("position", before.position(), after.position()));
-    }
-    if (!before.departmentName().equals(after.departmentName())) {
-      details.add(new DiffDto("departmentName", before.departmentName(), after.departmentName()));
-    }
-    if (!before.email().equals(after.email())) {
-      details.add(new DiffDto("email", before.email(), after.email()));
-    }
-    if (!before.status().equals(after.status())) {
-      details.add(
-          new DiffDto("status", before.status().toString(), after.status().toString()));
-    }
-
-    //변경사항이 아예 없을 시에 예외처리, 프로필이미지만 변경되었을 경우 로그 저장 X
-    if (details.isEmpty()) {
-      if (after.profileImageId() != null && (before.profileImageId() == null
-          || !before.profileImageId().equals(after.profileImageId()))) {
-        return;
-      }
-      throw new ChangeLogNoDetectedException();
-    }
 
     ChangeLog log = new ChangeLog(
-        after.employeeNumber(),
+        employeeNumber,
         ChangeLogType.UPDATED,
         memo,
         ipAddress,
-        details
+        diffDto
     );
     changeLogRepository.save(log);
   }
