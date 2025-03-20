@@ -54,9 +54,3 @@ CREATE TABLE backup_history (
     file_id BIGINT NULL,
     CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
-
-CREATE TABLE employee_change_history(
-    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    change_date DATE NOT NULL UNIQUE,
-    change_count BIGINT NOT NULL
-);
