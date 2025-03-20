@@ -1,16 +1,15 @@
 package team7.hrbank.domain.employee.service;
 
 import com.querydsl.core.util.StringUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
@@ -42,9 +41,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
 
-
-    // TODO: @Transactional 해결
-    //  LazyInitializationException(Department 부분) 문제때문에 걸어놨지만 안티패턴임 -> 수정 고민
 
     // 직원 등록
     @Override
@@ -80,7 +76,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 목록 조회
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PageResponse<EmployeeDto> find(EmployeeFindRequest request) {
 
         // 다음 페이지 있는지 확인하기 위해 size+1개의 데이터 읽어옴
@@ -116,7 +112,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 상세 조회
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public EmployeeDto findById(Long id) {
 
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
@@ -143,7 +139,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
             String name = request.name().trim();
             employee.updateName(name);
-
         }
         if (request.email() != null) {
             employee.updateEmail(request.email());
@@ -176,6 +171,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     // 직원 삭제
     @Override
+    @Transactional
     public void deleteById(Long id, String ipAddress) {
         Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
