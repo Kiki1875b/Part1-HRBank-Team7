@@ -52,7 +52,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
   // 총 사원 수 집계
   @Override
-  public Integer totalCountEmployee(EmployeeCountRequest request) {
+  public long totalCountEmployee(EmployeeCountRequest request) {
 
     Long count = queryFactory
         .select(qEmployee.count())
@@ -66,7 +66,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
         )
         .fetchOne();
 
-    return (count == null) ? 0 : count.intValue();
+    return (count == null) ? 0 : count;
   }
 
   // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
@@ -111,20 +111,6 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
     return count == null ? 0 : count;
   }
-
-  // TODO: 나중에 필요없으면 삭제
-  // 해당 부서에 소속된 직원의 수
-//    @Override
-//    public Integer countEmployeeByDepartmentId(Long departmentId) {
-//
-//        Long count = queryFactory
-//                .select(qEmployee.count())
-//                .from(qEmployee)
-//                .where(qEmployee.department.id.eq(departmentId))
-//                .fetchOne();
-//
-//        return (count == null) ? 0 : count.intValue();
-//    }
 
   // 부분 일치 조건
   // 이름 또는 이메일
