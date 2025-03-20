@@ -90,6 +90,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     Long nextIdAfter = null;
     boolean hasNext = false;
 
+    List<Long> departmentIds = employees.stream().map(e -> e.getDepartment().getId()).toList();
+    List<Department> departments = departmentRepository.findAllById(departmentIds);
+
     // 전체 데이터 개수 계산
     long totalElement = customEmployeeRepository.totalCountEmployee(
         employeeMapper.fromEmployeeFindRequest(request));
