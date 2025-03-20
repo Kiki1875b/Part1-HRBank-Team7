@@ -55,7 +55,7 @@ public class EmployeeDashboardServiceImpl implements
     List<ChangeLogDashboardDto> changeHistory = changeLogRepository.findAllByTypeNotInOrderByCreatedAt(
         List.of(ChangeLogType.UPDATED));
 
-    Map<LocalDate, Integer> changeByDay = new TreeMap<>();
+    Map<LocalDate, Integer> changeByDay = new HashMap<>();
     Instant instant = current.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
     long startCount =
@@ -150,6 +150,7 @@ public class EmployeeDashboardServiceImpl implements
       previousCount = currentTotal;
       currentFrom = currentFrom.plus(1, unit);
     }
+
     trends.remove(trends.size() - 1);
     return trends;
   }

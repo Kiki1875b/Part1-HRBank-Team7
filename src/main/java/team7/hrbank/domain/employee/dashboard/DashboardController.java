@@ -54,6 +54,7 @@ public class DashboardController {
       @RequestParam(required = false) LocalDate fromDate,
       @RequestParam(required = false) LocalDate toDate
   ) {
+
     if (toDate == null) {
       toDate = LocalDate.now();
     }

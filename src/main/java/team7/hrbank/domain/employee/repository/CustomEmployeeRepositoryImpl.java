@@ -100,7 +100,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
     }
 
     if (to != null) {
-      where.and(qEmployee.hireDate.loe(to));
+      where.and(qEmployee.hireDate.loe(to.plusDays(1)));
     }
 
     Long count = queryFactory
