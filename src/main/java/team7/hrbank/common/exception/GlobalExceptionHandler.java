@@ -87,12 +87,12 @@ public class GlobalExceptionHandler {
     // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
-      ErrorResponse errorResponse = new ErrorResponse(
-          ExceptionUtil.getRequestTime(request),
-          ErrorCode.NOT_FOUND.getStatus(),
-          ErrorCode.NOT_FOUND.getMessage(),
-          "해당 경로를 찾을 수 없습니다."
-      );
+        ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),
+                ErrorCode.NOT_FOUND.getStatus(),
+                ErrorCode.NOT_FOUND.getMessage(),
+                "해당 경로를 찾을 수 없습니다."
+        );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
