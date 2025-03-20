@@ -9,12 +9,12 @@ import java.time.LocalDate;
 public record DepartmentUpdateRequest(
 
 
-        @Max(value = 50, message = "부서이름은 50자 미만이어야 합니다.")
-        String name,
+  @Max(value = 50, message = "부서이름은 50자 미만이어야 합니다.")
+  String name,
 
-        @Max(value = 50, message = "부서이름은 50자 미만이어야 합니다.")
-        String description,
+  @Max(value = 50, message = "부서이름은 50자 미만이어야 합니다.")
+  String description,
 
-        LocalDate establishedDate
+  LocalDate establishedDate
 ) {
 }
