@@ -9,7 +9,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.department.dto.DepartmentMapper;
 import team7.hrbank.domain.department.dto.PageDepartmentsResponseDto;
-import team7.hrbank.domain.department.dto.WithEmployeeCountResponseDto;
+import team7.hrbank.domain.department.dto.DepartmentWithEmployeeCountResponseDto;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.entity.QDepartment;
 
@@ -36,7 +36,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                                                               String cursor,
                                                               Integer size,
                                                               String sortField,
-                                                              Sort.Direction sortDirection) {
+                                                              String sortDirection) {
 
         QDepartment department = QDepartment.department;
         BooleanBuilder builder = buildSearchCondition(
@@ -55,8 +55,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         // 전체 항목 수 조회
         Long totalCount = getTotalCount(department, nameOrDescription);
 
-
-
         //페이지네이션 처리
         Pageable pageable = PageRequest.of(0, size+1);
 
@@ -70,7 +68,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         departments = hasNext ? departments.subList(0, size) : departments;
 
         //필터링한 부서 객체들을 Dto로 변환
-        List<WithEmployeeCountResponseDto> newDepartments = departments.stream().map(d->departmentMapper.toDto(d, d.getId())).collect(Collectors.toList());
+        List<DepartmentWithEmployeeCountResponseDto> newDepartments = departments.stream().map(d->departmentMapper.toDto(d, d.getId())).collect(Collectors.toList());
 
         // 페이지의 마지막 항목을 가져와서 nextIdAfter와 nextCursor를 설정
         Long nextIdAfter = getNextIdAfter(departments);
@@ -99,20 +97,23 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     }
 
     //정렬필드에 따라 order 조건 설정
-    private OrderSpecifier<?>[] getOrderSpecifier(String sortField, Sort.Direction sortDirection, QDepartment department) {
+    private OrderSpecifier<?>[] getOrderSpecifier(String sortField, String sortDirection, QDepartment department) {
+        // 정렬 방향 처리 (기본값: ASC)
+        Sort.Direction newSortDirection = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
         OrderSpecifier<?> primarySortSpecifier;
         OrderSpecifier<?> secondarySortSpecifier;
         if ("name".equals(sortField)) {
-            primarySortSpecifier = sortDirection.equals(Sort.Direction.ASC)
+            primarySortSpecifier = newSortDirection.equals(Sort.Direction.ASC)
                     ? department.name.asc()
                     : department.name.desc();
             return new OrderSpecifier[]{primarySortSpecifier};
         } else {
-            primarySortSpecifier = sortDirection.equals(Sort.Direction.ASC)
+            primarySortSpecifier = newSortDirection.equals(Sort.Direction.ASC)
                     ? department.establishedDate.asc()
                     : department.establishedDate.desc();
 
-            secondarySortSpecifier= sortDirection.equals(Sort.Direction.ASC)
+            secondarySortSpecifier= newSortDirection.equals(Sort.Direction.ASC)
                     ? department.id.asc()
                     : department.id.desc();
 
@@ -126,6 +127,11 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                                                 String cursor,
                                                 String sortField,
                                                 QDepartment department) {
+
+        // 정렬 필드 파라미터가 적절한 값이 아닐 경우 기본값(설립일)을 대입.
+        if (sortField == null || !List.of("name", "establishedDate").contains(sortField)) {
+            sortField = "establishedDate"; // 기본 정렬 필드
+        }
 
         BooleanBuilder builder = new BooleanBuilder();
         //검색어가 공백, null이 아닐 경우 검색어로 필터링
