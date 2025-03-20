@@ -95,21 +95,6 @@ public class ChangeLogServiceImpl implements ChangeLogService {
     changeLogRepository.save(log);
   }
 
-  //직원 수정 시 로그 저장
-  @Transactional
-  public void test(List<DiffDto> details, String employeeNumber, String memo,
-      String ipAddress) {
-
-    ChangeLog log = new ChangeLog(
-        employeeNumber,
-        ChangeLogType.UPDATED,
-        memo,
-        ipAddress,
-        details
-    );
-    changeLogRepository.save(log);
-  }
-
   //직원 삭제 시 로그 저장
   @Override
   @Transactional
