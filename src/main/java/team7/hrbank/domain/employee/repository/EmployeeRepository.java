@@ -1,5 +1,6 @@
 package team7.hrbank.domain.employee.repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT MAX(e.id) FROM Employee e WHERE e.id >= :minId AND e.id <= :maxId")
     Optional<Long> findMaxIdBetween(@Param("minId") long minId, @Param("maxId") long maxId);
 
+    long countByHireDateBetween(LocalDate from, LocalDate to);
 }

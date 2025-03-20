@@ -32,7 +32,7 @@ public class EmployeeController {
 
     // 직원 등록
     @PostMapping
-    public ResponseEntity<EmployeeDto> create(@Valid EmployeeCreateRequest employee,
+    public ResponseEntity<EmployeeDto> create(@RequestPart(value = "employee") EmployeeCreateRequest employee,
                                               @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         //IP 주소 받기

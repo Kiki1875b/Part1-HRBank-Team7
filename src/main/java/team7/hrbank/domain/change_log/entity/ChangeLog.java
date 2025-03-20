@@ -30,7 +30,7 @@ import team7.hrbank.domain.employee.entity.Employee;
 public class ChangeLog extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "employee_number", referencedColumnName = "employee_number", nullable = false)
+  @JoinColumn(name = "employee_number", referencedColumnName = "employee_number")
   private Employee employee;
 
   @Enumerated(EnumType.STRING)
