@@ -36,4 +36,8 @@ public class EmployeeStatistic {
     this.type = type;
     this.captureDate = captureDate;
   }
+
+  public void updateEmployeeCount(int employeeCount){
+    this.employeeCount = employeeCount;
+  }
 }

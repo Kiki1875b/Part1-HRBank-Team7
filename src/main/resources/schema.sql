@@ -61,3 +61,5 @@ CREATE TABLE employee_statistics (
     type VARCHAR(20) NOT NULL CHECK(type IN ('YEAR', 'QUARTER', 'MONTH', 'WEEK', 'DAY')),
     capture_date DATE NOT NULL
 )
+ALTER TABLE employee_statistics
+    ADD CONSTRAINT uq_capture_date_type UNIQUE (capture_date, type);
