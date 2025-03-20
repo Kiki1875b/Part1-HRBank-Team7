@@ -1,9 +1,13 @@
 package team7.hrbank.domain.employee.repository;
 
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.cglib.core.Local;
 import team7.hrbank.domain.employee.dto.EmployeeCountRequest;
+import team7.hrbank.domain.employee.dto.EmployeeDistributionDto;
 import team7.hrbank.domain.employee.dto.EmployeeFindRequest;
 import team7.hrbank.domain.employee.entity.Employee;
+import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public interface CustomEmployeeRepository {
 
@@ -18,4 +22,7 @@ public interface CustomEmployeeRepository {
 
     // 해당 부서에 소속된 직원 수 확인
 //    Integer countEmployeeByDepartmentId(Long departmentId);
+
+    Long getEmployeeCountByCriteria(EmployeeStatus status, LocalDate from, LocalDate to);
+
 }

@@ -92,6 +92,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   public void logEmployeeDeleted(Employee employee, String ipAddress) {
     String memo = "직원 삭제";
     List<DiffDto> details = new ArrayList<>();
+
     details.add(new DiffDto("hireDate", employee.getHireDate().toString(), "-"));
     details.add(new DiffDto("name", employee.getName(), "-"));
     details.add(new DiffDto("position", employee.getPosition(), "-"));
@@ -106,6 +107,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         ipAddress,
         details
     );
+
     changeLogRepository.save(log);
   }
 
