@@ -31,11 +31,8 @@ public class DashboardController {
     if (to == null) {
       to = LocalDate.now();
     }
-    if (from == null) {
-      from = to.minusMonths(12);
-    }
 
-    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrends(from, to, unit);
+    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrendsV2(from, to, unit);
 
     return ResponseEntity.ok(trends);
   }
