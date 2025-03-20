@@ -31,4 +31,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     long countByHireDateBetween(LocalDate from, LocalDate to);
 
     List<Employee> findByStatus(EmployeeStatus status);
+
+    List<Employee> findByHireDateBetween(LocalDate from, LocalDate to);
 }

@@ -35,9 +35,11 @@ public class EmployeeDashboardServiceImpl implements
     LocalDate start = getPreviousDate(from, unit);
     LocalDate current = start;
 
+    List<Employee> employeesFromTo = employeeRepository.findByHireDateBetween(from, to);
+
     while (current.isBefore(to)) {
       LocalDate next = getNextDate(current, unit);
-      long count = employeeRepository.countByHireDateBetween(current, next); // TODO : 이거 쿼리 너무 많이 나감 -> 한번에 끌고오고 서비스단에서 mapping 해야할듯
+      long count = calculateNumberOfEmployeesBetween(employeesFromTo, current, next);
 
       int prevCount = trends.isEmpty() ? (int) count : trends.get(trends.size() - 1).count();
       int change = (int) count - prevCount;
@@ -53,11 +55,17 @@ public class EmployeeDashboardServiceImpl implements
 
     return trends;
   }
-
+  private long calculateNumberOfEmployeesBetween(List<Employee> employees, LocalDate from, LocalDate to){
+    return employees.stream().filter(e ->
+        (e.getHireDate().isAfter(from) || e.getHireDate().isEqual(from))
+        && (e.getHireDate().isBefore(to) || e.getHireDate().isEqual(to))
+    ).count();
+  }
   @Override
   @Transactional
   public List<EmployeeDistributionDto> getEmployeeDistribution(String groupBy,
       EmployeeStatus status) {
+
     List<Employee> employees = employeeRepository.findByStatus(status);
     List<Department> departments = departmentRepository.findAll();
     int totalCount = employees.size();
