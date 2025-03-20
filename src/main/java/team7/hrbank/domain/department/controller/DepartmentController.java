@@ -4,19 +4,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import team7.hrbank.domain.department.dto.*;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 
 import team7.hrbank.domain.department.service.DepartmentServiceImpl;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -26,14 +21,22 @@ public class DepartmentController {
 
   // 부서 등록 API
   @PostMapping
-  public ResponseEntity<DepartmentResponseDto> createDepartment(@Valid DepartmentCreateRequest requestDto) {
+  public ResponseEntity<DepartmentResponseDto> createDepartment(@Valid @RequestBody DepartmentCreateRequest requestDto) {
     DepartmentResponseDto responseDto = departmentServiceImpl.create(requestDto);
     return ResponseEntity.status(HttpStatus.OK).body(responseDto);
   }
 
+  @PostMapping("/test-batch")
+  public ResponseEntity<DepartmentResponseDto> createDepartmentList(@Valid @RequestBody List<DepartmentCreateRequest> requestDto) {
+    for (DepartmentCreateRequest dto : requestDto) {
+        departmentServiceImpl.create(dto);
+    }
+    return ResponseEntity.status(HttpStatus.OK).body(null);
+  }
+
   // 부서 수정 API
   @PatchMapping("/{id}")
-  public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @Valid DepartmentUpdateRequest requestDto) {
+  public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @Valid @RequestBody DepartmentUpdateRequest requestDto) {
     DepartmentResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
     return ResponseEntity
       .status(HttpStatus.OK)

@@ -13,8 +13,4 @@ public interface DepartmentMapper {
   DepartmentWithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
 
   Department toEntity(DepartmentCreateRequest dto);
-
-  @Mapping(target = "id", ignore = true) // ID는 변경하지 않음
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  void updateFromDto(DepartmentUpdateRequest dto, @MappingTarget Department entity);
 }
