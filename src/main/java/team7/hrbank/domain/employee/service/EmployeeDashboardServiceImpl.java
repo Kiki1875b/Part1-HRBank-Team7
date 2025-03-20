@@ -16,6 +16,7 @@ import team7.hrbank.domain.employee.dto.EmployeeDistributionDto;
 import team7.hrbank.domain.employee.dto.EmployeeTrendDto;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
+import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 
@@ -26,6 +27,7 @@ public class EmployeeDashboardServiceImpl implements
 
   private final EmployeeRepository employeeRepository;
   private final DepartmentRepository departmentRepository;
+  private final CustomEmployeeRepository customEmployeeRepository;
 
   @Override
   public List<EmployeeTrendDto> getEmployeeTrends(LocalDate from, LocalDate to, String unit) {
@@ -68,6 +70,11 @@ public class EmployeeDashboardServiceImpl implements
         .map(entry -> new EmployeeDistributionDto(
             entry.getKey(), entry.getValue().intValue(), entry.getValue() * 100.0 / totalCount
         )).collect(Collectors.toList());
+  }
+
+  @Override
+  public Long getEmployeeCountByCriteria(EmployeeStatus status, LocalDate from, LocalDate to) {
+    return customEmployeeRepository.getEmployeeCountByCriteria(status, from, to);
   }
 
 

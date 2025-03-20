@@ -27,7 +27,7 @@ public class DashboardController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
       @RequestParam(defaultValue = "month") String unit
-  ){
+  ) {
     if (to == null) {
       to = LocalDate.now();
     }
@@ -45,9 +45,24 @@ public class DashboardController {
   public ResponseEntity<List<EmployeeDistributionDto>> getEmployeeDistribution(
       @RequestParam(defaultValue = "department") String groupBy,
       @RequestParam(defaultValue = "ACTIVE") EmployeeStatus status
-  ){
-    List<EmployeeDistributionDto> employeeDtos = dashboardController.getEmployeeDistribution(groupBy, status);
+  ) {
+    List<EmployeeDistributionDto> employeeDtos = dashboardController.getEmployeeDistribution(
+        groupBy, status);
     return ResponseEntity.ok(employeeDtos);
+  }
+
+  @GetMapping("/count")
+  public ResponseEntity<Long> getEmployeeCount(
+      @RequestParam(required = false) EmployeeStatus status,
+      @RequestParam(required = false) LocalDate fromDate,
+      @RequestParam(required = false) LocalDate toDate
+  ) {
+    if (toDate == null) {
+      toDate = LocalDate.now();
+    }
+
+    Long count = dashboardController.getEmployeeCountByCriteria(status, fromDate, toDate);
+    return ResponseEntity.ok(count);
   }
 
 }
