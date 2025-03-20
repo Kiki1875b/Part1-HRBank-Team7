@@ -1,11 +1,13 @@
 package team7.hrbank.domain.employee.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import team7.hrbank.domain.employee.entity.Employee;
+import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
@@ -27,4 +29,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Long> findMaxIdBetween(@Param("minId") long minId, @Param("maxId") long maxId);
 
     long countByHireDateBetween(LocalDate from, LocalDate to);
+
+    List<Employee> findByStatus(EmployeeStatus status);
 }

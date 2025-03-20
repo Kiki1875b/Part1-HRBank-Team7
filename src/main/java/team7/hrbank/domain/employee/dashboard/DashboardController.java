@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import team7.hrbank.domain.employee.dto.EmployeeDistributionDto;
 import team7.hrbank.domain.employee.dto.EmployeeTrendDto;
+import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.service.EmployeeDashboardService;
 
 @RestController
@@ -37,4 +39,15 @@ public class DashboardController {
 
     return ResponseEntity.ok(trends);
   }
+
+
+  @GetMapping("/stats/distribution")
+  public ResponseEntity<List<EmployeeDistributionDto>> getEmployeeDistribution(
+      @RequestParam(defaultValue = "department") String groupBy,
+      @RequestParam(defaultValue = "ACTIVE") EmployeeStatus status
+  ){
+    List<EmployeeDistributionDto> employeeDtos = dashboardController.getEmployeeDistribution(groupBy, status);
+    return ResponseEntity.ok(employeeDtos);
+  }
+
 }
