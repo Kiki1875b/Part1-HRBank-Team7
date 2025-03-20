@@ -93,18 +93,4 @@ public class Employee extends BaseUpdatableEntity {
         this.status = status;
     }
 
-
-    //직원 복사
-    public Employee copy() {
-        Employee copied = new Employee();
-        copied.profile = this.profile;
-        copied.employeeNumber = this.employeeNumber;
-        copied.name = this.name;
-        copied.email = this.email;
-        copied.position = this.position;
-        copied.hireDate = this.hireDate;
-        copied.status = this.status;
-        copied.department = this.department;
-        return copied;
-    }
 }

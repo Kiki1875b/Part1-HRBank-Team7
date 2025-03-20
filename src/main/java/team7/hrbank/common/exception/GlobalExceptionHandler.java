@@ -35,6 +35,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    //400 - Bad Request (IllegalStateException이 발생한 경우. 아무값도 안넣었을때?)
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e, HttpServletRequest request) {
+      ErrorResponse errorResponse = new ErrorResponse(
+                ExceptionUtil.getRequestTime(request),
+                ErrorCode.BAD_REQUEST.getStatus(),
+                ErrorCode.BAD_REQUEST.getMessage(),
+                e.getMessage()
+      );
+
+      return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     // 400 - Bad Request (validation에 의한 유효성 검사)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(MethodArgumentNotValidException e, HttpServletRequest request) {
@@ -83,6 +96,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+
     @ExceptionHandler(BackupException.class)
     public ResponseEntity<ErrorResponse> handleBackupException(BackupException e,
                                                                HttpServletRequest request) {
@@ -96,7 +110,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,
                 HttpStatusCode.valueOf(e.getErrorCode().getStatus()));
     }
-    
+
     // 500 - Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {

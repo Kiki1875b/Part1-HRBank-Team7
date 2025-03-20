@@ -36,13 +36,12 @@ CREATE TABLE employees (
 
 CREATE TABLE change_log (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    employee_number VARCHAR(50) NULL, -- 논의 필요, employee 삭제시 동작
+    employee_number VARCHAR(50) NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('CREATED', 'UPDATED', 'DELETED')),
     details JSONB NULL,
     memo TEXT NULL,
     ip_address VARCHAR(50) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    CONSTRAINT fk_change_log_employee FOREIGN KEY (employee_number) REFERENCES employees (employee_number) ON delete SET NULL
+    created_at TIMESTAMPTZ NOT NULL
 );
 
 

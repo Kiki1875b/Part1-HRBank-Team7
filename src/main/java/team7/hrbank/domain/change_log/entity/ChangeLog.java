@@ -5,9 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.List;
 import lombok.AccessLevel;
@@ -19,7 +16,6 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.change_log.dto.DiffDto;
-import team7.hrbank.domain.employee.entity.Employee;
 
 @Getter
 @Entity
@@ -29,9 +25,8 @@ import team7.hrbank.domain.employee.entity.Employee;
 @EntityListeners(AuditingEntityListener.class)
 public class ChangeLog extends BaseEntity {
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "employee_number", referencedColumnName = "employee_number", nullable = false)
-  private Employee employee;
+  @Column(name = "employee_number", nullable = false)
+  private String employeeNumber;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)
