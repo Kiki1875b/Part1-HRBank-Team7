@@ -8,16 +8,15 @@ import team7.hrbank.domain.employee.entity.Employee;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    // 부서에 소속된 직원수 확인
+    // 부서에 소속된 직원 수 확인
     @Query("SELECT COUNT(e) FROM Employee e WHERE e.department.id = :departmentId")
-
     Long countEmployeesByDepartmentId(@Param("departmentId") Long departmentId);
 
     // id 최대값 확인
     @Query("SELECT MAX(e.id) FROM Employee e")
     long findMaxId();
 
-    // id 최소값
+    // id 최소값 확인
     @Query("SELECT MIN(e.id) FROM Employee e")
     long findMinId();
 

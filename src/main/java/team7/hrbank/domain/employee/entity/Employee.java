@@ -10,24 +10,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.LastModifiedDate;
-import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.department.entity.Department;
 
-import java.beans.ConstructorProperties;
-import java.time.Instant;
 import java.time.LocalDate;
 
-import team7.hrbank.domain.department.entity.Department;
-
-import static lombok.AccessLevel.*;
+import static lombok.AccessLevel.PROTECTED;
 
 
 @Entity
@@ -63,7 +55,7 @@ public class Employee extends BaseUpdatableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private EmployeeStatus status;  // 상태(ACTIVE,ON_LEAVE, RESIGNED)
+    private EmployeeStatus status;  // 상태(ACTIVE, ON_LEAVE, RESIGNED)
 
     // update 메서드
     // 부서 수정

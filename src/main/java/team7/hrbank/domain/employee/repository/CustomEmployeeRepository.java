@@ -15,7 +15,4 @@ public interface CustomEmployeeRepository {
 
     // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호
     String selectLatestEmployeeNumberByHireDateYear(int year);
-
-    // 해당 부서에 소속된 직원 수 확인
-//    Integer countEmployeeByDepartmentId(Long departmentId);
 }

@@ -28,22 +28,8 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 ExceptionUtil.getRequestTime(request),  // 오류 발생 시간
                 ErrorCode.BAD_REQUEST.getStatus(),      // 오류 코드
-                ErrorCode.BAD_REQUEST.getMessage(),     // 오류 메시지
+                ErrorCode.BAD_REQUEST.getMessage(),     // 오류 간단한 메시지
                 e.getMessage()                          // 오류 자세한 메시지
-        );
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    // 400 - Bad Request (컴팩트 생성자에 의한 유효성 검사)
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequestException(HttpMessageNotReadableException e, HttpServletRequest request) {
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                ExceptionUtil.getRequestTime(request),  // 오류 발생 시간
-                ErrorCode.BAD_REQUEST.getStatus(),      // 오류 코드
-                ErrorCode.BAD_REQUEST.getMessage(),     // 오류 메시지
-                e.getMostSpecificCause().getMessage()   // 오류 자세한 메시지
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -60,14 +46,15 @@ public class GlobalExceptionHandler {
                 .orElse("잘못된 입력입니다.");
 
         ErrorResponse errorResponse = new ErrorResponse(
-                ExceptionUtil.getRequestTime(request),  // 오류 발생 시간
-                ErrorCode.BAD_REQUEST.getStatus(),      // 오류 코드
-                ErrorCode.BAD_REQUEST.getMessage(),     // 오류 메시지
-                errorMessage                            // 오류 자세한 메시지
+                ExceptionUtil.getRequestTime(request),
+                ErrorCode.BAD_REQUEST.getStatus(),
+                ErrorCode.BAD_REQUEST.getMessage(),
+                errorMessage
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
 
     // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -109,7 +96,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,
                 HttpStatusCode.valueOf(e.getErrorCode().getStatus()));
     }
-
+    
     // 500 - Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e, HttpServletRequest request) {

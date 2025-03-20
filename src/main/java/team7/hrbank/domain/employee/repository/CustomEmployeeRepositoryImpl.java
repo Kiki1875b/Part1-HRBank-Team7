@@ -84,20 +84,6 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 .fetchOne();
     }
 
-    // TODO: 나중에 필요없으면 삭제
-    // 해당 부서에 소속된 직원의 수
-//    @Override
-//    public Integer countEmployeeByDepartmentId(Long departmentId) {
-//
-//        Long count = queryFactory
-//                .select(qEmployee.count())
-//                .from(qEmployee)
-//                .where(qEmployee.department.id.eq(departmentId))
-//                .fetchOne();
-//
-//        return (count == null) ? 0 : count.intValue();
-//    }
-
     // 부분 일치 조건
     // 이름 또는 이메일
     private BooleanExpression containsNameOrEmail(String nameOrEmail) {
