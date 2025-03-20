@@ -1,5 +1,6 @@
 package team7.hrbank.domain.department.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,14 +26,14 @@ public class DepartmentController {
 
     // 부서 등록 API
     @PostMapping
-    public ResponseEntity<DepartmentResponseDto> createDepartment(@RequestBody DepartmentCreateRequest requestDto) {
+    public ResponseEntity<DepartmentResponseDto> createDepartment(@Valid DepartmentCreateRequest requestDto) {
         DepartmentResponseDto responseDto = departmentServiceImpl.create(requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     // 부서 수정 API
     @PatchMapping("/{id}")
-    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @RequestBody UpdateRequest requestDto) {
+    public ResponseEntity<DepartmentResponseDto> updateDepartment(@PathVariable("id") Long id, @Valid DepartmentUpdateRequest requestDto) {
         DepartmentResponseDto responseDto = departmentServiceImpl.update(id, requestDto);
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -75,8 +75,8 @@ public class DepartmentController {
 
     //부서 단건 상세 조회 API
     @GetMapping("/{id}")
-    public ResponseEntity<WithEmployeeCountResponseDto> getDepartmentDetail(@PathVariable("id") Long id) {
-        WithEmployeeCountResponseDto responseDto = departmentServiceImpl.getDepartment(id);
+    public ResponseEntity<DepartmentWithEmployeeCountResponseDto> getDepartmentDetail(@PathVariable("id") Long id) {
+        DepartmentWithEmployeeCountResponseDto responseDto = departmentServiceImpl.findDepartment(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(responseDto);
