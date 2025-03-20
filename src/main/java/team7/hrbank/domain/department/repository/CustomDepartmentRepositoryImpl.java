@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 import team7.hrbank.domain.department.dto.DepartmentMapper;
 import team7.hrbank.domain.department.dto.PageDepartmentsResponseDto;
 import team7.hrbank.domain.department.dto.DepartmentWithEmployeeCountResponseDto;
@@ -138,12 +139,12 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
     BooleanBuilder builder = new BooleanBuilder();
     //검색어가 공백, null이 아닐 경우 검색어로 필터링
-    if (nameOrDescription != null && !nameOrDescription.trim().isEmpty()) {
+    if (StringUtils.hasText(nameOrDescription.trim())) {
       builder.and(department.name.containsIgnoreCase(nameOrDescription)
         .or(department.description.containsIgnoreCase(nameOrDescription)));
     }
     //커서가 null이 아닐 경우, 정렬 기준이 되는 sortField에 따라 cursor의 타입이 정해지고, 그 커서의 값보다 큰 항목만 필터링하도록 함.
-    if (cursor != null) {
+    if (StringUtils.hasText(cursor)) {
       String newCursor = new String(Base64.getDecoder().decode(cursor));
       if (sortField.equals("name")) {
         builder.and(department.name.gt(newCursor));
