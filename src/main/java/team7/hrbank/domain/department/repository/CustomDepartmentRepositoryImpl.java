@@ -13,6 +13,7 @@ import team7.hrbank.domain.department.dto.PageDepartmentsResponseDto;
 import team7.hrbank.domain.department.dto.DepartmentWithEmployeeCountResponseDto;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.entity.QDepartment;
+import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -29,6 +30,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
   private final JPAQueryFactory queryFactory;
   private final DepartmentMapper departmentMapper;
+  private final EmployeeRepository employeeRepository;
 
   @Override
   public PageDepartmentsResponseDto findDepartments(String nameOrDescription,
@@ -68,7 +70,9 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     departments = hasNext ? departments.subList(0, size) : departments;
 
     //필터링한 부서 객체들을 Dto로 변환
-    List<DepartmentWithEmployeeCountResponseDto> newDepartments = departments.stream().map(d -> departmentMapper.toDto(d, d.getId())).collect(Collectors.toList());
+    List<DepartmentWithEmployeeCountResponseDto> newDepartments
+      = departments.stream().map(
+        d -> departmentMapper.toDto(d, employeeRepository.countEmployeesByDepartmentId(d.getId()))).collect(Collectors.toList());
 
     Long nextIdAfter = null;
     String nextCursor = null;
@@ -139,7 +143,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
     BooleanBuilder builder = new BooleanBuilder();
     //검색어가 공백, null이 아닐 경우 검색어로 필터링
-    if (StringUtils.hasText(nameOrDescription.trim())) {
+    if (StringUtils.hasText(nameOrDescription)) {
       builder.and(department.name.containsIgnoreCase(nameOrDescription)
         .or(department.description.containsIgnoreCase(nameOrDescription)));
     }
