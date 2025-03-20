@@ -29,7 +29,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
   private final JPAQueryFactory queryFactory;
   private final DepartmentMapper departmentMapper;
 
-
   @Override
   public PageDepartmentsResponseDto findDepartments(String nameOrDescription,
                                                     Integer idAfter,
@@ -70,9 +69,15 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     //필터링한 부서 객체들을 Dto로 변환
     List<DepartmentWithEmployeeCountResponseDto> newDepartments = departments.stream().map(d -> departmentMapper.toDto(d, d.getId())).collect(Collectors.toList());
 
+    Long nextIdAfter = null;
+    String nextCursor = null;
     // 페이지의 마지막 항목을 가져와서 nextIdAfter와 nextCursor를 설정
-    Long nextIdAfter = getNextIdAfter(departments);
-    String nextCursor = getNextCursor(departments, sortField);
+    if (hasNext) {
+      nextIdAfter = getNextIdAfter(departments);
+      nextCursor = getNextCursor(departments, sortField);
+    }
+
+
     PageDepartmentsResponseDto responseDto = new PageDepartmentsResponseDto(newDepartments, nextCursor, nextIdAfter, size, totalCount, hasNext);
 
     return responseDto;
@@ -157,12 +162,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     return builder;
   }
 
-  // 커서 String->64바이트 인코딩 메서드
-  private String encodeCursor(Department department, String sortField) {
-    String cursor = sortField.equals("name") ? department.getName() : department.getEstablishedDate().toString();
-    return Base64.getEncoder().encodeToString(cursor.getBytes());
-  }
-
   //페이지 마지막요소 Id 반환
   private Long getNextIdAfter(List<Department> departments) {
     if (departments.isEmpty()) {
@@ -181,5 +180,11 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
       Department lastDepartment = departments.get(departments.size() - 1);
       return encodeCursor(lastDepartment, sortField);
     }
+  }
+
+  // 커서 String->64바이트 인코딩 메서드
+  private String encodeCursor(Department department, String sortField) {
+    String cursor = sortField.equals("name") ? department.getName() : department.getEstablishedDate().toString();
+    return Base64.getEncoder().encodeToString(cursor.getBytes());
   }
 }

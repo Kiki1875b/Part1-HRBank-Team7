@@ -10,11 +10,11 @@ import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 import team7.hrbank.domain.department.entity.Department;
 
-@Validated
+
 public interface DepartmentService {
   //부서 생성 메서드
   @Transactional
-  DepartmentResponseDto create(@Valid DepartmentCreateRequest requestDto);
+  DepartmentResponseDto create(DepartmentCreateRequest requestDto);
 
   // 부서 수정 메서드
   @Transactional
