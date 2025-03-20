@@ -52,7 +52,8 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   //직원 수정 시 로그 저장
   @Override
   @Transactional
-  public void logEmployeeUpdated(EmployeeDto before, EmployeeDto after, String memo, String ipAddress) {
+  public void logEmployeeUpdated(EmployeeDto before, EmployeeDto after, String memo,
+      String ipAddress) {
     List<DiffDto> details = new ArrayList<>();
     if (!before.hireDate().equals(after.hireDate())) {
       details.add(
@@ -64,7 +65,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
     if (!before.position().equals(after.position())) {
       details.add(new DiffDto("position", before.position(), after.position()));
     }
-    if (!before.departmentName().equals(after.departmentName())){
+    if (!before.departmentName().equals(after.departmentName())) {
       details.add(new DiffDto("departmentName", before.departmentName(), after.departmentName()));
     }
     if (!before.email().equals(after.email())) {
@@ -75,18 +76,23 @@ public class ChangeLogServiceImpl implements ChangeLogService {
           new DiffDto("status", before.status().toString(), after.status().toString()));
     }
 
+    //변경사항이 아예 없을 시에 예외처리, 프로필이미지만 변경되었을 경우 로그 저장 X
     if (details.isEmpty()) {
+      if (after.profileImageId() != null && (before.profileImageId() == null
+          || !before.profileImageId().equals(after.profileImageId()))) {
+        return;
+      }
       throw new ChangeLogNoDetectedException();
     }
 
-      ChangeLog log = new ChangeLog(
-          after.employeeNumber(),
-          ChangeLogType.UPDATED,
-          memo,
-          ipAddress,
-          details
-      );
-      changeLogRepository.save(log);
+    ChangeLog log = new ChangeLog(
+        after.employeeNumber(),
+        ChangeLogType.UPDATED,
+        memo,
+        ipAddress,
+        details
+    );
+    changeLogRepository.save(log);
   }
 
   //직원 삭제 시 로그 저장
@@ -161,10 +167,10 @@ public class ChangeLogServiceImpl implements ChangeLogService {
   //설정 날짜에 따른 수정 이력 건수 카운팅
   @Override
   public Long getChangeLogsCount(Instant fromDate, Instant toDate) {
-    if(fromDate==null){
+    if (fromDate == null) {
       fromDate = Instant.now().minus(7, ChronoUnit.DAYS);
     }
-    if(toDate==null){
+    if (toDate == null) {
       toDate = Instant.now();
     }
 

@@ -1,7 +1,9 @@
 package team7.hrbank.domain.employee.service;
 
 import com.querydsl.core.util.StringUtils;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
+import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
@@ -123,11 +126,15 @@ public class EmployeeServiceImpl implements EmployeeService {
     return employeeMapper.fromEntity(employee);
   }
 
+  // TODO: 메서드 너무 긴듯.. 쪼개야 함
   // 직원 수정
   @Override
   @Transactional
   public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile,
       String ipAddress) {
+
+    List<DiffDto> changeDetails = new ArrayList<>();  // 각 요소 변경 시 내용 저장
+    boolean isProfileChange = false; // 프로필 사진 변경 확인
 
     Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
@@ -135,39 +142,61 @@ public class EmployeeServiceImpl implements EmployeeService {
     EmployeeDto before = employeeMapper.fromEntity(employee);
 
     // TODO: departmentId 수정 로직 추가
-    if (request.departmentId() != null) {
+    if (request.departmentId() != null
+        && !request.departmentId().equals(employee.getDepartment().getId())) {
       employee.updateDepartment(departmentService.getDepartmentEntityById(request.departmentId()));
+      changeDetails.add(
+          new DiffDto("departmentName", before.departmentName(), employee.getDepartment()
+              .getName()));
     }
-
-    if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
+    if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()
+        && !request.name().equals(employee.getName())) {
       String name = request.name().trim();
       employee.updateName(name);
+      changeDetails.add(new DiffDto("name", before.name(), employee.getName()));
     }
-    if (request.email() != null) {
+    if (request.email() != null
+        && !request.email().equals(employee.getEmail())) {
       employee.updateEmail(request.email());
+      changeDetails.add(new DiffDto("email", before.email(), employee.getEmail()));
     }
-    if (!StringUtils.isNullOrEmpty(request.position()) && !request.position().isBlank()) {
+    if (!StringUtils.isNullOrEmpty(request.position()) && !request.position().isBlank()
+        && !request.position().equals(employee.getPosition())) {
       String position = request.position().trim();
       employee.updatePosition(position);
+      changeDetails.add(new DiffDto("position", before.position(), employee.getPosition()));
     }
-    if (request.hireDate() != null) {
+    if (request.hireDate() != null
+        && !request.hireDate().equals(employee.getHireDate())) {
       employee.updateHireDate(request.hireDate());
+      changeDetails.add(
+          new DiffDto("hireDate", before.hireDate().toString(), employee.getHireDate().toString()));
     }
-    if (request.status() != null) {
+    if (request.status() != null
+        && !request.status().equals(employee.getStatus())) {
       employee.updateStatus(request.status());
+      changeDetails.add(
+          new DiffDto("status", before.status().toString(), employee.getStatus().toString()));
     }
     if (profile != null) {
       employee.updateProfile(binaryMapper.convertFileToBinaryContent(profile)
           .map(binaryContentService::save)
           .orElse(null));
+      if (!Objects.equals(before.profileImageId(), employee.getProfile().getId())) {
+        isProfileChange = true;
+      }
     }
 
-    // DB 저장
-    employeeRepository.save(employee);
+    if (isProfileChange || !changeDetails.isEmpty()) {  // 프로필 사진이나 그외 요소 변경 시
 
-    // ChangeLog 저장
-    changeLogService.logEmployeeUpdated(before, employeeMapper.fromEntity(employee), request.memo(),
-        ipAddress);
+      // DB 저장
+      employeeRepository.save(employee);
+
+      // ChangeLog 저장
+//      changeLogService.logEmployeeUpdated(changeDetails, employee.getEmployeeNumber(), request.memo(), ipAddress);
+    } else {
+      throw new IllegalArgumentException("변경된 사항이 없습니다.");  // 변경된 사항 없으면 400 에러
+    }
 
     // employeeDto로 반환
     return employeeMapper.fromEntity(employee);
