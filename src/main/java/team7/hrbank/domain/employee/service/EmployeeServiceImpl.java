@@ -88,7 +88,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     boolean hasNext = false;
 
     // 전체 데이터 개수 계산
-    int totalElement = customEmployeeRepository.totalCountEmployee(
+    long totalElement = customEmployeeRepository.totalCountEmployee(
         employeeMapper.fromEmployeeFindRequest(request));
 
     // 다음 데이터 있는지 확인

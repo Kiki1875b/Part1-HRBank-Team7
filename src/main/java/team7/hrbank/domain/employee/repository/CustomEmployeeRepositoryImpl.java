@@ -52,7 +52,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
   // 총 사원 수 집계
   @Override
-  public Integer totalCountEmployee(EmployeeCountRequest request) {
+  public long totalCountEmployee(EmployeeCountRequest request) {
 
     Long count = queryFactory
         .select(qEmployee.count())
@@ -66,7 +66,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
         )
         .fetchOne();
 
-    return (count == null) ? 0 : count.intValue();
+    return (count == null) ? 0 : count;
   }
 
   // 해당 년도에 입사한 직원 중 가장 마지막에 만들어진 직원의 사원번호

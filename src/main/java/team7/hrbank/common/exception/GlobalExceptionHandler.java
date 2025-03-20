@@ -14,7 +14,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.utils.ExceptionUtil;
 
-@Slf4j
+@Slf4j  // 500 에러 시 콘솔에 로그 찍기위한 용도
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
-  //400 - Bad Request (IllegalStateException이 발생한 경우. 아무값도 안넣었을때?)
+  // 400 - Bad Request (IllegalStateException이 발생한 경우. 아무값도 안넣었을때?)
   @ExceptionHandler(IllegalStateException.class)
   public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e,
       HttpServletRequest request) {
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
-  // 400 - Bad Request (validation에 의한 유효성 검사)
+  // 400 - Bad Request (validation에 의한 유효성 검사를 통과하지 못한 경우)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleBadRequestException(MethodArgumentNotValidException e,
       HttpServletRequest request) {
@@ -111,7 +111,7 @@ public class GlobalExceptionHandler {
         HttpStatusCode.valueOf(e.getErrorCode().getStatus()));
   }
 
-  // 500 - Internal Server Error
+  // 500 - Internal Server Error (위에서 정의하지 않은 예외가 발생하는 경우)
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleInternalServerError(Exception e,
       HttpServletRequest request) {
