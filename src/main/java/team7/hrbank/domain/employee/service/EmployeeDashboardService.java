@@ -8,7 +8,7 @@ import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public interface EmployeeDashboardService {
 
-  List<EmployeeTrendDto> getEmployeeTrends(LocalDate from, LocalDate to, String unit);
+  List<EmployeeTrendDto> getEmployeeTrendsV2(LocalDate from, LocalDate to, String unit);
 
   List<EmployeeDistributionDto> getEmployeeDistribution(String groupBy, EmployeeStatus status);
 

@@ -27,5 +27,4 @@ public class Department extends BaseEntity {
     @Column(name = "established_date", nullable = false)
     private LocalDate establishedDate;
 
-
 }
