@@ -65,8 +65,11 @@ public class DepartmentServiceImpl implements DepartmentService {
   }
 
   //부서 단건 조회 메서드
+  @Override
   public DepartmentWithEmployeeCountResponseDto findDepartment(Long id) {
-    return departmentMapper.toDto(getDepartmentEntityById(id), getEmployeeCountByDepartment(id));
+    Department department = departmentRepository.findById(id)
+      .orElseThrow(()->new RuntimeException("해당 부서를 찾을 수 없습니다."));
+    return departmentMapper.toDto(department, getEmployeeCountByDepartment(id));
   }
 
   //성지님! 그대를 위해 준비한 메서드입니다... S2
