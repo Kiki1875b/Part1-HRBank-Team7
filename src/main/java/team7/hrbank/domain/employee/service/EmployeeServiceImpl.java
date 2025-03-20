@@ -1,16 +1,15 @@
 package team7.hrbank.domain.employee.service;
 
 import com.querydsl.core.util.StringUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
@@ -42,14 +41,11 @@ public class EmployeeServiceImpl implements EmployeeService {
   private final ChangeLogService changeLogService;
   private final DepartmentRepository departmentRepository;
 
-  // TODO: @Transactional 해결
-  //  LazyInitializationException(Department 부분) 문제때문에 걸어놨지만 안티패턴임 -> 수정 고민
 
   // 직원 등록
   @Override
   @Transactional
-  public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile,
-      String ipAddress) {
+  public EmployeeDto create(EmployeeCreateRequest request, MultipartFile profile, String ipAddress) {
 
     // 사원번호 생성
     int year = request.hireDate().getYear();   // 입사 연도
@@ -59,28 +55,28 @@ public class EmployeeServiceImpl implements EmployeeService {
     Department belongedDepartment = departmentRepository.findById(request.departmentId())
         .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
+
     // 프로필 사진 유무 별 employee 생성
     Employee createdEmployee = binaryMapper.convertFileToBinaryContent(profile)
         .map((dto) -> {
           BinaryContent createdBinaryContent = binaryContentService.save(dto);
-          return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
-              belongedDepartment, employeeNumber);
+          return employeeMapper.toEntityWithProfile(request, createdBinaryContent, belongedDepartment, employeeNumber);
         })
-        .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
-            employeeNumber));
+        .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment, employeeNumber));
 
     // DB 저장
     employeeRepository.save(createdEmployee);
 
     //ChangeLog 저장
     changeLogService.logEmployeeCreated(createdEmployee, request.memo(), ipAddress);
+
     // employeeDto로 반환
     return employeeMapper.fromEntity(createdEmployee);
   }
 
   // 직원 목록 조회
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public PageResponse<EmployeeDto> find(EmployeeFindRequest request) {
 
     // 다음 페이지 있는지 확인하기 위해 size+1개의 데이터 읽어옴
@@ -92,18 +88,15 @@ public class EmployeeServiceImpl implements EmployeeService {
     boolean hasNext = false;
 
     // 전체 데이터 개수 계산
-    int totalElement = customEmployeeRepository.totalCountEmployee(
-        employeeMapper.fromEmployeeFindRequest(request));
+    int totalElement = customEmployeeRepository.totalCountEmployee(employeeMapper.fromEmployeeFindRequest(request));
 
     // 다음 데이터 있는지 확인
     if (employees.size() > request.size()) {  // 읽어온 데이터의 크기가 size보다 큰 경우 -> 다음 페이지 있음
-      employees.remove(
-          employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 다음 페이지 유무 확인용이었으므로 이제 필요없음 -> 삭제
+      employees.remove(employees.size() - 1); // size를 초과하는 데이터(마지막 데이터)는 다음 페이지 유무 확인용이었으므로 이제 필요없음 -> 삭제
 
       Employee lastEmployee = employees.get(employees.size() - 1);
       nextIdAfter = lastEmployee.getId();     // 현재 페이지 마지막 직원의 id
-      nextCursor = getNextCursorValue(lastEmployee,
-          request.sortField()); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
+      nextCursor = getNextCursorValue(lastEmployee, request.sortField()); // 현재 페이지 마지막 직원의 cursor 정보(name, employeeNumber, hireDate)
       hasNext = true;     // 다음 페이지 유무
     }
 
@@ -119,7 +112,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
   // 직원 상세 조회
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public EmployeeDto findById(Long id) {
 
     Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
@@ -130,8 +123,8 @@ public class EmployeeServiceImpl implements EmployeeService {
   // 직원 수정
   @Override
   @Transactional
-  public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile,
-      String ipAddress) {
+  public EmployeeDto updateById(Long id, EmployeeUpdateRequest request, MultipartFile profile, String ipAddress) {
+
 
     Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
@@ -146,7 +139,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     if (!StringUtils.isNullOrEmpty(request.name()) && !request.name().isBlank()) {
       String name = request.name().trim();
       employee.updateName(name);
-
     }
     if (request.email() != null) {
       employee.updateEmail(request.email());
@@ -183,21 +175,21 @@ public class EmployeeServiceImpl implements EmployeeService {
   public void deleteById(Long id, String ipAddress) {
     Employee employee = employeeRepository.findById(id).orElseThrow(NotFoundEmployeeException::new);
 
+
     employeeRepository.deleteById(id);
 
-//    ChangeLog 저장
-    changeLogService.logEmployeeDeleted(employee ,ipAddress); //todo: 삭제에서도 memo 입력
+    //ChangeLog 저장
+    //changeLogService.logEmployeeDeleted(employee, memo ,ipAddress); //todo: 삭제에서도 memo 입력
   }
 
 
   // 사원번호 생성
   private String getEmployeeNumber(int year) {
-    String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(
-        year);
+    String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
     long lastNumber = 0;
-//        if (lastEmployeeNumber != null) {
-//            lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
-//        }
+    if (lastEmployeeNumber != null) {
+      lastNumber = Long.parseLong(lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
+    }
     return String.format("EMP-%d-%03d", year, lastNumber + 1);
   }
 
