@@ -15,6 +15,7 @@ public interface ChangeLogService {
   Long getChangeLogsCount(Instant fromDate, Instant toDate);
   Instant getLatestChannelLogUpdateTime();
   void logEmployeeCreated(EmployeeDto employee, String memo, String ipAddress);
-  void logEmployeeUpdated(EmployeeDto before, EmployeeDto after, String memo, String ipAddress);
+  void logEmployeeUpdated(List<DiffDto> diffDto, String employeeNumber, String memo,
+      String ipAddress);
   void logEmployeeDeleted(EmployeeDto employee, String ipAddress);
 }
