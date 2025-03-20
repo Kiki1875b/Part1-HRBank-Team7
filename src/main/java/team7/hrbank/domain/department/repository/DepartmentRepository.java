@@ -9,7 +9,7 @@ import team7.hrbank.domain.department.entity.Department;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
-    //이름으로 부서 존재여부 확인
-    boolean existsByName(String name); // 부서 이름 중복 여부 확인
+  //이름으로 부서 존재여부 확인
+  boolean existsByName(String name); // 부서 이름 중복 여부 확인
 
 }
