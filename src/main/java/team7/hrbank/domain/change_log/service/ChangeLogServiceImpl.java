@@ -3,6 +3,7 @@ package team7.hrbank.domain.change_log.service;
 
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,8 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         ChangeLogType.CREATED,
         memo,
         ipAddress,
-        details
+        details,
+        employee.hireDate()
     );
     changeLogRepository.save(log);
   }
@@ -59,7 +61,8 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         ChangeLogType.UPDATED,
         memo,
         ipAddress,
-        diffDto
+        diffDto,
+        null
     );
     changeLogRepository.save(log);
   }
@@ -83,7 +86,8 @@ public class ChangeLogServiceImpl implements ChangeLogService {
         ChangeLogType.DELETED,
         memo,
         ipAddress,
-        details
+        details,
+        LocalDate.now()
     );
     changeLogRepository.save(log);
   }

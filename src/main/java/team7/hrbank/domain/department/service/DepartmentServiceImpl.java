@@ -4,11 +4,17 @@ import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import team7.hrbank.common.exception.GlobalExceptionHandler;
 import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+
+import java.security.InvalidParameterException;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +25,14 @@ public class DepartmentServiceImpl implements DepartmentService {
   private final CustomDepartmentRepository customDepartmentRepository;
 
 
+  //부서생성 메서드
   @Transactional
   @Override
   public DepartmentResponseDto create(DepartmentCreateRequest requestDto) {
     validateName(requestDto.name());
     Department department = departmentMapper.toEntity(requestDto);
-    System.out.println("department = " + department);
     departmentRepository.save(department);
+
     return departmentMapper.toDto(department);
   }
 
@@ -33,12 +40,11 @@ public class DepartmentServiceImpl implements DepartmentService {
   @Transactional
   @Override
   public DepartmentResponseDto update(Long id, DepartmentUpdateRequest requestDto) {
-
-    validateName(requestDto.name());
+    validateName(id, requestDto.name());
     Department department = departmentRepository.findById(id)
-      .orElseThrow(()->new RuntimeException("부서를 찾을 수 없습니다."));
-    department.update(requestDto);
+      .orElseThrow(()->new NoSuchElementException("부서를 찾을 수 없습니다."));
 
+    department.update(requestDto);
     return departmentMapper.toDto(department);
   }
 
@@ -61,14 +67,15 @@ public class DepartmentServiceImpl implements DepartmentService {
                                                    Integer size,
                                                    String sortField,
                                                    String sortDirection) {
-    return customDepartmentRepository.findDepartments(nameOrDescription, idAfter, cursor, size, sortField, sortDirection);
+    return customDepartmentRepository.findDepartments(
+      nameOrDescription, idAfter, cursor, size, sortField, sortDirection);
   }
 
   //부서 단건 조회 메서드
   @Override
   public DepartmentWithEmployeeCountResponseDto findDepartment(Long id) {
     Department department = departmentRepository.findById(id)
-      .orElseThrow(()->new RuntimeException("해당 부서를 찾을 수 없습니다."));
+      .orElseThrow(()->new NoSuchElementException("해당 부서를 찾을 수 없습니다."));
     return departmentMapper.toDto(department, getEmployeeCountByDepartment(id));
   }
 
@@ -80,18 +87,26 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 
   private void validateName(String name) {
-    if (departmentRepository.existsByName(name)) {
-      throw new IllegalArgumentException("이미 존재하는 부서 이름입니다.");
+    if (!departmentRepository.findByName(name).isEmpty()) {
+      throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
+    };
+  }
+
+  private void validateName(Long id, String name) {
+    Optional<Department> existingDepartment = departmentRepository.findByName(name);
+    if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
+      throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     }
   }
 
   private void isEmployeeExistent(Department department) {
     if (getEmployeeCountByDepartment(department.getId()) != 0) {
-      throw new RuntimeException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
+      throw new InvalidParameterException("소속된 직원이 존재하는 부서는 삭제할 수 없습니다. 직원 소속 변경 후 다시 시도해주세요.");
     }
   }
 
   public Long getEmployeeCountByDepartment(Long departmentId) {
     return employeeRepository.countEmployeesByDepartmentId(departmentId);
   }
+
 }

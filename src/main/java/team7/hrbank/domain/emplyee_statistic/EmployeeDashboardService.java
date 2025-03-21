@@ -1,4 +1,4 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.emplyee_statistic;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -7,6 +7,8 @@ import team7.hrbank.domain.employee.dto.EmployeeTrendDto;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 public interface EmployeeDashboardService {
+
+  List<EmployeeTrendDto> getEmployeeTrendsV3(LocalDate from, LocalDate to, String unit);
 
   List<EmployeeTrendDto> getEmployeeTrendsV2(LocalDate from, LocalDate to, String unit);
 

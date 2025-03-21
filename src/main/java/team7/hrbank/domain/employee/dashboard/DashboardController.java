@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import team7.hrbank.domain.employee.dto.EmployeeDistributionDto;
 import team7.hrbank.domain.employee.dto.EmployeeTrendDto;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
-import team7.hrbank.domain.employee.service.EmployeeDashboardService;
+import team7.hrbank.domain.emplyee_statistic.EmployeeDashboardService;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -32,7 +32,7 @@ public class DashboardController {
       to = LocalDate.now();
     }
 
-    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrendsV2(from, to, unit);
+    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrendsV3(from, to, unit);
 
     return ResponseEntity.ok(trends);
   }

@@ -6,6 +6,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -38,8 +39,12 @@ public class ChangeLog extends BaseEntity {
   @Column(name = "ip_address", nullable = false)
   private String ipAddress;
 
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "details", columnDefinition = "jsonb", nullable = false)
   private List<DiffDto> details;
+
+  @Column(name = "capture_date")
+  private LocalDate captureDate;
 
 }

@@ -1,6 +1,7 @@
 package team7.hrbank.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.security.InvalidParameterException;
 import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.utils.ExceptionUtil;
+
 
 @Slf4j  // 500 에러 시 콘솔에 로그 찍기위한 용도
 @RestControllerAdvice
@@ -66,7 +68,21 @@ public class GlobalExceptionHandler {
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
-  
+
+  // 400 - Bad Request (잘못된 요청 파라미터)
+  @ExceptionHandler(InvalidParameterException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException e, HttpServletRequest request) {
+
+      ErrorResponse errorResponse = new ErrorResponse(
+          ExceptionUtil.getRequestTime(request),
+          ErrorCode.BAD_REQUEST.getStatus(),
+          ErrorCode.BAD_REQUEST.getMessage(),
+          e.getMessage()
+      );
+
+      return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
 
   // 404 - Not Found (NoSuchElementException이나 해당 예외 클래스를 상속한 예외가 발생한 경우)
   @ExceptionHandler(NoSuchElementException.class)

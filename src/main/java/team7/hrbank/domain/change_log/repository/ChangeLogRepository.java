@@ -1,6 +1,7 @@
 package team7.hrbank.domain.change_log.repository;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,9 +13,10 @@ import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 
 @Repository
-public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long> , CustomChangeLogRepository{
-  Optional<ChangeLog> findFirstByOrderByCreatedAtDesc();
+public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long>,
+    CustomChangeLogRepository {
 
+  Optional<ChangeLog> findFirstByOrderByCreatedAtDesc();
 
   @Query("""
         SELECT new team7.hrbank.domain.change_log.dto.ChangeLogDashboardDto(cl.createdAt, cl.employeeNumber, cl.type)
@@ -22,7 +24,26 @@ public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long> , Cu
         WHERE cl.createdAt BETWEEN :from AND :to
         ORDER BY cl.createdAt
       """)
-  List<ChangeLogDashboardDto> findChangeLogsBetween(@Param("from") Instant from, @Param("to") Instant to);
+  List<ChangeLogDashboardDto> findChangeLogsBetween(@Param("from") Instant from,
+      @Param("to") Instant to);
 
   List<ChangeLogDashboardDto> findAllByTypeNotInOrderByCreatedAt(List<ChangeLogType> type);
+
+  @Query(value = """
+        SELECT COUNT(*)
+        FROM change_log c
+        WHERE c.type = 'DELETED'
+        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate
+    """, nativeQuery = true)
+  int countDeletedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
+
+  @Query(value = """
+        SELECT COUNT(*)
+        FROM change_log c
+        WHERE c.type = 'CREATED'
+        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate
+    """, nativeQuery = true)
+  int countCreatedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
+
+  Optional<ChangeLog> findTopByOrderByCaptureDate();
 }

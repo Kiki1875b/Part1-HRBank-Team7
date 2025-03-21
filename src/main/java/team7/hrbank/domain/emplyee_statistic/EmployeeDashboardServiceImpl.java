@@ -1,4 +1,4 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.emplyee_statistic;
 
 import jakarta.transaction.Transactional;
 import java.time.Instant;
@@ -40,7 +40,52 @@ public class EmployeeDashboardServiceImpl implements
   private final CustomEmployeeRepository customEmployeeRepository;
   private final ChangeLogRepository changeLogRepository;
 
+  private final EmployeeStatisticRepository statisticRepository;
 
+  @Override
+  public List<EmployeeTrendDto> getEmployeeTrendsV3(LocalDate from, LocalDate to, String unit) {
+    if (from == null) {
+      from = getFromIfNull(unit, to);
+    }
+
+    LocalDate start = from; // 계산을 위한 직전 unit
+    LocalDate current = parseDate(start, unit, true);
+    to = parseDate(to, unit, false);
+
+    return switch (unit.toLowerCase()) {
+      case "day" -> parseTrendDaily(from, to, EmployeeStatisticType.DAY);
+      case "week" -> parseTrendDaily(from, to, EmployeeStatisticType.WEEK);
+      case "month" -> parseTrendDaily(from, to, EmployeeStatisticType.MONTH);
+      case "quarter" -> parseTrendDaily(from, to, EmployeeStatisticType.QUARTER);
+      case "year" -> parseTrendDaily(from, to, EmployeeStatisticType.YEAR);
+      default -> throw new IllegalArgumentException();
+    };
+  }
+
+  private List<EmployeeTrendDto> parseTrendDaily(LocalDate from, LocalDate to, EmployeeStatisticType type) {
+    List<EmployeeStatistic> statistics = statisticRepository.findByCaptureDateBetweenAndTypeOrderByCaptureDate(from,
+        to,
+        type);
+
+    List<EmployeeTrendDto> returnDtoList = new ArrayList<>();
+    int prev = 0;
+
+    for (EmployeeStatistic stat : statistics) {
+      int current = stat.getEmployeeCount();
+      int diff = current - prev;
+      double changeRate = calculateRate(prev, diff);
+      prev = current;
+      returnDtoList.add(
+          new EmployeeTrendDto(stat.getCaptureDate(), current, diff, changeRate)
+      );
+    }
+
+    return returnDtoList;
+  }
+
+  /**
+   * DEPRECATED
+   */
   @Override
   public List<EmployeeTrendDto> getEmployeeTrendsV2(LocalDate from, LocalDate to, String unit) {
 
@@ -117,6 +162,10 @@ public class EmployeeDashboardServiceImpl implements
     return customEmployeeRepository.getEmployeeCountByCriteria(status, from, to);
   }
 
+  /**
+   * DEPRECATED
+   */
+
   private List<EmployeeTrendDto> parseTrend(long startCount, Map<LocalDate, Integer> dateMap,
       LocalDate from, LocalDate to, TemporalUnit unit) {
 
@@ -144,7 +193,7 @@ public class EmployeeDashboardServiceImpl implements
       int currentTotal = previousCount + currentChangeSum;
       int diff = currentTotal - previousCount;
 
-      trends.add(new EmployeeTrendDto(currentFrom.plus(1,unit), currentTotal, diff,
+      trends.add(new EmployeeTrendDto(currentFrom.plus(1, unit), currentTotal, diff,
           calculateRate(previousCount, diff)));
 
       previousCount = currentTotal;
@@ -155,7 +204,7 @@ public class EmployeeDashboardServiceImpl implements
     return trends;
   }
 
-  private int calculateRate(int previousCount, int diff) {
+  private double calculateRate(int previousCount, int diff) {
     if (previousCount == 0 && diff != 0) {
       return 100;
     }
@@ -164,6 +213,7 @@ public class EmployeeDashboardServiceImpl implements
     }
     return (int) ((diff / (double) previousCount) * 100);
   }
+
 
   private LocalDate parseDate(LocalDate date, String unit, boolean isFrom) {
     if (isFrom) {
