@@ -1,5 +1,6 @@
 package team7.hrbank.common.batch;
 
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,15 @@ public class WeeklyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
+  private LocalDate firstHireDate;
 
+  @PostConstruct
+  public void init() {
+    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
+    log.info("First hire date: {}", this.firstHireDate);
+  }
   @Bean
   public ItemReader<LocalDate[]> weeklyChangeLogReader() {
     List<LocalDate[]> weeklyRanges = generateWeeklyDateRanges(LocalDate.of(2012, 1, 1), LocalDate.now());
@@ -63,10 +72,10 @@ public class WeeklyTrendFullBatch {
         LocalDate weekStart = weekRange[0];
         LocalDate weekEnd = weekRange[1];
 
-
-        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
-            .map(ChangeLog::getCaptureDate)
-            .orElse(LocalDate.of(2012, 1, 1));
+//
+//        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//            .map(ChangeLog::getCaptureDate)
+//            .orElse(LocalDate.of(2012, 1, 1));
 
 
         if (weekEnd.isBefore(firstHireDate)) {

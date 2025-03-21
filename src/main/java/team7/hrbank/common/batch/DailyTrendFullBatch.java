@@ -1,6 +1,7 @@
 package team7.hrbank.common.batch;
 
 
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +34,18 @@ public class DailyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
+  private LocalDate firstHireDate;
+
+  @PostConstruct
+  public void init() {
+    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
+    log.info("First hire date: {}", this.firstHireDate);
+  }
 
 
-  @Bean
+    @Bean
   public ItemReader<LocalDate> fullChangeLogReader() {
     List<LocalDate> allDates = generateDateRange(LocalDate.of(2012, 1, 1), LocalDate.now());
     return new ListItemReader<>(allDates);
@@ -53,9 +63,9 @@ public class DailyTrendFullBatch {
   public ItemProcessor<LocalDate, EmployeeStatistic> fullEmployeeStatisticProcessor() {
     return date -> {
       try {
-        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
-            .map(ChangeLog::getCaptureDate)
-            .orElse(LocalDate.of(2012, 1, 1));
+//        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//            .map(ChangeLog::getCaptureDate)
+//            .orElse(LocalDate.of(2012, 1, 1));
 
         if (date.isBefore(firstHireDate)) {
           return new EmployeeStatistic(0, EmployeeStatisticType.DAY, date);

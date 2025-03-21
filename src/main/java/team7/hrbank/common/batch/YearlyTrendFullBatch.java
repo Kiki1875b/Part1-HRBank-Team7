@@ -1,5 +1,6 @@
 package team7.hrbank.common.batch;
 
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
@@ -30,6 +32,15 @@ public class YearlyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
+  private LocalDate firstHireDate;
+
+  @PostConstruct
+  public void init() {
+    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
+    log.info("First hire date: {}", this.firstHireDate);
+  }
 
   @Bean
   public ItemReader<LocalDate[]> yearlyChangeLogReader() {
@@ -60,6 +71,10 @@ public class YearlyTrendFullBatch {
         LocalDate yearStart = yearRange[0];
 
         LocalDate yearEnd = yearRange[1];
+
+        if (yearEnd.isBefore(firstHireDate)) {
+          return new EmployeeStatistic(0, EmployeeStatisticType.YEAR, yearStart);
+        }
 
         int createdCount = changeLogRepository.countCreatedEmployeesUntil(yearEnd);
         int deletedCount = changeLogRepository.countDeletedEmployeesUntil(yearEnd);
