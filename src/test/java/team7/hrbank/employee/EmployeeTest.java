@@ -16,7 +16,7 @@ public class EmployeeTest {
   private EmployeeService employeeService;
 
   // 직원 등록
-  @RepeatedTest(1)
+  @RepeatedTest(100)
   void createEmployee() {
 
     // given

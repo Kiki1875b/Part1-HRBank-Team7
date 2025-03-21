@@ -50,7 +50,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
         .fetch();
   }
 
-  // 총 사원 수 집계
+  // 조건에 맞는 사원 수 집계
   @Override
   public long totalCountEmployee(EmployeeCountRequest request) {
 
@@ -60,6 +60,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
         .where(
             containsNameOrEmail(request.nameOrEmail()),
             containsEmployeeNumber(request.employeeNumber()),
+            containsDepartmentName(request.departmentName()),
             containsPosition(request.position()),
             betweenHireDate(request.hireDateFrom(), request.hireDateTo()),
             eqStatus(request.status())
