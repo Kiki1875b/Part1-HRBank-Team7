@@ -18,7 +18,6 @@ public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long>,
 
   Optional<ChangeLog> findFirstByOrderByCreatedAtDesc();
 
-
   @Query("""
         SELECT new team7.hrbank.domain.change_log.dto.ChangeLogDashboardDto(cl.createdAt, cl.employeeNumber, cl.type)
         FROM ChangeLog cl
@@ -30,51 +29,21 @@ public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long>,
 
   List<ChangeLogDashboardDto> findAllByTypeNotInOrderByCreatedAt(List<ChangeLogType> type);
 
-
   @Query(value = """
-          SELECT COUNT(*)
-          FROM change_log c
-          WHERE c.type = 'DELETED'
-          AND EXISTS (
-              SELECT 1 FROM jsonb_array_elements(c.details) d
-              WHERE d->>'propertyName' = 'hireDate'
-              AND d->>'after' NOT IN ('', '-')
-              AND CAST(
-                  CASE 
-                      WHEN d->>'after' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' 
-                      THEN d->>'after' 
-                      ELSE NULL 
-                  END 
-              AS DATE) <= :hireDate
-          )
-      """, nativeQuery = true)
+        SELECT COUNT(*)
+        FROM change_log c
+        WHERE c.type = 'DELETED'
+        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate
+    """, nativeQuery = true)
   int countDeletedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
 
-
   @Query(value = """
-          SELECT COUNT(*)
-          FROM change_log c
-          WHERE c.type = 'CREATED'
-          AND EXISTS (
-              SELECT 1 FROM jsonb_array_elements(c.details) d
-              WHERE d->>'propertyName' = 'hireDate'
-              AND d->>'after' NOT IN ('', '-')
-              AND CAST(
-                  CASE 
-                      WHEN d->>'after' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' 
-                      THEN d->>'after' 
-                      ELSE NULL 
-                  END 
-              AS DATE) <= :hireDate
-          )
-      """, nativeQuery = true)
+        SELECT COUNT(*)
+        FROM change_log c
+        WHERE c.type = 'CREATED'
+        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate
+    """, nativeQuery = true)
   int countCreatedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
 
-
-  @Query(value = """
-          SELECT DISTINCT CAST(d->>'after' AS DATE)
-          FROM change_log c, jsonb_array_elements(c.details) d
-          WHERE d->>'propertyName' = 'hireDate'
-      """, nativeQuery = true)
-  List<LocalDate> findDistinctHireDates();
+  Optional<ChangeLog> findTopByOrderByCaptureDate();
 }

@@ -41,6 +41,7 @@ CREATE TABLE change_log (
     details JSONB NULL,
     memo TEXT NULL,
     ip_address VARCHAR(50) NOT NULL,
+    capture_date DATE NULL,
     created_at TIMESTAMPTZ NOT NULL
 );
 

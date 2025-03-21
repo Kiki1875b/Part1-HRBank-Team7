@@ -4,6 +4,7 @@ package team7.hrbank.common.batch;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
@@ -51,32 +53,37 @@ public class DailyTrendFullBatch {
   public ItemProcessor<LocalDate, EmployeeStatistic> fullEmployeeStatisticProcessor() {
     return date -> {
       try {
+        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+            .map(ChangeLog::getCaptureDate)
+            .orElse(LocalDate.of(2012, 1, 1));
+
+        if (date.isBefore(firstHireDate)) {
+          return new EmployeeStatistic(0, EmployeeStatisticType.DAY, date);
+        }
 
         int createdCount = changeLogRepository.countCreatedEmployeesUntil(date);
         int deletedCount = changeLogRepository.countDeletedEmployeesUntil(date);
         int employeeCount = createdCount - deletedCount;
 
-
         if (employeeCount < 0) {
           employeeCount = 0;
         }
 
-        LocalDate captureDate = date;
+        return new EmployeeStatistic(employeeCount, EmployeeStatisticType.DAY, date);
 
-        return new EmployeeStatistic(employeeCount, EmployeeStatisticType.DAY, captureDate);
       } catch (Exception e) {
         log.error("Error processing date {}: {}", date, e.getMessage());
         return null;
       }
     };
   }
+
   @Bean
   public ItemWriter<EmployeeStatistic> employeeStatisticWriter() {
     return items -> {
       try {
         statisticRepository.saveAll(items);
       } catch (Exception e) {
-
         List<EmployeeStatistic> successfulItems = new ArrayList<>();
         for (EmployeeStatistic item : items) {
           try {
