@@ -9,11 +9,6 @@ public record DepartmentWithEmployeeCountResponseDto(
   String name,
   String description,
   LocalDate establishedDate,
-  long employeeCount
+  Long employeeCount
 ) {
-  public DepartmentWithEmployeeCountResponseDto(Department department, long employeeCount) {
-
-    this(department.getId(), department.getName(), department.getDescription(), department.getEstablishedDate(), employeeCount);
-  }
-
 }

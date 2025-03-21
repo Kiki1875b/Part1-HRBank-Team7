@@ -10,7 +10,7 @@ public interface DepartmentMapper {
 
   DepartmentResponseDto toDto(Department department);
 
-  DepartmentWithEmployeeCountResponseDto toDto(Department department, Long employeeNumber);
+  DepartmentWithEmployeeCountResponseDto toDto(Department department, Long employeeCount);
 
   Department toEntity(DepartmentCreateRequest dto);
 }

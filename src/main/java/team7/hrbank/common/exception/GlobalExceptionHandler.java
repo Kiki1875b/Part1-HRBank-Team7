@@ -14,6 +14,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.utils.ExceptionUtil;
 
+
 @Slf4j  // 500 에러 시 콘솔에 로그 찍기위한 용도
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -68,7 +69,20 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
+  // 400 - Bad Request (잘못된 요청 파라미터)
+  @ExceptionHandler(InvalidParameterException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException e, HttpServletRequest request) {
 
+      ErrorResponse errorResponse = new ErrorResponse(
+          ExceptionUtil.getRequestTime(request),
+          ErrorCode.BAD_REQUEST.getStatus(),
+          ErrorCode.BAD_REQUEST.getMessage(),
+          e.getMessage()
+      );
+
+      return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+  
   // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
   @ExceptionHandler(NoHandlerFoundException.class)
   public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
