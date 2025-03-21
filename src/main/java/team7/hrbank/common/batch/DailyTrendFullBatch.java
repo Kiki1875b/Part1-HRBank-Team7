@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
@@ -34,18 +36,18 @@ public class DailyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
-  private LocalDate firstHireDate;
+//  private LocalDate firstHireDate;
+//
+//  @PostConstruct
+//  public void init() {
+//    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//        .map(ChangeLog::getCaptureDate)
+//        .orElse(LocalDate.of(2012, 1, 1));
+//    log.info("First hire date: {}", this.firstHireDate);
+//  }
 
-  @PostConstruct
-  public void init() {
-    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
-        .map(ChangeLog::getCaptureDate)
-        .orElse(LocalDate.of(2012, 1, 1));
-    log.info("First hire date: {}", this.firstHireDate);
-  }
 
-
-    @Bean
+    @Bean @StepScope
   public ItemReader<LocalDate> fullChangeLogReader() {
     List<LocalDate> allDates = generateDateRange(LocalDate.of(2012, 1, 1), LocalDate.now());
     return new ListItemReader<>(allDates);
@@ -60,12 +62,18 @@ public class DailyTrendFullBatch {
   }
 
   @Bean
+  @StepScope
   public ItemProcessor<LocalDate, EmployeeStatistic> fullEmployeeStatisticProcessor() {
+    LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
     return date -> {
       try {
 //        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
 //            .map(ChangeLog::getCaptureDate)
 //            .orElse(LocalDate.of(2012, 1, 1));
+
+        // log.info("Prcessing size {}, processing date {}", date);
 
         if (date.isBefore(firstHireDate)) {
           return new EmployeeStatistic(0, EmployeeStatisticType.DAY, date);
@@ -115,12 +123,14 @@ public class DailyTrendFullBatch {
         .reader(fullChangeLogReader())
         .processor(fullEmployeeStatisticProcessor())
         .writer(employeeStatisticWriter())
+        .allowStartIfComplete(true)
         .build();
   }
 
   @Bean(name = "fullDailyStatisticsJob")
   public Job fullStatisticsJob(JobRepository jobRepository, @Qualifier("fullDailyStatisticsStep") Step fullStatisticsStep) {
     return new JobBuilder("fullStatisticsJob", jobRepository)
+        .incrementer(new RunIdIncrementer())
         .start(fullStatisticsStep)
         .build();
   }

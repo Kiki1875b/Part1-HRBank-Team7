@@ -94,5 +94,4 @@ public class BackupServiceImpl implements BackupService {
     return backupQueryService.findLatestBackupByStatus(status);
   }
 
-
 }

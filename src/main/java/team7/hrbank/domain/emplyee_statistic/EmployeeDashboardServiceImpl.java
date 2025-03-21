@@ -1,4 +1,4 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.emplyee_statistic;
 
 import jakarta.transaction.Transactional;
 import java.time.Instant;
@@ -28,9 +28,6 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticType;
 
 
 @Service
@@ -86,7 +83,9 @@ public class EmployeeDashboardServiceImpl implements
     return returnDtoList;
   }
 
-
+  /**
+   * DEPRECATED
+   */
   @Override
   public List<EmployeeTrendDto> getEmployeeTrendsV2(LocalDate from, LocalDate to, String unit) {
 
@@ -163,6 +162,10 @@ public class EmployeeDashboardServiceImpl implements
     return customEmployeeRepository.getEmployeeCountByCriteria(status, from, to);
   }
 
+  /**
+   * DEPRECATED
+   */
+
   private List<EmployeeTrendDto> parseTrend(long startCount, Map<LocalDate, Integer> dateMap,
       LocalDate from, LocalDate to, TemporalUnit unit) {
 
@@ -210,6 +213,7 @@ public class EmployeeDashboardServiceImpl implements
     }
     return (int) ((diff / (double) previousCount) * 100);
   }
+
 
   private LocalDate parseDate(LocalDate date, String unit, boolean isFrom) {
     if (isFrom) {

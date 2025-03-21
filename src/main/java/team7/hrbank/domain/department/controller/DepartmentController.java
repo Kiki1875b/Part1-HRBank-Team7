@@ -26,7 +26,8 @@ public class DepartmentController {
     return ResponseEntity.status(HttpStatus.OK).body(responseDto);
   }
 
-  //todo 테스트용. 나중에 삭제하기
+  /*
+  //batch파일 이용한 테스트용.
   @PostMapping("/test-batch")
   public ResponseEntity<DepartmentResponseDto> createDepartmentList(@Valid @RequestBody List<DepartmentCreateRequest> requestDto) {
     for (DepartmentCreateRequest dto : requestDto) {
@@ -34,6 +35,7 @@ public class DepartmentController {
     }
     return ResponseEntity.status(HttpStatus.OK).body(null);
   }
+   */
 
   // 부서 수정 API
   @PatchMapping("/{id}")
