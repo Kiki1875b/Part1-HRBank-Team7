@@ -14,9 +14,12 @@ spring:
     jdbc:
       initialize-schema: always
 
-
 hrbank:
   storage:
-    local.root-path: "${user.dir}.hrbank-storage" # users.dir 고려
-    backup: "${user.dir}.backups"
+    local.root-path: "${user.dir}/hrbank-storage" # users.dir 고려
+    backup: "${user.dir}/backups"
     file-name: "/tmpBackup.csv"
+    
+logging:
+  level:
+    root: warn
