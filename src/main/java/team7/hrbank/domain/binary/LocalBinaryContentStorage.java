@@ -2,6 +2,8 @@ package team7.hrbank.domain.binary;
 
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static team7.hrbank.common.exception.binaryContent.ErrorCode.FILE_CREATE_ERROR;
+import static team7.hrbank.common.exception.binaryContent.ErrorCode.FILE_WRITE_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomException;
 import team7.hrbank.domain.employee.entity.Employee;
 
 @Repository
@@ -31,12 +34,18 @@ public class LocalBinaryContentStorage {
     }
 
     public void put(byte[] content, Long id, String fileType) {
+
+        Path savedPath = resolvePath(id, fileType);
         try {
-            Path savedPath = resolvePath(id, fileType);
             Files.createFile(savedPath);
+        } catch (IOException e) {
+            throw new BinaryCustomException(FILE_WRITE_ERROR);
+        }
+
+        try {
             Files.write(savedPath, content);
-        } catch (Exception e) {
-            throw new RuntimeException("파일 저장 실패", e);
+        } catch (IOException e) {
+            throw new BinaryCustomException(FILE_CREATE_ERROR);
         }
     }
 
