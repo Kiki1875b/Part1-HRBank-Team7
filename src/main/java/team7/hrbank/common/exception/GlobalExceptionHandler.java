@@ -14,6 +14,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import team7.hrbank.common.dto.ErrorResponse;
 import team7.hrbank.common.utils.ExceptionUtil;
 
+import java.security.InvalidParameterException;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -96,6 +97,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    // 400 - Bad Request (잘못된 요청 파라미터)
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException e, HttpServletRequest request) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+            ExceptionUtil.getRequestTime(request),
+            ErrorCode.BAD_REQUEST.getStatus(),
+            ErrorCode.BAD_REQUEST.getMessage(),
+            e.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(BackupException.class)
     public ResponseEntity<ErrorResponse> handleBackupException(BackupException e,
                                                                HttpServletRequest request) {
@@ -126,4 +141,5 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 }

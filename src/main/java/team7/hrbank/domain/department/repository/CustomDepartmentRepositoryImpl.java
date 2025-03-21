@@ -76,6 +76,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
     Long nextIdAfter = null;
     String nextCursor = null;
+
     // 페이지의 마지막 항목을 가져와서 nextIdAfter와 nextCursor를 설정
     if (hasNext) {
       nextIdAfter = getNextIdAfter(departments);
