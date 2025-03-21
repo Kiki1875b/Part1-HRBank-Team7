@@ -7,12 +7,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import team7.hrbank.domain.change_log.dto.ChangeLogRequestDto;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.entity.ChangeLogType;
 import team7.hrbank.domain.change_log.entity.QChangeLog;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository {
@@ -32,8 +34,7 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
             containsMemo(dto.memo(), qChangeLog),
             containsIpAddress(dto.ipAddress(), qChangeLog),
             betweenCreatedAt(dto.atFrom(), dto.atTo(), qChangeLog),
-            gtIdAfter(dto.idAfter(), qChangeLog),
-            cursorCondition(dto.cursor(), qChangeLog, dto.sortField(), dto.sortDirection())
+            cursorCondition(dto.cursor(), qChangeLog, dto.sortField(), dto.sortDirection(), dto.idAfter())
         )
         .orderBy(
             getSortOrderBySortField(dto.sortField(), dto.sortDirection()),
@@ -86,17 +87,14 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
     return null;
   }
 
-  //IdAfter 값이 null 이면 필터링 안함
-  private BooleanExpression gtIdAfter(Long idAfter, QChangeLog qChangeLog) {
-    return Optional.ofNullable(idAfter)
-        .map(qChangeLog.id::gt)
-        .orElse(null);
-  }
-
   //커서 기반 페이지네이션
-  private BooleanExpression cursorCondition(String cursor, QChangeLog qChangeLog, String sortField, String sortDirection) {
+  private BooleanExpression cursorCondition(String cursor, QChangeLog qChangeLog, String sortField, String sortDirection, Long idAfter) {
 
     boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
+
+    if (cursor == null || cursor.isEmpty()) {
+      return null;
+    }
 
     switch (sortField) {
       case "createdAt":
@@ -107,8 +105,14 @@ public class CustomChangeLogRepositoryImpl implements CustomChangeLogRepository 
           return null;
         }
         return isDesc ? qChangeLog.createdAt.lt(cursorInstant) : qChangeLog.createdAt.gt(cursorInstant);
+
       case "ipAddress":
-        return isDesc ? qChangeLog.ipAddress.lt(cursor) : qChangeLog.ipAddress.gt(cursor);
+        return isDesc
+            ? qChangeLog.ipAddress.lt(cursor)
+            .or(qChangeLog.ipAddress.eq(cursor).and(qChangeLog.id.lt(idAfter)))
+            : qChangeLog.ipAddress.gt(cursor)
+                .or(qChangeLog.ipAddress.eq(cursor).and(qChangeLog.id.gt(idAfter)));
+
       default:
         return null;
     }
