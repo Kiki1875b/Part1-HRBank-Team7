@@ -2,17 +2,7 @@ package team7.hrbank.common.exception.binaryContent;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
