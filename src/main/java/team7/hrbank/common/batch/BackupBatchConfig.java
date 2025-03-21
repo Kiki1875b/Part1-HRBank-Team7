@@ -1,4 +1,4 @@
-package team7.hrbank.config;
+package team7.hrbank.common.batch;
 
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
