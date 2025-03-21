@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
 #    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrbank}
-    url: jdbc:postgresql://part1-hrbank-team7.railway.internal:26333/railway
+    url: jdbc:postgresql://maglev.proxy.rlwy.net:26333/railway
     username: postgres
     password: BNbmBPdwUzcRNUKPNTocyuAwNontdFii
   jpa:
