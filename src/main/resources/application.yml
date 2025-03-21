@@ -2,9 +2,9 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
 #    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrbank}
-    url: jdbc:postgresql://maglev.proxy.rlwy.net:26333/railway
-    username: postgres
-    password: BNbmBPdwUzcRNUKPNTocyuAwNontdFii
+    url: jdbc:postgresql:/${DB_HOST}${DB_PORT}/railway
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none #'update' 로 처음 실행 후 'none' 으로 변경
