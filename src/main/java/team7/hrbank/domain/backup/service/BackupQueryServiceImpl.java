@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team7.hrbank.common.dto.PageResponse;
-import team7.hrbank.common.exception.BackupException;
-import team7.hrbank.common.exception.ErrorCode;
 import team7.hrbank.domain.backup.dto.BackupDto;
 import team7.hrbank.domain.backup.dto.BackupListRequestDto;
 import team7.hrbank.domain.backup.entity.Backup;
@@ -82,9 +80,8 @@ public class BackupQueryServiceImpl implements
   @Override
   @Transactional(readOnly = true)
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
-    Backup backup = backupRepository.findFirstByStatusOrderByStartedAtDesc(status)
-        .orElseThrow(() -> new BackupException(ErrorCode.NOT_FOUND));
-    return backupMapper.fromEntity(backup);
+    Backup backup = backupRepository.findFirstByStatusOrderByStartedAtDesc(status).orElse(null);
+    return backup != null ? backupMapper.fromEntity(backup) : new BackupDto(null, null, null, null, null, null);
   }
 
 

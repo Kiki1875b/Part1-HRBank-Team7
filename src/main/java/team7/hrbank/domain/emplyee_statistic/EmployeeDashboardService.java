@@ -1,4 +1,4 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.emplyee_statistic;
 
 import java.time.LocalDate;
 import java.util.List;
