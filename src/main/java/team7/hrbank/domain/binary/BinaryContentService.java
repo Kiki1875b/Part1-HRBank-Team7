@@ -12,6 +12,8 @@ import team7.hrbank.common.exception.binaryContent.ErrorCode;
 import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 
+import static team7.hrbank.common.exception.binaryContent.ErrorCode.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class BinaryContentService {
 
     public BinaryContent save(BinaryContentDto dto) {
         if (!ALLOWED_FILE_TYPES.contains(dto.fileType())) {
-            throw new BinaryCustomException(ErrorCode.NOT_ALLOWED_FILE_TYPE);
+            throw new BinaryCustomException(NOT_ALLOWED_FILE_TYPE);
         }
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryMapper.toEntity(dto));
         localBinaryContentStorage.put(dto.bytes(), savedBinaryContent.getId(), dto.fileType().split("/")[1]);
@@ -35,6 +37,6 @@ public class BinaryContentService {
     public String findFileTypeById(Long id) {
         return binaryContentRepository.findById(id)
                 .map((binaryContent) -> binaryContent.getFileType().split("/")[1])
-                .orElseThrow(() -> new BinaryCustomException(ErrorCode.NO_SUCH_BINARY_CONTENT));
+                .orElseThrow(() -> new BinaryCustomException(NO_SUCH_BINARY_CONTENT));
     }
 }
