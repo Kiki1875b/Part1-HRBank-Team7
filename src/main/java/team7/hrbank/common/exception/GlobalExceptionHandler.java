@@ -1,6 +1,7 @@
 package team7.hrbank.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.security.InvalidParameterException;
 import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -82,7 +83,7 @@ public class GlobalExceptionHandler {
 
       return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
-  
+
   // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
   @ExceptionHandler(NoHandlerFoundException.class)
   public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
