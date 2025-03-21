@@ -16,7 +16,7 @@ public class EmployeeTest {
   private EmployeeService employeeService;
 
   // 직원 등록
-  @RepeatedTest(10)
+  @RepeatedTest(1000)
   void createEmployee() {
 
     // given
@@ -26,9 +26,9 @@ public class EmployeeTest {
     EmployeeCreateRequest request = new EmployeeCreateRequest(
         name,
         email,
-        3L,  // 부서 코드
+        1L,  // 부서 코드
         "Developer",    // 직함
-        LocalDate.of(2024, 11, 30), // 날짜
+        LocalDate.of(2025, 3, 21), // 날짜
         "Test employee"   // 메모
     );
 

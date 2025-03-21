@@ -6,6 +6,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -42,9 +43,7 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                 request.idAfter())
         )
         .orderBy(
-            getSortOrderBySortField(request.sortField(), request.sortDirection()),
-            // 해당 정렬 기준이 같은 경우 id 오름차순 정렬
-            qEmployee.id.asc()
+            getSortOrderBySortField(request.sortField(), request.sortDirection())
         )
         .limit(request.size() + 1)
         .fetch();
@@ -177,21 +176,40 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
 
 
   // 정렬 기준 설정
-  private OrderSpecifier<?> getSortOrderBySortField(String sortField, String sortDirection) {
-    boolean isDesc = "desc".equalsIgnoreCase(sortDirection);
+  private OrderSpecifier<?>[] getSortOrderBySortField(String sortField, String sortDirection) {
+    boolean isDesc = "desc".equalsIgnoreCase(sortDirection);  // 내림차순 여부 체크
+    List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();  // OrderSpecifier 리스트
 
+    // sortField에 따른 정렬 조건 추가
     switch (sortField) {
       case "name":
-        return isDesc ? qEmployee.name.desc() : qEmployee.name.asc();
+        orderSpecifiers.add(isDesc ? qEmployee.name.desc() : qEmployee.name.asc());
+        break;
       case "employeeNumber":
-        return isDesc ? qEmployee.employeeNumber.desc() : qEmployee.employeeNumber.asc();
+        // 직원 번호를 두 부분으로 나누어 정렬
+        if (isDesc) {
+          orderSpecifiers.add(
+              qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class).desc());
+          orderSpecifiers.add(
+              qEmployee.employeeNumber.substring(9).castToNum(Integer.class).desc());
+        } else {
+          orderSpecifiers.add(
+              qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class).asc());
+          orderSpecifiers.add(qEmployee.employeeNumber.substring(9).castToNum(Integer.class).asc());
+        }
+        break;
       case "hireDate":
-        return isDesc ? qEmployee.hireDate.desc() : qEmployee.hireDate.asc();
+        orderSpecifiers.add(isDesc ? qEmployee.hireDate.desc() : qEmployee.hireDate.asc());
+        break;
+      default:
+        break;
     }
-    return null;
+
+    return orderSpecifiers.toArray(
+        new OrderSpecifier[orderSpecifiers.size()]);  // List를 배열로 변환하여 반환
   }
 
-
+  
   // 커서 기반 페이지네이션
   // 커서 세팅
   private BooleanExpression cursorCondition(String cursor, String sortField, String sortDirection,
@@ -208,8 +226,18 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
                   .or(qEmployee.name.goe(cursor).and(idAfterCondition(idAfter)));
         case "employeeNumber":
           return isDesc
-              ? qEmployee.employeeNumber.lt(cursor)
-              : qEmployee.employeeNumber.gt(cursor);
+              ? qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class)
+              .lt(Integer.parseInt(cursor.substring(4, 8)))
+              .or(qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class)
+                  .loe(Integer.parseInt(cursor.substring(4, 8)))
+                  .and((qEmployee.employeeNumber.substring(9).castToNum(Integer.class)
+                      .lt(Integer.parseInt(cursor.substring(9))))))
+              : qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class)
+                  .gt(Integer.parseInt(cursor.substring(4, 8)))
+                  .or(qEmployee.employeeNumber.substring(4, 8).castToNum(Integer.class)
+                      .goe(Integer.parseInt(cursor.substring(4, 8)))
+                      .and((qEmployee.employeeNumber.substring(9).castToNum(Integer.class)
+                          .gt(Integer.parseInt(cursor.substring(9))))));
         case "hireDate":
           return isDesc
               ? qEmployee.hireDate.lt(LocalDate.parse(cursor))
