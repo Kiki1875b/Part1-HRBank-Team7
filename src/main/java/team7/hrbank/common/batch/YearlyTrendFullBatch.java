@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -32,17 +33,17 @@ public class YearlyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
-  private LocalDate firstHireDate;
+//  private LocalDate firstHireDate;
+//
+//  @PostConstruct
+//  public void init() {
+//    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//        .map(ChangeLog::getCaptureDate)
+//        .orElse(LocalDate.of(2012, 1, 1));
+//    log.info("First hire date: {}", this.firstHireDate);
+//  }
 
-  @PostConstruct
-  public void init() {
-    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
-        .map(ChangeLog::getCaptureDate)
-        .orElse(LocalDate.of(2012, 1, 1));
-    log.info("First hire date: {}", this.firstHireDate);
-  }
-
-  @Bean
+  @Bean @StepScope
   public ItemReader<LocalDate[]> yearlyChangeLogReader() {
     List<LocalDate[]> yearlyRanges = generateYearlyDateRanges(LocalDate.of(2012, 1, 1),
         LocalDate.now());
@@ -65,13 +66,19 @@ public class YearlyTrendFullBatch {
   }
 
   @Bean
+  @StepScope
   public ItemProcessor<LocalDate[], EmployeeStatistic> yearlyEmployeeStatisticProcessor() {
+    LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
     return yearRange -> {
       try {
         LocalDate yearStart = yearRange[0];
 
         LocalDate yearEnd = yearRange[1];
-
+//        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//            .map(ChangeLog::getCaptureDate)
+//            .orElse(LocalDate.of(2012, 1, 1));
         if (yearEnd.isBefore(firstHireDate)) {
           return new EmployeeStatistic(0, EmployeeStatisticType.YEAR, yearStart);
         }

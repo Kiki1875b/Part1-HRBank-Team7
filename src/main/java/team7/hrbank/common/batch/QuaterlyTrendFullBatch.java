@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -32,16 +33,16 @@ public class QuaterlyTrendFullBatch {
 
   private final EmployeeStatisticRepository statisticRepository;
   private final ChangeLogRepository changeLogRepository;
-  private LocalDate firstHireDate;
-
-  @PostConstruct
-  public void init() {
-    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
-        .map(ChangeLog::getCaptureDate)
-        .orElse(LocalDate.of(2012, 1, 1));
-    log.info("First hire date: {}", this.firstHireDate);
-  }
-  @Bean
+//  private LocalDate firstHireDate;
+//
+//  @PostConstruct
+//  public void init() {
+//    this.firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+//        .map(ChangeLog::getCaptureDate)
+//        .orElse(LocalDate.of(2012, 1, 1));
+//    log.info("First hire date: {}", this.firstHireDate);
+//  }
+  @Bean @StepScope
   public ItemReader<LocalDate[]> quarterlyChangeLogReader() {
     List<LocalDate[]> quarterlyRanges = generateQuarterlyDateRanges(LocalDate.of(2012, 1, 1), LocalDate.now());
     return new ListItemReader<>(quarterlyRanges);
@@ -62,7 +63,11 @@ public class QuaterlyTrendFullBatch {
   }
 
   @Bean
+  @StepScope
   public ItemProcessor<LocalDate[], EmployeeStatistic> quarterlyEmployeeStatisticProcessor() {
+    LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+        .map(ChangeLog::getCaptureDate)
+        .orElse(LocalDate.of(2012, 1, 1));
     return quarterRange -> {
       try {
         LocalDate quarterStart = quarterRange[0];

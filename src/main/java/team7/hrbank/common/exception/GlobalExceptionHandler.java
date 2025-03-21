@@ -12,6 +12,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team7.hrbank.common.dto.ErrorResponse;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomErrorResponse;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomException;
 import team7.hrbank.common.utils.ExceptionUtil;
 
 
@@ -83,6 +85,17 @@ public class GlobalExceptionHandler {
       return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
+  // 404 - Not Found (엔드포인트를 찾을 수 없는 경우)
+  @ExceptionHandler(NoHandlerFoundException.class)
+  public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(HttpServletRequest request) {
+    ErrorResponse errorResponse = new ErrorResponse(
+        ExceptionUtil.getRequestTime(request),
+        ErrorCode.NOT_FOUND.getStatus(),
+        ErrorCode.NOT_FOUND.getMessage(),
+        "해당 경로를 찾을 수 없습니다."
+    );
+
+
 
   // 404 - Not Found (NoSuchElementException이나 해당 예외 클래스를 상속한 예외가 발생한 경우)
   @ExceptionHandler(NoSuchElementException.class)
@@ -130,4 +143,11 @@ public class GlobalExceptionHandler {
 
     return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
+
+
+  @ExceptionHandler(BinaryCustomException.class)
+  public ResponseEntity<BinaryCustomErrorResponse> handleBinaryCustomException(BinaryCustomException e) {
+      return BinaryCustomErrorResponse.toResponseEntity(e.getErrorCode());
+  }
 }
+
