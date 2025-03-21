@@ -15,13 +15,13 @@ public class StatController {
   private final EmployeeStatisticRepository statisticRepository;
   private final FullTrendStatisticGenerator fullTrendStatisticGenerator;
 
-  @PostMapping("/run")
+  @PostMapping("/today")
   public ResponseEntity<String> runDailyStatistic() {
     trendUpdater.runDailyBatch();
     return ResponseEntity.ok("Successful");
   }
 
-  @PostMapping("/rebuild")
+  @PostMapping("/all")
   public ResponseEntity<String> runReset() throws Exception {
     statisticRepository.deleteAll();
     fullTrendStatisticGenerator.initiateReset();

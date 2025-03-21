@@ -2,14 +2,14 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
 #    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrbank}
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrbank}
+    username: ${DB_USERNAME:hrbank}
+    password: ${DB_PASSWORD:1234}
     hikari:
-      maximum-pool-size: 3  # 애플리케이션 시작 시 동시에 3개 이상 커넥션 열지 않도록 제한
-      minimum-idle: 1  # 최소 유지할 커넥션을 1개로 설정
-      idle-timeout: 15000  # 사용하지 않는 커넥션 15초 후 정리
-      initialization-fail-timeout: 0  # DB 연결 실패 시 즉시 종료하지 않도록 설정
+      maximum-pool-size: 3
+      minimum-idle: 1
+      idle-timeout: 15000
+      initialization-fail-timeout: 0
   jpa:
     hibernate:
       ddl-auto: none #'update' 로 처음 실행 후 'none' 으로 변경
@@ -29,4 +29,9 @@ hrbank:
 
 logging:
   level:
-    root: warn
+    root: error
+
+springdoc:
+  swagger-ui:
+    url: /hrbank.json
+    path: /swagger-ui.html
