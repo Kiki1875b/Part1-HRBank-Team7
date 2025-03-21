@@ -32,7 +32,7 @@ public class DashboardController {
       to = LocalDate.now();
     }
 
-    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrendsV2(from, to, unit);
+    List<EmployeeTrendDto> trends = dashboardController.getEmployeeTrendsV3(from, to, unit);
 
     return ResponseEntity.ok(trends);
   }
