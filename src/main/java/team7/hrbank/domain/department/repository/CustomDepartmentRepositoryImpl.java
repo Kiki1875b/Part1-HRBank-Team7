@@ -58,10 +58,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     // 전체 항목 수 조회
     Long totalCount = getTotalCount(department, nameOrDescription);
 
-    //페이지네이션 처리
-    Pageable pageable = PageRequest.of(0, size + 1);
-
-    query.limit(pageable.getPageSize()).offset(pageable.getOffset());
+    // 페이지 요소 수 설정. hasNext 판별하기 위해 하나 더 가져옴
+    query.limit(size+1);
 
     //결과 쿼리 실행
     List<Department> departments = query.fetch();
@@ -157,9 +155,11 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
       } else {
         try {
           LocalDate cursorDate = LocalDate.parse(newCursor);
-          builder.and(department.establishedDate.gt(cursorDate))  // 날짜 기준으로 필터링
+          builder.and(
+            department.establishedDate.gt(cursorDate)  // 날짜 기준으로 필터링
             .or(department.establishedDate.eq(cursorDate)
-              .and(department.id.gt(idAfter))); // 같은 설립일이라면 이전 페이지의 마지막 ID보다 큰 경우만 조회
+              .and(department.id.gt(idAfter)))
+          ); // 같은 설립일이라면 이전 페이지의 마지막 ID보다 큰 경우만 조회
         } catch (DateTimeParseException e) {
           // cursor가 유효한 날짜 형식이 아닐 경우 예외 처리
           throw new IllegalArgumentException("필터링에 필요한 날짜 형식이 올바르지 않습니다.");
