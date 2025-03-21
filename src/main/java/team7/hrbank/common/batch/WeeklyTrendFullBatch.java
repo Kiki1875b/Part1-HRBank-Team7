@@ -18,11 +18,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
 import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticType;
-
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -39,6 +39,7 @@ public class WeeklyTrendFullBatch {
 
   private List<LocalDate[]> generateWeeklyDateRanges(LocalDate startDate, LocalDate endDate) {
     List<LocalDate[]> weeks = new ArrayList<>();
+
 
     LocalDate firstMonday = startDate.with(java.time.DayOfWeek.MONDAY);
     if (firstMonday.isBefore(startDate)) {
@@ -62,16 +63,27 @@ public class WeeklyTrendFullBatch {
         LocalDate weekStart = weekRange[0];
         LocalDate weekEnd = weekRange[1];
 
+
+        LocalDate firstHireDate = changeLogRepository.findTopByOrderByCaptureDate()
+            .map(ChangeLog::getCaptureDate)
+            .orElse(LocalDate.of(2012, 1, 1));
+
+
+        if (weekEnd.isBefore(firstHireDate)) {
+          return new EmployeeStatistic(0, EmployeeStatisticType.WEEK, weekStart);
+        }
+
         int createdCount = changeLogRepository.countCreatedEmployeesUntil(weekEnd);
         int deletedCount = changeLogRepository.countDeletedEmployeesUntil(weekEnd);
         int employeeCount = createdCount - deletedCount;
+
 
         if (employeeCount < 0) {
           employeeCount = 0;
         }
 
-        LocalDate captureDate = weekStart;
-        return new EmployeeStatistic(employeeCount, EmployeeStatisticType.WEEK, captureDate);
+
+        return new EmployeeStatistic(employeeCount, EmployeeStatisticType.WEEK, weekStart);
 
       } catch (Exception e) {
         log.error("Skipping week {} - {} due to processing error: {}", weekRange[0], weekRange[1], e.getMessage());
@@ -84,7 +96,10 @@ public class WeeklyTrendFullBatch {
   public ItemWriter<EmployeeStatistic> weeklyStatisticWriter() {
     return items -> {
       try {
-        statisticRepository.saveAll(items);
+
+        if (!items.isEmpty()) {
+          statisticRepository.saveAll(items);
+        }
       } catch (Exception e) {
 
         List<EmployeeStatistic> successfulItems = new ArrayList<>();
@@ -96,10 +111,10 @@ public class WeeklyTrendFullBatch {
             log.error("Skipping week {} due to DB error: {}", item.getCaptureDate(), ex.getMessage());
           }
         }
+        log.info("Successfully saved {} records.", successfulItems.size());
       }
     };
   }
-
 
   @Bean(name = "fullWeeklyStatisticsStep")
   public Step fullWeeklyStatisticsStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -118,3 +133,4 @@ public class WeeklyTrendFullBatch {
         .build();
   }
 }
+
