@@ -7,6 +7,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomException;
+import team7.hrbank.common.exception.binaryContent.ErrorCode;
 import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 
@@ -23,7 +25,7 @@ public class BinaryContentService {
 
     public BinaryContent save(BinaryContentDto dto) {
         if (!ALLOWED_FILE_TYPES.contains(dto.fileType())) {
-            throw new RuntimeException("허용하지 않는 파일 타입입니다: " + dto.fileType());
+            throw new BinaryCustomException(ErrorCode.NOT_ALLOWED_FILE_TYPE);
         }
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryMapper.toEntity(dto));
         localBinaryContentStorage.put(dto.bytes(), savedBinaryContent.getId(), dto.fileType().split("/")[1]);
@@ -33,6 +35,6 @@ public class BinaryContentService {
     public String findFileTypeById(Long id) {
         return binaryContentRepository.findById(id)
                 .map((binaryContent) -> binaryContent.getFileType().split("/")[1])
-                .orElseThrow(() -> new IllegalArgumentException("Binary content not found with id: " + id));
+                .orElseThrow(() -> new BinaryCustomException(ErrorCode.NO_SUCH_BINARY_CONTENT));
     }
 }

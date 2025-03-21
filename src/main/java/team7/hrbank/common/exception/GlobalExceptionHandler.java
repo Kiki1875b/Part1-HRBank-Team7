@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import team7.hrbank.common.dto.ErrorResponse;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomErrorResponse;
+import team7.hrbank.common.exception.binaryContent.BinaryCustomException;
 import team7.hrbank.common.utils.ExceptionUtil;
 
 @Slf4j  // 500 에러 시 콘솔에 로그 찍기위한 용도
@@ -127,5 +129,10 @@ public class GlobalExceptionHandler {
     );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(BinaryCustomException.class)
+  public ResponseEntity<BinaryCustomErrorResponse> handleBinaryCustomException(BinaryCustomException e) {
+      return BinaryCustomErrorResponse.toResponseEntity(e.getErrorCode());
   }
 }
