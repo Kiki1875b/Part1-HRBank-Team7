@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/hrbank
-    username: hrbank
-    password: 1234
+    url: jdbc:postgresql://postgres:BNbmBPdwUzcRNUKPNTocyuAwNontdFii@postgres.railway.internal:5432/railway
+    username: postgres
+    password: BNbmBPdwUzcRNUKPNTocyuAwNontdFii
   jpa:
     hibernate:
       ddl-auto: none #'update' 로 처음 실행 후 'none' 으로 변경
-    show-sql: true
+    show-sql: false
     open-in-view: false
   batch:
     job:
@@ -19,7 +19,7 @@ hrbank:
     local.root-path: "${user.dir}/hrbank-storage" # users.dir 고려
     backup: "${user.dir}/backups"
     file-name: "/tmpBackup.csv"
-    
+
 logging:
   level:
     root: warn
