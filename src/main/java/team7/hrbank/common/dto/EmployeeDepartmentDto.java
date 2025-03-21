@@ -3,12 +3,13 @@ package team7.hrbank.common.dto;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import team7.hrbank.common.batch.BackupBatchConfig;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 /**
  * This DTO represents employee entity with department name
  * <br>
- * This DTO is used when processing batch backup in {@link team7.hrbank.config.BackupBatchConfig}
+ * This DTO is used when processing batch backup in {@link BackupBatchConfig}
  */
 @Getter
 @AllArgsConstructor

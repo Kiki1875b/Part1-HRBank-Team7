@@ -36,13 +36,13 @@ CREATE TABLE employees (
 
 CREATE TABLE change_log (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    employee_number VARCHAR(50) NULL, -- 논의 필요, employee 삭제시 동작
+    employee_number VARCHAR(50) NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('CREATED', 'UPDATED', 'DELETED')),
     details JSONB NULL,
     memo TEXT NULL,
     ip_address VARCHAR(50) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    CONSTRAINT fk_change_log_employee FOREIGN KEY (employee_number) REFERENCES employees (employee_number) ON delete SET NULL
+    capture_date DATE NULL,
+    created_at TIMESTAMPTZ NOT NULL
 );
 
 
@@ -55,3 +55,12 @@ CREATE TABLE backup_history (
     file_id BIGINT NULL,
     CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
+
+CREATE TABLE employee_statistics (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    employee_count BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK(type IN ('YEAR', 'QUARTER', 'MONTH', 'WEEK', 'DAY')),
+    capture_date DATE NOT NULL
+)
+ALTER TABLE employee_statistics
+    ADD CONSTRAINT uq_capture_date_type UNIQUE (capture_date, type);

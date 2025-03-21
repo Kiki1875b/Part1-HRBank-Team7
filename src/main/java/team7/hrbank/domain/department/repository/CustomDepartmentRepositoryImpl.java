@@ -46,7 +46,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
       idAfter,
       cursor,
       sortField,
-      department);
+      department
+    );
 
     //정렬 조건 설정
     JPAQuery<Department> query = queryFactory.selectFrom(department).where(builder);

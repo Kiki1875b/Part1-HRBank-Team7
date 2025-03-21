@@ -46,10 +46,6 @@ public class BackupServiceImpl implements BackupService {
 
   private final BackupRepository backupRepository;
   private final BackupMapper backupMapper;
-  private final ChangeLogService changeLogService;
-  private final JobLauncher jobLauncher;
-  private final Job employeeBackupJob;
-  private final BinaryContentRepository binaryContentRepository;
 
   private final BackupQueryService backupQueryService;
   private final BackupProcessService backupProcessService;
@@ -97,6 +93,5 @@ public class BackupServiceImpl implements BackupService {
   public BackupDto findLatestBackupByStatus(BackupStatus status) {
     return backupQueryService.findLatestBackupByStatus(status);
   }
-
 
 }

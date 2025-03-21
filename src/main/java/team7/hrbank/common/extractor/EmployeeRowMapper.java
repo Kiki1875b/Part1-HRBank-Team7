@@ -6,13 +6,14 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import org.springframework.jdbc.core.RowMapper;
+import team7.hrbank.common.batch.BackupBatchConfig;
 import team7.hrbank.common.dto.EmployeeDepartmentDto;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 
 /**
  * RowMapper implementation for mapping a row from ResultSet to EmployeeDepartmentDto
  * <br>
- * This class is used in {@link team7.hrbank.config.BackupBatchConfig}
+ * This class is used in {@link BackupBatchConfig}
  */
 public class EmployeeRowMapper implements RowMapper<EmployeeDepartmentDto> {
 
