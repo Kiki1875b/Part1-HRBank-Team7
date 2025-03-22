@@ -71,13 +71,7 @@ public class EmployeeDashboardServiceImpl implements
     int prev = 0;
 
     for (EmployeeStatistic stat : statistics) {
-      int current = stat.getEmployeeCount();
-      int diff = current - prev;
-      double changeRate = calculateRate(prev, diff);
-      prev = current;
-      returnDtoList.add(
-          new EmployeeTrendDto(stat.getCaptureDate(), current, diff, changeRate)
-      );
+      returnDtoList.add(new EmployeeTrendDto(stat.getCaptureDate(), stat.getEmployeeCount(), stat.getDiff(), stat.getRate()));
     }
 
     return returnDtoList;
