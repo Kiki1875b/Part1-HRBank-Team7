@@ -79,4 +79,5 @@ https://part1-hrbank-team7-production.up.railway.app/dashboard
 
 ## 시스템 아키텍처
 
-![image.png](attachment:0ae788a3-b98e-468d-ac3e-16b4925f817d:image.png)
+![image](https://github.com/user-attachments/assets/7e6b6ad9-0379-479d-9428-66934e4103f4)
+
