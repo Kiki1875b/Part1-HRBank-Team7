@@ -1,4 +1,4 @@
-package team7.hrbank.domain.emplyee_statistic.trend;
+package team7.hrbank.domain.emplyee_statistic;
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -17,7 +17,6 @@ public class TrendUpdater {
 
   private final ChangeLogRepository changeLogRepository;
   private final EmployeeStatisticRepository statisticRepository;
-
 
   public void runDailyBatch() {
     LocalDate currentDate = LocalDate.now();

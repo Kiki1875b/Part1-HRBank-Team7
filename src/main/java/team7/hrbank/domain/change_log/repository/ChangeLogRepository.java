@@ -46,6 +46,4 @@ public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long>,
   int countCreatedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
 
   Optional<ChangeLog> findTopByOrderByCaptureDate();
-
-  List<ChangeLog> findAllByType(ChangeLogType type);
 }

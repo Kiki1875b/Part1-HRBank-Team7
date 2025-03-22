@@ -31,23 +31,10 @@ public class EmployeeStatistic {
 
   private LocalDate captureDate;
 
-  private int diff;
-  private Double rate;
-
   public EmployeeStatistic(int employeeCount, EmployeeStatisticType type, LocalDate captureDate) {
     this.employeeCount = employeeCount;
     this.type = type;
     this.captureDate = captureDate;
-    rate = 0.0;
-    diff = 0;
-  }
-
-  public EmployeeStatistic(int employeeCount, EmployeeStatisticType type, LocalDate captureDate, int diff, Double rate){
-    this.employeeCount = employeeCount;
-    this.type = type;
-    this.captureDate = captureDate;
-    this.diff = diff;
-    this.rate = rate;
   }
 
   public void updateEmployeeCount(int employeeCount){

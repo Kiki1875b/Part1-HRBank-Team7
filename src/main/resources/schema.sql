@@ -60,10 +60,7 @@ CREATE TABLE employee_statistics (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     employee_count BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL CHECK(type IN ('YEAR', 'QUARTER', 'MONTH', 'WEEK', 'DAY')),
-    diff BIGINT NOT NULL DEFAULT 0,
-    rate DECIMAL NOT NULL DEFAULT 0,
     capture_date DATE NOT NULL
 )
-
 ALTER TABLE employee_statistics
     ADD CONSTRAINT uq_capture_date_type UNIQUE (capture_date, type);
