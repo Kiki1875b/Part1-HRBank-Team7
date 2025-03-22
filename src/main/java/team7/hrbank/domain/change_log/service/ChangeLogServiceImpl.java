@@ -109,7 +109,11 @@ public class ChangeLogServiceImpl implements ChangeLogService {
       changeLogs.remove(changeLogs.size() - 1);
       ChangeLog lastChangeLog = changeLogs.get(changeLogs.size() - 1);
       nextIdAfter = lastChangeLog.getId();
-      nextCursor = lastChangeLog.getCreatedAt().toString();
+      if ("ipAddress".equals(dto.sortField())) {
+        nextCursor = lastChangeLog.getIpAddress();
+      } else if ("createdAt".equals(dto.sortField())) {
+        nextCursor = lastChangeLog.getCreatedAt().toString();
+      }
       hasNext = true;
     }
 
