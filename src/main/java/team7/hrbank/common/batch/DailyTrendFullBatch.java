@@ -1,11 +1,9 @@
 package team7.hrbank.common.batch;
 
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -25,9 +23,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import team7.hrbank.domain.change_log.entity.ChangeLog;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticType;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatistic;
+import team7.hrbank.domain.emplyee_statistic.repository.EmployeeStatisticRepository;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatisticType;
 
 @Slf4j
 @Configuration

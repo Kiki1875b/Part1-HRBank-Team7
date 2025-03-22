@@ -1,14 +1,13 @@
-package team7.hrbank.domain.emplyee_statistic;
+package team7.hrbank.domain.emplyee_statistic.service;
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import team7.hrbank.domain.change_log.repository.ChangeLogRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatistic;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticRepository;
-import team7.hrbank.domain.emplyee_statistic.EmployeeStatisticType;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatistic;
+import team7.hrbank.domain.emplyee_statistic.repository.EmployeeStatisticRepository;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatisticType;
 
 @Slf4j
 @Configuration

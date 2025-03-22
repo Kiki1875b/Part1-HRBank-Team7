@@ -1,4 +1,4 @@
-package team7.hrbank.domain.emplyee_statistic;
+package team7.hrbank.domain.emplyee_statistic.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

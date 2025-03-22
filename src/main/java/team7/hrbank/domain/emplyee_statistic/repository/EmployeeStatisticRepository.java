@@ -1,9 +1,11 @@
-package team7.hrbank.domain.emplyee_statistic;
+package team7.hrbank.domain.emplyee_statistic.repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatisticType;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatistic;
 
 public interface EmployeeStatisticRepository extends JpaRepository<EmployeeStatistic, Long> {
 

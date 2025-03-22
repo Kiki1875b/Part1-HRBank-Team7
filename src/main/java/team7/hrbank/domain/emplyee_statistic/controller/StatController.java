@@ -1,10 +1,13 @@
-package team7.hrbank.domain.emplyee_statistic;
+package team7.hrbank.domain.emplyee_statistic.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import team7.hrbank.domain.emplyee_statistic.repository.EmployeeStatisticRepository;
+import team7.hrbank.domain.emplyee_statistic.service.FullTrendStatisticGenerator;
+import team7.hrbank.domain.emplyee_statistic.service.TrendUpdater;
 
 @RestController
 @RequiredArgsConstructor

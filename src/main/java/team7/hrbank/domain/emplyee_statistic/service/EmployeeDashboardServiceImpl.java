@@ -1,4 +1,4 @@
-package team7.hrbank.domain.emplyee_statistic;
+package team7.hrbank.domain.emplyee_statistic.service;
 
 import jakarta.transaction.Transactional;
 import java.time.Instant;
@@ -28,6 +28,9 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.entity.EmployeeStatus;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatistic;
+import team7.hrbank.domain.emplyee_statistic.repository.EmployeeStatisticRepository;
+import team7.hrbank.domain.emplyee_statistic.entity.EmployeeStatisticType;
 
 
 @Service
