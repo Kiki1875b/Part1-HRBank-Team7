@@ -75,10 +75,15 @@
 
 ## 구현 홈페이지 
 
-https://part1-hrbank-team7-production.up.railway.app/dashboard
+https://part1-hrbank-team7-production.up.railway.app
 
 ## 시스템 아키텍처
 
 ![image](https://github.com/user-attachments/assets/7e6b6ad9-0379-479d-9428-66934e4103f4)
 
+## 추가 기능
 
+*see : src/main/java/team7/hrbank/domain/emplyee_statistic/controller/StatController.java*
+
+- POST /api/statistics/today :   금일 업데이트 된 employee 들에 대한 통계 업데이트 작업입니다
+- POST /api/statistics/all : employee의 hiredate 가 금일이 아닌 employee 데이터를 통계에 추가하는 작업으로, 통계를 처음부터 다시 생성합니다. 

@@ -18,12 +18,19 @@ public class StatController {
   private final EmployeeStatisticRepository statisticRepository;
   private final FullTrendStatisticGenerator fullTrendStatisticGenerator;
 
+  /**
+   * This is controller for updating employee statistics for today's date
+   */
   @PostMapping("/today")
   public ResponseEntity<String> runDailyStatistic() {
     trendUpdater.runDailyBatch();
     return ResponseEntity.ok("Successful");
   }
 
+  /**
+   * This is controller for resetting trend statistics and creates new statistics.
+   * This controller is for situations where new employee's hire date is not today.
+   */
   @PostMapping("/all")
   public ResponseEntity<String> runReset() throws Exception {
     statisticRepository.deleteAll();
