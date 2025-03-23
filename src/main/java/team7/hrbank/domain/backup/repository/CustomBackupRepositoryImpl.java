@@ -44,19 +44,11 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
     }
 
     if (dto.startedAtFrom() != null) {
-      if ("DESC".equalsIgnoreCase(sortDirection)) {
         where.and(backup.startedAt.goe(dto.startedAtFrom()));
-      } else {
-        where.and(backup.startedAt.loe(dto.startedAtFrom()));
-      }
     }
 
     if (dto.startedAtTo() != null) {
-      if ("DESC".equalsIgnoreCase(sortDirection)) {
         where.and(backup.startedAt.loe(dto.startedAtTo()));
-      } else {
-        where.and(backup.startedAt.goe(dto.startedAtTo()));
-      }
     }
 
     if (dto.idAfter() != null) {
@@ -79,8 +71,8 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
       } else {
         where.and(
             "DESC".equalsIgnoreCase(sortDirection)
-                ? backup.endedAt.gt(dto.cursor())
-                : backup.endedAt.lt(dto.cursor())
+                ? backup.endedAt.lt(dto.cursor())
+                : backup.endedAt.gt(dto.cursor())
         );
       }
     }
