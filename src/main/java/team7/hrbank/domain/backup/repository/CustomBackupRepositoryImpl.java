@@ -16,6 +16,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
   private final JPAQueryFactory queryFactory;
   private final QBackup backup = QBackup.backup;
+
   /**
    * Custom repository implementation for querying backup records using QueryDSL.
    *
@@ -34,7 +35,6 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
 
     BooleanBuilder where = new BooleanBuilder();
 
-
     if (dto.worker() != null) {
       where.and(backup.worker.containsIgnoreCase(dto.worker()));
     }
@@ -44,30 +44,43 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
     }
 
     if (dto.startedAtFrom() != null) {
-      where.and(backup.startedAt.goe(dto.startedAtFrom()));
+      if ("DESC".equalsIgnoreCase(sortDirection)) {
+        where.and(backup.startedAt.goe(dto.startedAtFrom()));
+      } else {
+        where.and(backup.startedAt.loe(dto.startedAtFrom()));
+      }
     }
 
     if (dto.startedAtTo() != null) {
-      where.and(backup.startedAt.loe(dto.startedAtTo()));
+      if ("DESC".equalsIgnoreCase(sortDirection)) {
+        where.and(backup.startedAt.loe(dto.startedAtTo()));
+      } else {
+        where.and(backup.startedAt.goe(dto.startedAtTo()));
+      }
     }
 
     if (dto.idAfter() != null) {
-      where.and(backup.id.goe(dto.idAfter())); // 테스트 후 gt 로 변경해야 할 수도
+
+      if ("DESC".equalsIgnoreCase(sortDirection)) {
+        where.and(backup.id.loe(dto.idAfter()));
+      } else {
+        where.and(backup.id.goe(dto.idAfter()));
+      }// 테스트 후 gt 로 변경해야 할 수도
     }
 
     if (dto.cursor() != null) {
 
-      if("startedat".equalsIgnoreCase(sortField)) {
+      if ("startedat".equalsIgnoreCase(sortField)) {
         where.and(
             "DESC".equalsIgnoreCase(sortDirection)
                 ? backup.startedAt.lt(dto.cursor())
                 : backup.startedAt.gt(dto.cursor())
         );
-      }else{
+      } else {
         where.and(
             "DESC".equalsIgnoreCase(sortDirection)
-                ? backup.endedAt.lt(dto.cursor())
-                : backup.endedAt.gt(dto.cursor())
+                ? backup.endedAt.gt(dto.cursor())
+                : backup.endedAt.lt(dto.cursor())
         );
       }
     }
@@ -78,7 +91,7 @@ public class CustomBackupRepositoryImpl implements CustomBackupRepository {
         .selectFrom(backup)
         .where(where)
         .orderBy(specifier)
-        .limit(size)
+        .limit(size + 1)
         .fetch();
   }
 

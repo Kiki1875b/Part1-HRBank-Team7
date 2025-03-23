@@ -1,0 +1,10 @@
+id,employeeNumber,name,email,department,position,hireDate,status
+200039,EMP-2025-001,John,john@gmail.com,Backend,junior developer,2025-01-15,ACTIVE
+200042,EMP-2025-002,Harry,harry@gmail.com,Frontend,senior developer,2025-03-20,ACTIVE
+200044,EMP-2023-001,Sally,sally@gmail.com,DevOps,devops engineer,2023-10-22,ACTIVE
+200046,EMP-2017-001,Test,test@gmail.com,Frontend,junior developer,2017-07-22,ACTIVE
+200040,EMP-2024-001,Jason,jason@gmail.com,Frontend,junior developer,2024-06-22,ACTIVE
+200041,EMP-2021-001,Kevin,kevin@gmail.com,DBA,senior dba,2021-01-22,ACTIVE
+200043,EMP-2016-001,Jack,jack@gmail.com,Backend,senior backend developer,2016-06-22,ACTIVE
+200045,EMP-2025-003,Alice,alice@gmail.com,Backend,junior developer,2025-03-20,ACTIVE
+200047,EMP-2014-001,Jackson,jackson@gmail.com,DevOps,junior developer,2014-03-22,ACTIVE

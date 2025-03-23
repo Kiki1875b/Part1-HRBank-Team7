@@ -34,6 +34,7 @@ public class BackupController {
     PageResponse<BackupDto> response = backupService.findBackupsOfCondition(
         dto, size, sortField, sortDirection
     );
+
     return ResponseEntity.ok(response);
   }
 

@@ -5,15 +5,15 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hrbank}
     username: ${DB_USERNAME:hrbank}
     password: ${DB_PASSWORD:1234}
-    hikari:
-      maximum-pool-size: 2
-      minimum-idle: 1
-      idle-timeout: 15000
-      initialization-fail-timeout: 0
+#    hikari:
+#      maximum-pool-size: 2
+#      minimum-idle: 1
+#      idle-timeout: 15000
+#      initialization-fail-timeout: 0
   jpa:
     hibernate:
       ddl-auto: none #'update' 로 처음 실행 후 'none' 으로 변경
-    show-sql: false
+    show-sql: true
     open-in-view: false
   batch:
     job:
@@ -29,7 +29,7 @@ hrbank:
 
 logging:
   level:
-    root: error
+    root: info
 
 springdoc:
   swagger-ui:
