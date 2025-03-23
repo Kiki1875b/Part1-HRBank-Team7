@@ -20,6 +20,7 @@ public class StatController {
 
   /**
    * This is controller for updating employee statistics for today's date
+   * This task is relatively short compared to /all api
    */
   @PostMapping("/today")
   public ResponseEntity<String> runDailyStatistic() {
