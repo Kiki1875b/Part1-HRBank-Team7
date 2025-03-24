@@ -4,8 +4,6 @@ import jakarta.transaction.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import team7.hrbank.common.exception.GlobalExceptionHandler;
 import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
@@ -87,13 +85,20 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 
   private void validateName(String name) {
+    if (name.contains(" ")){
+      throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
+    }
     if (!departmentRepository.findByName(name).isEmpty()) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     };
+
   }
 
   private void validateName(Long id, String name) {
     Optional<Department> existingDepartment = departmentRepository.findByName(name);
+    if (name.contains(" ")){
+      throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
+    }
     if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     }

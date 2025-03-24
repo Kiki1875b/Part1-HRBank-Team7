@@ -78,8 +78,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
     // 페이지의 마지막 항목을 가져와서 nextIdAfter와 nextCursor를 설정
     if (hasNext) {
-      nextIdAfter = getNextIdAfter(departments);
-      nextCursor = getNextCursor(departments, sortField);
+      nextIdAfter = getNextIdAfter(departments, sortDirection);
+      nextCursor = getNextCursor(departments, sortField, sortDirection);
     }
 
 
@@ -170,21 +170,21 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
   }
 
   //페이지 마지막요소 Id 반환
-  private Long getNextIdAfter(List<Department> departments) {
+  private Long getNextIdAfter(List<Department> departments, String sortDirection) {
     if (departments.isEmpty()) {
       return 0L;
     } else {
-      Department lastDepartment = departments.get(departments.size() - 1);
+      Department lastDepartment = sortDirection.equals("desc")?departments.get(1):departments.get(departments.size() - 1);
       return lastDepartment.getId();
     }
   }
 
   //페이지 마지막요소 정렬기준 필드값 64바이트로 반환
-  private String getNextCursor(List<Department> departments, String sortField) {
+  private String getNextCursor(List<Department> departments, String sortField, String sortDirection) {
     if (departments.isEmpty()) {
       return null;
     } else {
-      Department lastDepartment = departments.get(departments.size() - 1);
+      Department lastDepartment = sortDirection.equals("desc")?departments.get(1):departments.get(departments.size() - 1);
       return encodeCursor(lastDepartment, sortField);
     }
   }
