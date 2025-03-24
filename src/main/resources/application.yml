@@ -29,7 +29,7 @@ hrbank:
 
 logging:
   level:
-    root: info
+    root: error
 
 springdoc:
   swagger-ui:
