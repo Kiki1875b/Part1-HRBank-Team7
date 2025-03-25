@@ -20,11 +20,7 @@ import team7.hrbank.domain.department.dto.DepartmentMapperImpl;
 import team7.hrbank.domain.department.dto.DepartmentResponseDto;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
-import team7.hrbank.domain.department.service.DepartmentService;
 import team7.hrbank.domain.department.service.DepartmentServiceImpl;
-
-import javax.swing.*;
-
 import java.security.InvalidParameterException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -51,7 +47,7 @@ public class ServiceTest {
     @Test // 연관된 의존성 : departmentMapper,
     void create(){
         // given
-        String beforeName = "부서명";
+        String beforeName = "기획 관리 부서";  // 일부러 띄어쓰기 적용되는지 테스트
         String beforeDescription = "부서 설명";
         DepartmentCreateRequest requestDTO = new DepartmentCreateRequest(beforeName, beforeDescription, LocalDate.now());
         // stub 세팅
@@ -61,17 +57,17 @@ public class ServiceTest {
         // when
         DepartmentResponseDto responseDTO = departmentService.create(requestDTO);
 
-        // then 1 : 의존된 내부 메서드들이 호출됐는지 안됐는지만 검증
+        // then 1 : 의존된 내부 메서드들이 호출됐는지 안됐는지만 검증 (mapper는 중요치 않아서 굳이 넣을 필요있나)
         verify(departmentRepository, timeout(1)).save(any(Department.class));
         verify(departmentMapper, timeout(1)).toEntity(any());
         verify(departmentMapper, times(1)).toDto(any(Department.class));
         verify(departmentRepository, times(1)).findByName(anyString());
 
         // then 2 : 리턴값 검증
-        Assertions.assertThat(responseDTO).isNotNull();
-        Assertions.assertThat(responseDTO.id()).isNotNull();
-        Assertions.assertThat(responseDTO.name()).isEqualTo(beforeName);
-        Assertions.assertThat(responseDTO.description()).isEqualTo(beforeDescription);
+        assertThat(responseDTO).isNotNull();
+        assertThat(responseDTO.id()).isNotNull();
+        assertThat(responseDTO.name()).isEqualTo(beforeName);
+        assertThat(responseDTO.description()).isEqualTo(beforeDescription);
     }
 
     @Test  // 연관된 의존성 : departmentRepository
@@ -98,7 +94,7 @@ public class ServiceTest {
     }
 
     private void stub_repository_save() {
-        lenient().when(departmentRepository.save(any(Department.class))).then(invocationOnMock -> {
+        lenient().when(departmentRepository.save(any(Department.class))).thenAnswer(invocationOnMock -> {
             Department department = invocationOnMock.getArgument(0);
             ReflectionTestUtils.setField(department, "id", autoIncrementId.get());
             ReflectionTestUtils.setField(department, "createdAt", Instant.now());

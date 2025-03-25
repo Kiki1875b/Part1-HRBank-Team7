@@ -72,6 +72,7 @@ dependencies {
 	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 
 }
@@ -80,7 +81,7 @@ def querydslDir = "build/generated/querydsl"
 
 tasks.withType(JavaCompile) {
 	options.generatedSourceOutputDirectory = file(querydslDir)
-	options.compilerArgs << "-parameters"
+//	options.compilerArgs << "-parameters"
 }
 
 clean {

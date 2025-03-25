@@ -20,7 +20,6 @@ public class DepartmentServiceImpl implements DepartmentService {
   private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
   private final DepartmentMapper departmentMapper;
-  private final CustomDepartmentRepository customDepartmentRepository;
 
 
   //부서생성 메서드
@@ -65,7 +64,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                                                    Integer size,
                                                    String sortField,
                                                    String sortDirection) {
-    return customDepartmentRepository.findDepartments(
+    return departmentRepository.findDepartments(
       nameOrDescription, idAfter, cursor, size, sortField, sortDirection);
   }
 

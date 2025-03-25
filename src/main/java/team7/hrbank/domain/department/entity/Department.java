@@ -27,7 +27,7 @@ public class Department extends BaseEntity {
   //부서 설립일
   @Column(name = "established_date", nullable = false)
   private LocalDate establishedDate;
-
+  
   public void update(DepartmentUpdateRequest request) {
     this.name = (!this.name.equals(request.name()) && (request.name()!=null)) ? request.name() : this.name;
     this.description = (!this.description.equals(request.description()) && (request.description() != null)) ? request.description() : this.description;

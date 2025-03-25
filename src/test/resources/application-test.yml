@@ -1,0 +1,17 @@
+spring:
+  sql:
+    init:
+      mode: never
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+logging:
+  level:
+    root: info
+    sql: trace
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+
+#테스트에서는 root 로거의 레벨이 WARN으로 설정되어 info 로그가 출력되지 않을 수 있다
