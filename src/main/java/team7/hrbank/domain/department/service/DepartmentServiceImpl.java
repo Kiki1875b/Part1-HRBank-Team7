@@ -91,14 +91,24 @@ public class DepartmentServiceImpl implements DepartmentService {
     if (!departmentRepository.findByName(name).isEmpty()) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     };
-
   }
 
-  private void validateName(Long id, String name) {
+  private void validateName2(Long id, String name) {
     Optional<Department> existingDepartment = departmentRepository.findByName(name);
     if (name.contains(" ")){
       throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
     }
+    if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
+      throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
+    }
+  }
+
+
+  private void validateName(Long id, String name) {
+    Optional<Department> existingDepartment = departmentRepository.findByName(name);
+//    if (name.contains(" ")){
+//      throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
+//    }
     if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     }
