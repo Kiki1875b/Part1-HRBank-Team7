@@ -21,11 +21,9 @@ import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
 import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
 
+import java.text.Collator;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -140,22 +138,22 @@ public class RepositoryTest {
         assertThat(contents).as("전부 필터링 조건에 맞는지")
                 .allSatisfy(department ->
                         assertThat(department.name()).contains(nameOrDescription));
+
     }
 
 
     @Test
-    @DisplayName("정렬 제대로 했는지 테스트")
+    @DisplayName("name 기준 정렬 제대로 했는지 테스트")
     void sortPagingTest() {
         // given
         String nameOrDescription = "부서";
         // 이전 페이지 마지막 요소 id
-        Integer idAfter = 0;
-        // 커서 (다음 페이지 시작점)
-        String cursor = null;
+        Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
+        String cursor = null; // 커서 (다음 페이지 시작점)
         Integer requestSize = 10;
         // 정렬 필드(name or establishmentDate)
         String sortedField = "name";
-        String sortDirection = "desc";
+        String sortDirection = "desc ";
         DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
                 .nameOrDescription(nameOrDescription)
                 .idAfter(idAfter)
@@ -174,7 +172,6 @@ public class RepositoryTest {
             setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
             setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
         }
-
 
         departmentRepository.findAll().forEach(department -> {
             log.info("부서 ID : {}", department.getId());
@@ -202,20 +199,151 @@ public class RepositoryTest {
             log.info("새로운 컨디션 : {}", searchCondition.toString());
         } while (result.hasNext());
 
-        // then
+        List<String> nameList = contentDTOList.stream()
+                .map((dto) -> {
+                    String name = dto.name();
+                    return name.replaceAll("[-]+", "   ");
+                }).toList();
+
+        // then 1. 기본 값 테스트
         assertThat(result).isNotNull();
         assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
                 .isEqualTo(entitySettingSize * repeatCount);
+        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
+                .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
+        assertThat(nameList.size()).as("네임만 따로 뺀 것이 개수가 맞는지 ")
+                .isEqualTo(contentDTOList.size());
 
-//        assertThat(contentDTOList).as("한 페이지에 가져온 개수가 처음 설정한 개수랑 같은지")
-//                .size().isEqualTo(requestSize);
-//        assertThat(result.totalElements()).as("필터를 거친 전체 수가 예상과 같은지1")
-//                .isEqualTo(entitySettingSize * repeatCount);
+        // then 2. 정렬 테스트
+        // 대소문자 구분 필요 : ASCII는 대문자가 더 작음 (Postgre는 신경 안씀)
+        Comparator<String> caseInsensitiveOrder = String.CASE_INSENSITIVE_ORDER;
 
-//        assertThat(contents).as("전부 필터링 조건에 맞는지")
-//                .allSatisfy(department ->
-//                        assertThat(department.name()).contains(nameOrDescription));
+        if (sortDirection.trim().equalsIgnoreCase("desc")) {
+            assertThat(nameList).as("내림차순 정렬")
+                    .isSortedAccordingTo(caseInsensitiveOrder.reversed());
+        } else {
+            assertThat(nameList).as("오름차순 정렬")
+                    .isSortedAccordingTo(caseInsensitiveOrder);
+        }
     }
+
+    @Test
+    @DisplayName("establishmentDate 기준 정렬 제대로 했는지 테스트")
+    void sortPagingTest2() {
+        // given
+        String nameOrDescription = "부서";
+        // 이전 페이지 마지막 요소 id
+        Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
+        String cursor = null; // 커서 (다음 페이지 시작점)
+        Integer requestSize = 10;
+        // 정렬 필드(name or establishmentDate)
+        String sortedField = "establishmentDate";
+        String sortDirection = "desc ";
+        DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
+                .nameOrDescription(nameOrDescription)
+                .idAfter(idAfter)
+                .cursor(cursor)
+                .size(requestSize)
+                .sortedField(sortedField)
+                .sortDirection(sortDirection)
+                .build();
+
+
+        // 저장될 엔티티 수
+        int entitySettingSize = 12;
+        int repeatCount = 5;
+        String otherNameOrDescriptionSize = "기서";
+        for (int i = 0; i < repeatCount; i++) {
+            setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
+            setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
+        }
+
+        departmentRepository.findAll().forEach(department -> {
+            log.info("부서 ID : {}", department.getId());
+            log.info("부서 이름 : {}", department.getName());
+            log.info("부서 설명 : {}", department.getDescription());
+        });
+
+        //when
+        List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
+        DepartmentResponseDTO result;
+        do {
+            result = departmentRepository.findPagingAll1(searchCondition);
+            log.info("페이징 결과 : {}", result);
+            log.info("페이징 결과 content : {}", result.contents());
+            log.info("페이징 결과 content size : {}", result.contents().size());
+            contentDTOList.addAll(result.contents());
+            searchCondition = DepartmentSearchCondition.builder()
+                    .nameOrDescription(nameOrDescription)
+                    .idAfter(result.nextIdAfter())
+                    .cursor(result.nextCursor())
+                    .size(requestSize)
+                    .sortedField(sortedField)
+                    .sortDirection(sortDirection)
+                    .build();
+            log.info("새로운 컨디션 : {}", searchCondition.toString());
+        } while (result.hasNext());
+
+        List<String> nameList = contentDTOList.stream()
+                .map((dto) -> {
+                    String name = dto.name();
+                    return name.replaceAll("[-]+", "   ");
+                }).toList();
+
+        // then 1. 기본 값 테스트
+        assertThat(result).isNotNull();
+        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
+                .isEqualTo(entitySettingSize * repeatCount);
+        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
+                .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
+        assertThat(nameList.size()).as("네임만 따로 뺀 것이 개수가 맞는지 ")
+                .isEqualTo(contentDTOList.size());
+
+        // then 2. 정렬 테스트
+        // 대소문자 구분 필요 : ASCII는 대문자가 더 작음 (Postgre는 신경 안씀)
+        Comparator<String> caseInsensitiveOrder = String.CASE_INSENSITIVE_ORDER;
+
+        if (sortDirection.trim().equalsIgnoreCase("desc")) {
+            assertThat(nameList).as("내림차순 정렬")
+                    .isSortedAccordingTo(caseInsensitiveOrder.reversed());
+        } else {
+            assertThat(nameList).as("오름차순 정렬")
+                    .isSortedAccordingTo(caseInsensitiveOrder);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //[자바 정렬 기준]
+    //공백 < 쉼표 < 하이폰(-)
+    //
+    //[Postgre]
+    //하이폰(-) < 쉼표 < 공백
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private void setting_entity_save_and_containing_name(int entityCountOfNumber, String containingWord) {
         Faker faker = new Faker();

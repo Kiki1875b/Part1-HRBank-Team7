@@ -143,9 +143,10 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     // 커서 (다음 페이지 시작점)
     private BooleanExpression getConditionByCursor(String cursorBeforeChange, String sortedFieldName, String sortDirection) {
         // sortfilename에 따라 cursor스타일이 바뀜
+        String moreAssertedSortedField = sortedFieldName.toLowerCase().trim();
 
         BooleanExpression cursorCondition = null;
-        switch (sortedFieldName) {
+        switch (moreAssertedSortedField) {
             case "name" -> {
                 cursorCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.name.loe(cursorBeforeChange)
