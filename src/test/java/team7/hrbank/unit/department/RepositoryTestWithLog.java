@@ -20,19 +20,20 @@ import team7.hrbank.domain.department.dto.DepartmentMapperImpl;
 import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
 import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
-
 import java.time.LocalDate;
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
+//@DataJpaTest를 사용하는 경우 기본적으로 Auditing 기능이 활성화되지 않으므로,
+// 테스트 설정에 별도로 Auditing 설정을 포함하거나 필요한 설정 클래스를 @Import 어노테이션으로 불러오도록 구성
+
 @Import({QuerydslConfig.class, DepartmentMapperImpl.class})
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
 @ActiveProfiles("test")
-public class RepositoryTest {
+public class RepositoryTestWithLog {
 
-    private static final Logger log = LoggerFactory.getLogger(RepositoryTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RepositoryTestWithLog.class);
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -113,6 +114,13 @@ public class RepositoryTest {
             setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
         }
 
+
+        departmentRepository.findAll().forEach(department -> {
+            log.info("부서 ID : {}", department.getId());
+            log.info("부서 이름 : {}", department.getName());
+            log.info("부서 설명 : {}", department.getDescription());
+        });
+
         //when
         DepartmentResponseDTO result = departmentRepository.findPagingAll1(searchCondition);
         List<DepartmentPageContentDTO> contents = result.contents();
@@ -161,11 +169,20 @@ public class RepositoryTest {
             setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
         }
 
+        departmentRepository.findAll().forEach(department -> {
+            log.info("부서 ID : {}", department.getId());
+            log.info("부서 이름 : {}", department.getName());
+            log.info("부서 설명 : {}", department.getDescription());
+        });
+
         //when
         List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
         DepartmentResponseDTO result;
         do {
             result = departmentRepository.findPagingAll1(searchCondition);
+            log.info("페이징 결과 : {}", result);
+            log.info("페이징 결과 content : {}", result.contents());
+            log.info("페이징 결과 content size : {}", result.contents().size());
             contentDTOList.addAll(result.contents());
             searchCondition = DepartmentSearchCondition.builder()
                     .nameOrDescription(nameOrDescription)
@@ -175,6 +192,7 @@ public class RepositoryTest {
                     .sortedField(sortedField)
                     .sortDirection(sortDirection)
                     .build();
+            log.info("새로운 컨디션 : {}", searchCondition.toString());
         } while (result.hasNext());
 
         List<String> nameList = contentDTOList.stream()
@@ -235,11 +253,20 @@ public class RepositoryTest {
             setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
         }
 
+        departmentRepository.findAll().forEach(department -> {
+            log.info("부서 ID : {}", department.getId());
+            log.info("부서 이름 : {}", department.getName());
+            log.info("부서 설립일 : {}", department.getEstablishmentDate());
+        });
+
         //when
         List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
         DepartmentResponseDTO result;
         do {
             result = departmentRepository.findPagingAll1(searchCondition);
+            log.info("페이징 결과 : {}", result);
+            log.info("페이징 결과 content : {}", result.contents());
+            log.info("페이징 결과 content size : {}", result.contents().size());
             contentDTOList.addAll(result.contents());
 
             // 조건 다시 세팅
@@ -251,7 +278,11 @@ public class RepositoryTest {
                     .sortedField(sortedField)
                     .sortDirection(sortDirection)
                     .build();
+            log.info("새로운 컨디션 : {}", searchCondition.toString());
         } while (result.hasNext());
+        contentDTOList.forEach(department -> {
+            System.out.println("검증 전 설립일 확인 = " + department.establishmentDate());
+        });
 
         // then 1. 기본 값 테스트
         assertThat(result).isNotNull();
@@ -262,6 +293,8 @@ public class RepositoryTest {
 
         // then 2. 정렬 테스트
         // 대소문자 구분 필요 : ASCII는 대문자가 더 작음 (Postgre는 신경 안씀)
+
+
         if (sortDirection.trim().equalsIgnoreCase("desc")) {
             assertThat(contentDTOList).as("내림차순 정렬")
                     .extracting(DepartmentPageContentDTO::establishmentDate)
@@ -342,6 +375,7 @@ public class RepositoryTest {
             LocalDate randomDate = faker.date().birthdayLocalDate();
             if (establishedDate.size() == entityCountOfNumber - 1) {
                 establishedDate.add(randomDate); // 일부러 두번 (중복시키려고)
+                log.info("randomDate = {}", randomDate);
             }
             establishedDate.add(randomDate);
         }
@@ -357,7 +391,6 @@ public class RepositoryTest {
             LocalDate date = establishedDate.get(i);
             departmentList.add(new Department(name, description, date));
         }
-        log.info("저장된 수 : {}", departmentList.size());
         departmentRepository.saveAllAndFlush(departmentList);
         em.clear();
     }
