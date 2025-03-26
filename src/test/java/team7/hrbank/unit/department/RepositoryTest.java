@@ -180,7 +180,7 @@ public class RepositoryTest {
         List<String> nameList = contentDTOList.stream()
                 .map((dto) -> {
                     String name = dto.name();
-                    return name.replaceAll("[-]+", "   ");
+                    return name.replaceAll("[-]+", "  "); // 하이픈(-)을 2번 공백으로 대체
                 }).toList();
 
         // then 1. 기본 값 테스트

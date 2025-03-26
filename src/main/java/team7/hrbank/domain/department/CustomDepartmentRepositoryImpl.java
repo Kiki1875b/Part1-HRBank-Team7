@@ -39,9 +39,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     public DepartmentResponseDTO findPagingAll1(DepartmentSearchCondition condition) {
         // 하나 더 가져오는 이유 : hasNext판단(로직 마지막에 버리고 추가)
         int limitSize = condition.getSize() + 1;
-
         log.info("condition 인자 확인: {}", condition);
-
 
         // 0. 공통으로 필요한 것들
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
@@ -77,23 +75,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .from(department)
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
                 .fetchOne();
-
-
-        List<DepartmentPageContentDTO> testDtoList = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
-                        department.id,
-                        department.name,
-                        department.description,
-                        department.establishmentDate,
-                        employee.count()
-                ))
-                .from(department)
-                .where(fieldWhereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
-                .leftJoin(employee).on(department.id.eq(employee.department.id))
-                .groupBy(department.id)
-                .orderBy(getOrderFieldSpecifier(sortedFieldName, sortDirection), idOrderSpecifier)
-                .fetch();
-        log.info("testDtoList 확인: {}", testDtoList);
-        log.info("testDtoList 사이즈 확인: {}", testDtoList.size());
 
         log.info("ResponseDTOList 로 바꾸기 전 content 점검: {}", contentDTOList);
         log.info("ResponseDTOList 로 바꾸기 전 totalCount 점검: {}", totalCount);
@@ -152,40 +133,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         log.info("cursorCondition 확인: {}", cursorCondition);
         return cursorCondition;
     }
-
-//    private BooleanExpression getIdConditionByIdAfter(Long idAfter) {
-//        if (idAfter == null) {
-//            return null;
-//        }
-//        return department.id.gt(idAfter);
-//    }
-
-    // 커서 (다음 페이지 시작점)
-//    private BooleanExpression getConditionByCursor(String cursorBeforeChange, String sortedFieldName, String sortDirection) {
-//        // sortfilename에 따라 cursor스타일이 바뀜
-//        BooleanExpression cursorCondition = null;
-//        switch (sortedFieldName) {
-//            case "name" -> {
-//                cursorCondition = sortDirection.equalsIgnoreCase("desc")
-//                        ? department.name.loe(cursorBeforeChange)
-//                        : department.name.goe(cursorBeforeChange);
-//                log.info("커서 조건 name 채택");
-//            }
-//            case "establishmentdate" -> {
-//                // 일단 검증먼저
-//                if (!cursorBeforeChange.matches("\\d{4}-\\d{2}-\\d{2}")) {
-//                    throw new IllegalArgumentException("유효하지 않은 커서 포맷입니다. : " + cursorBeforeChange);
-//                }
-//                LocalDate cursorDate = LocalDate.parse(cursorBeforeChange);
-//                cursorCondition = sortDirection.equalsIgnoreCase("desc")
-//                        ? department.establishmentDate.loe(cursorDate)
-//                        : department.establishmentDate.goe(cursorDate);
-//                log.info("커서 조건 establishmentDate 채택");
-//            }
-//        }
-//        log.info("cursorCondition 확인: {}", cursorCondition);
-//        return cursorCondition;
-//    }
 
     private BooleanExpression nameOrDescriptionLike(String nameOrDescription) {
         //{이름 또는 설명}는 부분 일치 조건입니다.

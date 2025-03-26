@@ -67,22 +67,6 @@ public class RepositoryTestWithLog {
     }
 
     @Test
-    @DisplayName("부서 생성 JSON 테스트")
-    void createTest() {
-        // given
-
-
-        // when
-
-        em.flush();
-        em.clear();
-
-        // then
-
-    }
-
-
-    @Test
     @DisplayName("페이징 기본 테스트")
     void findTest() {
         // given
