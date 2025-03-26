@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
 //@DataJpaTest를 사용하는 경우 기본적으로 Auditing 기능이 활성화되지 않으므로,
@@ -88,7 +89,7 @@ public class RepositoryTest {
 
 
     @Test
-    @DisplayName("이름 제대로인지 테스트")
+    @DisplayName("페이징 기본 테스트")
     void findTest() {
         // given
         String nameOrDescription = "부서";
@@ -139,8 +140,81 @@ public class RepositoryTest {
         assertThat(contents).as("전부 필터링 조건에 맞는지")
                 .allSatisfy(department ->
                         assertThat(department.name()).contains(nameOrDescription));
+    }
 
 
+    @Test
+    @DisplayName("정렬 제대로 했는지 테스트")
+    void sortPagingTest() {
+        // given
+        String nameOrDescription = "부서";
+        // 이전 페이지 마지막 요소 id
+        Integer idAfter = 0;
+        // 커서 (다음 페이지 시작점)
+        String cursor = null;
+        Integer requestSize = 10;
+        // 정렬 필드(name or establishmentDate)
+        String sortedField = "name";
+        String sortDirection = "desc";
+        DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
+                .nameOrDescription(nameOrDescription)
+                .idAfter(idAfter)
+                .cursor(cursor)
+                .size(requestSize)
+                .sortedField(sortedField)
+                .sortDirection(sortDirection)
+                .build();
+
+
+        // 저장될 엔티티 수
+        int entitySettingSize = 12;
+        int repeatCount = 5;
+        String otherNameOrDescriptionSize = "기서";
+        for (int i = 0; i < repeatCount; i++) {
+            setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
+            setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
+        }
+
+
+        departmentRepository.findAll().forEach(department -> {
+            log.info("부서 ID : {}", department.getId());
+            log.info("부서 이름 : {}", department.getName());
+            log.info("부서 설명 : {}", department.getDescription());
+        });
+
+        //when
+        List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
+        DepartmentResponseDTO result;
+        do {
+            result = departmentRepository.findPagingAll1(searchCondition);
+            log.info("페이징 결과 : {}", result);
+            log.info("페이징 결과 content : {}", result.contents());
+            log.info("페이징 결과 content size : {}", result.contents().size());
+            contentDTOList.addAll(result.contents());
+            searchCondition = DepartmentSearchCondition.builder()
+                    .nameOrDescription(nameOrDescription)
+                    .idAfter(result.nextIdAfter())
+                    .cursor(result.nextCursor())
+                    .size(requestSize)
+                    .sortedField(sortedField)
+                    .sortDirection(sortDirection)
+                    .build();
+            log.info("새로운 컨디션 : {}", searchCondition.toString());
+        } while (result.hasNext());
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
+                .isEqualTo(entitySettingSize * repeatCount);
+
+//        assertThat(contentDTOList).as("한 페이지에 가져온 개수가 처음 설정한 개수랑 같은지")
+//                .size().isEqualTo(requestSize);
+//        assertThat(result.totalElements()).as("필터를 거친 전체 수가 예상과 같은지1")
+//                .isEqualTo(entitySettingSize * repeatCount);
+
+//        assertThat(contents).as("전부 필터링 조건에 맞는지")
+//                .allSatisfy(department ->
+//                        assertThat(department.name()).contains(nameOrDescription));
     }
 
     private void setting_entity_save_and_containing_name(int entityCountOfNumber, String containingWord) {

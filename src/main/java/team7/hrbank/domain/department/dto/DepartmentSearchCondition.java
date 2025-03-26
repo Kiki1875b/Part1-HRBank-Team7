@@ -1,10 +1,7 @@
 package team7.hrbank.domain.department.dto;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.util.StringUtils;
 
 import static lombok.AccessLevel.*;
@@ -12,6 +9,7 @@ import static lombok.AccessLevel.*;
 @Builder
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
+@ToString
 public class DepartmentSearchCondition {
     private static final String DEFAULT_SORTED_FIELD = "establishmentDate";
     private static final String DEFAULT_SORT_DIRECTION = "asc";

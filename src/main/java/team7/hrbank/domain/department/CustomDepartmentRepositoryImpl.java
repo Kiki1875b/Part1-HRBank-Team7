@@ -51,7 +51,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
 
         BooleanExpression fieldWhereCondition = null;
         if (StringUtils.hasText(cursorBeforeChange)) {
-            fieldWhereCondition = getConditionByCursor(cursorBeforeChange, sortedFieldName, sortDirection);
+            fieldWhereCondition = getConditionByBeforeLastId(beforeLastId, cursorBeforeChange, sortedFieldName, sortDirection);
         }
 
         List<DepartmentPageContentDTO> contentDTOList = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
@@ -62,7 +62,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                         employee.count()
                 ))
                 .from(department)
-                .where(fieldWhereCondition, getIdConditionByIdAfter(beforeLastId), nameOrDescriptionLike(condition.getNameOrDescription()))
+                .where(fieldWhereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
                 .leftJoin(employee).on(department.id.eq(employee.department.id))
                 .groupBy(department.id)
                 .orderBy(getOrderFieldSpecifier(sortedFieldName, sortDirection), department.id.asc())
@@ -75,29 +75,62 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .fetchOne();
 
 
+        List<DepartmentPageContentDTO> testDtoList = queryFactory.select(Projections.constructor(DepartmentPageContentDTO.class,
+                        department.id,
+                        department.name,
+                        department.description,
+                        department.establishmentDate,
+                        employee.count()
+                ))
+                .from(department)
+                .where(fieldWhereCondition, nameOrDescriptionLike(condition.getNameOrDescription()))
+                .leftJoin(employee).on(department.id.eq(employee.department.id))
+                .groupBy(department.id)
+                .orderBy(getOrderFieldSpecifier(sortedFieldName, sortDirection), department.id.asc())
+                .fetch();
+        log.info("testDtoList 확인: {}", testDtoList);
+        log.info("testDtoList 사이즈 확인: {}", testDtoList.size());
+
+        log.info("ResponseDTOList 로 바꾸기 전 content 점검: {}", contentDTOList);
+        log.info("ResponseDTOList 로 바꾸기 전 totalCount 점검: {}", totalCount);
 
         // hasNext 판단 1. content의 사이즈가 11인 경우
         boolean hasNext = contentDTOList.size() == limitSize;
-        String encodedNextCursor = null;
+        String notEncodedNextCursor = null;
         Integer nextIdAfter = null;
         //if (hasNext && !contentDTOList.isEmpty()) {
         if (hasNext) {
-            DepartmentPageContentDTO lastContent = contentDTOList.get(contentDTOList.size() - 1);
-            nextIdAfter = Math.toIntExact(lastContent.id());
-            encodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
-                    ? Base64.getEncoder().encodeToString(lastContent.name().getBytes())
-                    : Base64.getEncoder().encodeToString(lastContent.establishmentDate().toString().getBytes());
+            DepartmentPageContentDTO nextStartContent = contentDTOList.get(contentDTOList.size() - 1);
+            DepartmentPageContentDTO nowLastContent = contentDTOList.get(contentDTOList.size() - 2);
+            notEncodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
+                    ? nextStartContent.name()
+                    : nextStartContent.establishmentDate().toString();
+
+            nextIdAfter = Math.toIntExact(nowLastContent.id());
+
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
         }
 
         return new DepartmentResponseDTO(
                 contentDTOList,
-                encodedNextCursor,
+                notEncodedNextCursor,
                 nextIdAfter,
                 condition.getSize(),
                 totalCount,
                 hasNext
         );
+    }
+
+    private BooleanExpression getConditionByBeforeLastId(Long beforeLastId, String cursorBeforeChange, String sortedFieldName, String sortDirection) {
+        // idAfter가 null인 경우
+        BooleanExpression idConditionByIdAfter = getIdConditionByIdAfter(beforeLastId);
+        BooleanExpression conditionByCursor = getConditionByCursor(cursorBeforeChange, sortedFieldName, sortDirection);
+
+        if (conditionByCursor == null) {
+            return idConditionByIdAfter;
+        }
+
+        return conditionByCursor.or(conditionByCursor.and(idConditionByIdAfter));
     }
 
     private BooleanExpression getIdConditionByIdAfter(Long idAfter) {
@@ -117,6 +150,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 cursorCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.name.loe(cursorBeforeChange)
                         : department.name.goe(cursorBeforeChange);
+                log.info("커서 조건 name 채택");
             }
             case "establishmentDate" -> {
                 // 일단 검증먼저
@@ -127,17 +161,18 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 cursorCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.establishmentDate.loe(cursorDate)
                         : department.establishmentDate.goe(cursorDate);
+                log.info("커서 조건 establishmentDate 채택");
             }
         }
+        log.info("커서 조건 확인: {}", cursorCondition);
         return cursorCondition;
     }
 
     private BooleanExpression nameOrDescriptionLike(String nameOrDescription) {
         //{이름 또는 설명}는 부분 일치 조건입니다.
         if (StringUtils.hasText(nameOrDescription)) {
-            return department.name.containsIgnoreCase(nameOrDescription);
-        } else if (StringUtils.hasText(nameOrDescription)) {
-            return department.description.containsIgnoreCase(nameOrDescription);
+            return department.name.containsIgnoreCase(nameOrDescription)
+                    .or(department.description.containsIgnoreCase(nameOrDescription));
         }
         return null;
     }
