@@ -8,6 +8,7 @@ import java.time.LocalDate;
 
 import lombok.*;
 import team7.hrbank.domain.base.BaseEntity;
+import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 
 @ToString
@@ -16,7 +17,7 @@ import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 @Table(name = "departments")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Department extends BaseEntity {
+public class Department extends BaseUpdatableEntity {
 
   // 부서 이름
   @Column(name = "name", nullable = false, unique = true)
