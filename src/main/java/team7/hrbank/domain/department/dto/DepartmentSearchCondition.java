@@ -2,12 +2,14 @@ package team7.hrbank.domain.department.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.StringUtils;
 
 import static lombok.AccessLevel.*;
 
+@Builder
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
 public class DepartmentSearchCondition {

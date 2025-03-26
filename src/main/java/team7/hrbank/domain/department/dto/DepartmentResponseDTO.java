@@ -8,5 +8,5 @@ public record DepartmentResponseDTO(
         Integer nextIdAfter,
         Integer size,
         Long totalElements,
-        boolean hasNext) {
+        boolean hasNext){
 }

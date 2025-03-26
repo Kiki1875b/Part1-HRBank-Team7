@@ -20,7 +20,7 @@ import java.util.List;
 
 import static team7.hrbank.domain.department.QDepartment.*;
 import static team7.hrbank.domain.employee.QEmployee.employee;
-
+//
 
 // 남은 활용할 것 :     private Integer idAfter; // 이전 페이지 마지막 요소 id
 //    private String cursor; // 커서 (다음 페이지 시작점)
@@ -41,6 +41,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         int limitSize = condition.getSize() + 1;
 
         log.info("condition 인자 확인: {}", condition);
+
 
         // 0. 공통으로 필요한 것들
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";

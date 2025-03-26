@@ -32,12 +32,10 @@ public class DepartmentController {
         }
     }
 
-
     @GetMapping
     public DepartmentResponseDTO getDepartment(@Valid DepartmentSearchCondition condition) {
         // 부서 목록조회
         log.info("condition = {}", condition);
         return departmentService.searchDepartments(condition);
     }
-
 }
