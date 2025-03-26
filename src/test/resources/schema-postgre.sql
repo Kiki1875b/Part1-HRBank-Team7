@@ -1,4 +1,4 @@
-CREATE TABLE departments (
+CREATE TABLE IF NOT EXISTS departments (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     description VARCHAR(500) NOT NULL,
     established_date TIMESTAMPTZ NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE departments (
     updated_at TIMESTAMPTZ NULL
 );
 
-CREATE TABLE binary_contents (
+CREATE TABLE IF NOT EXISTS binary_contents (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     file_name VARCHAR(255) NOT NULL,
     file_type VARCHAR(100) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE binary_contents (
 );
 
 
-CREATE TABLE employees (
+CREATE TABLE IF NOT EXISTS employees (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     department_id BIGINT NOT NULL,
     binary_content_id BIGINT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE employees (
 );
 
 
-CREATE TABLE change_log (
+CREATE TABLE IF NOT EXISTS change_log (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     employee_number VARCHAR(50) NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('CREATED', 'UPDATED', 'DELETED')),
@@ -46,7 +46,7 @@ CREATE TABLE change_log (
 );
 
 
-CREATE TABLE backup_history (
+CREATE TABLE IF NOT EXISTS backup_history (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     worker VARCHAR(50) NOT NULL,
     start_time TIMESTAMPTZ NOT NULL,
@@ -56,11 +56,12 @@ CREATE TABLE backup_history (
     CONSTRAINT fk_backup_history_file FOREIGN KEY (file_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
 
-CREATE TABLE employee_statistics (
+CREATE TABLE IF NOT EXISTS employee_statistics (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     employee_count BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL CHECK(type IN ('YEAR', 'QUARTER', 'MONTH', 'WEEK', 'DAY')),
     capture_date DATE NOT NULL
 );
+
 ALTER TABLE employee_statistics
-    ADD CONSTRAINT uq_capture_date_type UNIQUE (capture_date, type);
+ADD CONSTRAINT uq_capture_date_type UNIQUE (capture_date, type);
