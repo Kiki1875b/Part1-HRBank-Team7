@@ -111,14 +111,6 @@ public class ServiceTest {
         return department;
     }
 
-    private BinaryContent convertMockFileToBinaryContent(MockMultipartFile mockMultipartFile) {
-        return new BinaryContent(
-                mockMultipartFile.getOriginalFilename(),
-                mockMultipartFile.getContentType(),
-                mockMultipartFile.getSize()
-        );
-    }
-
     private MockMultipartFile getMockMultipartFile() {
         return new MockMultipartFile("MOCK 파일", "테스트.txt", "text/plain", "test용 mock 파일".getBytes());
     }
