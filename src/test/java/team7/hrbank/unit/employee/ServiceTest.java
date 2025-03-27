@@ -71,10 +71,9 @@ public class ServiceTest {
         EmployeeCreateRequest dto = new EmployeeCreateRequest("사원이름 1", "iccc1@naver.com", departmentId, "대리", LocalDate.of(1999, 1, 1), "사원 1에 대한 메모");
         String ipAddress = "127.0.0.1";
         MockMultipartFile mockMultipartFile = getMockMultipartFile();
-        BinaryContent binaryContent = convertMockFileToBinaryContent(mockMultipartFile);
         String lastEmployeeNumber = "EMP-1999-003";
 
-        stubCreateDependentMethod(binaryContent, lastEmployeeNumber);
+        stubCreateDependentMethod(lastEmployeeNumber);
 
         // when
         EmployeeDto createdEmployeeDTO = employeeService.create(dto, mockMultipartFile, ipAddress);
@@ -90,9 +89,9 @@ public class ServiceTest {
     }
 
 
-    private void stubCreateDependentMethod(BinaryContent mockBinaryContent, String lastEmployeeNumber) {
+    private void stubCreateDependentMethod(String lastEmployeeNumber) {
         when(binaryContentService.save(any(BinaryContentDto.class)))
-                .thenReturn(mockBinaryContent);
+                .thenAnswer(invocationOnMock -> binaryMapper.toEntity(invocationOnMock.getArgument(0)));
         when(departmentMockRepository.findById(anyLong())).thenAnswer(invocationOnMock
                 -> ((Long) invocationOnMock.getArgument(0) > 0L) ? Optional.of(getDepartment(invocationOnMock.getArgument(0))) : Optional.empty());
         when(employeeRepository.save(any())).thenAnswer(invocationOnMock -> {
