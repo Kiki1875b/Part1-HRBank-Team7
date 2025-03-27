@@ -87,7 +87,6 @@ public class ServiceTest {
         assertThat(createdEmployeeDTO.position()).isEqualTo(dto.position());
         assertThat(createdEmployeeDTO.hireDate()).isEqualTo(dto.hireDate());
         assertThat(createdEmployeeDTO.status()).isEqualTo(EmployeeStatus.ACTIVE);
-
     }
 
 
