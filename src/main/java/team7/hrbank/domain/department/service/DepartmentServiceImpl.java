@@ -30,6 +30,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     departmentRepository.save(department);
 
     return departmentMapper.toDto(department);
+
   }
 
   // 부서 수정 메서드
