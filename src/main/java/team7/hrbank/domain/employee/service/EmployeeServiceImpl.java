@@ -45,12 +45,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
-    private EmployeeServicePojo employeeServicePojo;
 
-    @PostConstruct
-    public void init() {
-        employeeServicePojo = new EmployeeServicePojo(employeeMapper);
-    }
 
     // 직원 등록
     @Override
@@ -60,30 +55,25 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // 사원번호 생성
         //String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
-        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
+        int year = request.hireDate().getYear();
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
 
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
         // 비즈니스 로직 1
-        String employeeNumber = employeeServicePojo.getEmployeeNumber(lastEmployeeNumber);
-        Optional<BinaryContent> binaryContent = binaryMapper.convertFileToBinaryContent(file).map(binaryContentService::save);
+        String employeeNumber = getEmployeeNumber(year);
 
-        // 비즈니스 로직 2
-        Employee createdEmployee = binaryContent.map((profile) ->
-                        employeeServicePojo.createEmployeeWithProfile(request, belongedDepartment, employeeNumber, profile))
-                .orElseGet(() -> employeeServicePojo.createEmployeeWithoutProfile(request, belongedDepartment, employeeNumber));
-
-//    // 프로필 사진 유무 별 employee 생성
-//    Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
-//        .map((dto) -> {
-//          BinaryContent createdBinaryContent = binaryContentService.save(dto);
-//          return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
-//              belongedDepartment, employeeNumber);
-//        })
-//        .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
-//            employeeNumber));
+        // 프로필 사진 유무 별 employee 생성
+        Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
+                .map((dto) -> {
+                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
+                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
+                            belongedDepartment, employeeNumber);
+                })
+                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
+                        employeeNumber));
 
         // DB 저장
         employeeRepository.save(createdEmployee);

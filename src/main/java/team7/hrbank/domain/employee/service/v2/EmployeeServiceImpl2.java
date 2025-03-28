@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
-import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.change_log.dto.DiffDto;
@@ -24,12 +23,10 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
-import team7.hrbank.domain.employee.service.EmployeeServicePojo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,12 +41,10 @@ public class EmployeeServiceImpl2 implements EmployeeService2 {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
-    private EmployeeServicePojo employeeServicePojo;
     private EmployeeServiceLikePojo employeeServiceLikePojo;
 
     @PostConstruct
     public void init() {
-        employeeServicePojo = new EmployeeServicePojo(employeeMapper);
         employeeServiceLikePojo = new EmployeeServiceLikePojo(employeeMapper, binaryContentService, binaryMapper);
     }
 
@@ -68,7 +63,7 @@ public class EmployeeServiceImpl2 implements EmployeeService2 {
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
         // 비즈니스 로직
-        String employeeNumber = employeeServicePojo.getEmployeeNumber(lastEmployeeNumber);
+        String employeeNumber = " 나중에 ㄱ ";
         Employee createdEmployee = employeeServiceLikePojo.createEmployee(request, belongedDepartment, employeeNumber, file);
 
 //    // 프로필 사진 유무 별 employee 생성

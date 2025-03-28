@@ -1,4 +1,4 @@
-package team7.hrbank.domain.employee.service.v3;
+package team7.hrbank.domain.employee.service.v4;
 
 import com.querydsl.core.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,9 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeCreateData;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeCreateSupport;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeNumberGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeServiceImpl3 implements EmployeeService3 {
+public class EmployeeServiceImpl4 implements EmployeeService4 {
 
     // 의존성 주입
     private final EmployeeRepository employeeRepository;
@@ -43,22 +46,31 @@ public class EmployeeServiceImpl3 implements EmployeeService3 {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
+    private final EmployeeNumberGenerator employeeNumberGenerator = new EmployeeNumberGenerator();
+    private final EmployeeCreateSupport employeeCreateSupport;
 
     // 직원 등록
     @Override
     @Transactional
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile file,
                               String ipAddress) {
-
-        // 마지막 사원번호 조회
-        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
-
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
+        // 사원번호 생성
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
+
+        String employeeNumber = employeeNumberGenerator.generateEmployeeNumber(lastEmployeeNumber);
+
+        EmployeeCreateData createData = EmployeeCreateData.builder()
+                .request(request)
+                .department(belongedDepartment)
+                .employeeNumber(employeeNumber)
+                .file(file).build();
+
         // 비즈니스 로직 1
-        Employee createdEmployee = createEmployee(request, belongedDepartment, getEmployeeNumber(lastEmployeeNumber), file);
+        Employee createdEmployee = employeeCreateSupport.createEmployee(createData);
 
         // DB 저장
         employeeRepository.save(createdEmployee);

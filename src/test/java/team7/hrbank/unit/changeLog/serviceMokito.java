@@ -12,9 +12,6 @@ public class serviceMokito {
     @Test
     void create(){
         // given
-
-        String memo = "test memo";
-        String ipAddress = " ";
         // when
         // then
     }
