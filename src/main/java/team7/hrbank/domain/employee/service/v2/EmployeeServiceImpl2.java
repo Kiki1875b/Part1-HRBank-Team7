@@ -1,12 +1,6 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.employee.service.v2;
 
 import com.querydsl.core.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +10,6 @@ import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
-import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
@@ -31,10 +24,16 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+import team7.hrbank.domain.employee.service.EmployeeServicePojo;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeServiceImpl implements EmployeeService {
+public class EmployeeServiceImpl2 implements EmployeeService2 {
 
     // 의존성 주입
     private final EmployeeRepository employeeRepository;
@@ -46,10 +45,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
     private EmployeeServicePojo employeeServicePojo;
+    private EmployeeServiceLikePojo employeeServiceLikePojo;
 
     @PostConstruct
     public void init() {
         employeeServicePojo = new EmployeeServicePojo(employeeMapper);
+        employeeServiceLikePojo = new EmployeeServiceLikePojo(employeeMapper, binaryContentService, binaryMapper);
     }
 
     // 직원 등록
@@ -66,14 +67,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
-        // 비즈니스 로직 1
+        // 비즈니스 로직
         String employeeNumber = employeeServicePojo.getEmployeeNumber(lastEmployeeNumber);
-        Optional<BinaryContent> binaryContent = binaryMapper.convertFileToBinaryContent(file).map(binaryContentService::save);
-
-        // 비즈니스 로직 2
-        Employee createdEmployee = binaryContent.map((profile) ->
-                        employeeServicePojo.createEmployeeWithProfile(request, belongedDepartment, employeeNumber, profile))
-                .orElseGet(() -> employeeServicePojo.createEmployeeWithoutProfile(request, belongedDepartment, employeeNumber));
+        Employee createdEmployee = employeeServiceLikePojo.createEmployee(request, belongedDepartment, employeeNumber, file);
 
 //    // 프로필 사진 유무 별 employee 생성
 //    Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
