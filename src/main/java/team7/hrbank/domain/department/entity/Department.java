@@ -11,6 +11,7 @@ import team7.hrbank.domain.base.BaseEntity;
 import team7.hrbank.domain.base.BaseUpdatableEntity;
 import team7.hrbank.domain.department.dto.DepartmentUpdateRequest;
 
+@EqualsAndHashCode(callSuper = true)
 @ToString
 @Entity
 @Getter

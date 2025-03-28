@@ -118,7 +118,7 @@ public class EmployeeServiceVersionTest {
         log.info("생성된 employee={}", employee);
         assertThat(employee.getName()).isEqualTo(request.name());
         assertThat(employee.getEmail()).isEqualTo(request.email());
-        assertThat(employee.getDepartment().getId()).isEqualTo(departmentId);
+        assertThat(employee.getDepartment()).isEqualTo(department);
         assertThat(employee.getPosition()).isEqualTo(request.position());
         assertThat(employee.getHireDate()).isEqualTo(request.hireDate());
         assertThat(employee.getStatus()).isEqualTo(ACTIVE);
