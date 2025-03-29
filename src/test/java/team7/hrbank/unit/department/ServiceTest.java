@@ -100,8 +100,6 @@ public class ServiceTest {
             Department department = invocationOnMock.getArgument(0);
             ReflectionTestUtils.setField(department, "id", autoIncrementId.get());
             ReflectionTestUtils.setField(department, "createdAt", Instant.now());
-            log.info("리플렉션 적용 후 id : {}", department.getId());
-            log.info("리플렉션 적용 후 createdAt : {}", department.getCreatedAt());
             return department;
         });
     }

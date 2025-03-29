@@ -16,7 +16,5 @@ public class EmployeeCreateData {
     private final EmployeeCreateRequest request;
     private final Department department;
     private final String employeeNumber;
-
-    @Nonnull
     private final MultipartFile file;
 }
