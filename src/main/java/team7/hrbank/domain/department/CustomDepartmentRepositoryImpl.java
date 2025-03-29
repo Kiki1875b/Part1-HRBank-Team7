@@ -34,7 +34,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
     public DepartmentResponseDTO findPagingAll1(DepartmentSearchCondition condition) {
         // 하나 더 가져오는 이유 : hasNext판단(로직 마지막에 버리고 추가)
         int limitSize = condition.getSize() + 1;
-        log.info("condition 인자 확인: {}", condition);
 
         // 0. 공통으로 필요한 것들
         String sortedFieldName = condition.getSortedField() != null ? condition.getSortedField().toLowerCase().trim() : "establishmentDate";
@@ -46,7 +45,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
         if (StringUtils.hasText(cursorBeforeChange)) {
             fieldWhereCondition = getConditionByBeforeLastId(beforeLastId, cursorBeforeChange, sortedFieldName, sortDirection);
         }
-        log.info("fieldWhereCondition 확인: {}", fieldWhereCondition);
         OrderSpecifier<Long> idOrderSpecifier = sortDirection.equalsIgnoreCase("desc")
                 ? department.id.desc()
                 : department.id.asc();
@@ -71,9 +69,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 .where(nameOrDescriptionLike(condition.getNameOrDescription()))
                 .fetchOne();
 
-        log.info("ResponseDTOList 로 바꾸기 전 content 점검: {}", contentDTOList);
-        log.info("ResponseDTOList 로 바꾸기 전 totalCount 점검: {}", totalCount);
-
         // hasNext 판단 1. content의 사이즈가 11인 경우
         boolean hasNext = contentDTOList.size() == limitSize;
         String notEncodedNextCursor = null;
@@ -84,9 +79,7 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
             notEncodedNextCursor = sortedFieldName.equalsIgnoreCase("name")
                     ? nowLastContent.name()
                     : nowLastContent.establishmentDate().toString();
-            log.info("notEncodedNextCursor 확인: {}", notEncodedNextCursor);
             nextIdAfter = Math.toIntExact(nowLastContent.id());
-            log.info("nextIdAfter 확인: {}", nextIdAfter);
             contentDTOList.remove(contentDTOList.size() - 1); // 마지막 요소 삭제
         }
 
@@ -109,7 +102,6 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                 cursorCondition = sortDirection.equalsIgnoreCase("desc")
                         ? department.name.lt(cursorBeforeChange)
                         : department.name.gt(cursorBeforeChange);
-                log.info("커서 조건 name 채택");
             }
             case "establishmentdate" -> {
                 // 일단 검증먼저
@@ -122,10 +114,8 @@ public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepositor
                         .or(department.establishmentDate.eq(cursorDate).and(department.id.lt(beforeLastId)))
                         : department.establishmentDate.gt(cursorDate)
                         .or(department.establishmentDate.eq(cursorDate).and(department.id.gt(beforeLastId)));
-                log.info("커서 조건 establishmentDate 채택");
             }
         }
-        log.info("cursorCondition 확인: {}", cursorCondition);
         return cursorCondition;
     }
 
