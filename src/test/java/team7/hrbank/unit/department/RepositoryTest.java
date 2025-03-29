@@ -89,10 +89,9 @@ public class RepositoryTest {
         } while (result.hasNext());
 
         // then 1. 기본 값 테스트
-        assertThat(result).isNotNull();
-        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
-                .isEqualTo(entitySettingSize * repeatCount);
-        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
+        assertThat(contentDTOList).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
+                .hasSize(entitySettingSize * repeatCount)
+                .as("전부 필터링 조건에 맞는지")
                 .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
 
         // then 2. 정렬 테스트
@@ -120,7 +119,7 @@ public class RepositoryTest {
         String cursor = null; // 커서 (이전 페이지 마지막 커서)
         Integer requestSize = 10;
         String sortedField = "name";  // 정렬 필드(name or establishmentDate)
-        String sortDirection = "desc ";
+        String sortDirection = "ASC ";
         DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
                 .nameOrDescription(nameOrDescription)
                 .idAfter(idAfter)
@@ -162,18 +161,16 @@ public class RepositoryTest {
                 }).toList();
 
         // then 1. 기본 값 테스트
-        assertThat(result).isNotNull();
-        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
-                .isEqualTo(entitySettingSize * repeatCount);
-        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
+        assertThat(contentDTOList).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
+                .hasSize(entitySettingSize * repeatCount)
+                .as("네임만 따로 추츨한 개수가 Content개수와 맞는지")
+                .hasSize(nameList.size())
+                .as("전부 필터링 조건에 맞는지")
                 .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
-        assertThat(nameList.size()).as("네임만 따로 뺀 것이 개수가 맞는지 ")
-                .isEqualTo(contentDTOList.size());
 
         // then 2. 정렬 테스트
         // 대소문자 구분 필요 : ASCII는 대문자가 더 작음 (Postgre는 신경 안씀)
         Comparator<String> caseInsensitiveOrder = String.CASE_INSENSITIVE_ORDER;
-
         if (sortDirection.trim().equalsIgnoreCase("desc")) {
             assertThat(nameList).as("내림차순 정렬")
                     .isSortedAccordingTo(caseInsensitiveOrder.reversed());
@@ -212,7 +209,6 @@ public class RepositoryTest {
             departmentList.add(new Department(nameList.get(i), descriptionList.get(i), establishedDateList.get(i)));
         }
         departmentRepository.saveAllAndFlush(departmentList);
-        em.flush();
         em.clear();
     }
 
