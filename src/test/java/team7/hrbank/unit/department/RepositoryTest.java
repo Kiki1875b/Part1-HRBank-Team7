@@ -3,7 +3,6 @@ package team7.hrbank.unit.department;
 import jakarta.persistence.EntityManager;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.StringUtils;
 import team7.hrbank.config.QuerydslConfig;
 import team7.hrbank.domain.department.Department;
 import team7.hrbank.domain.department.DepartmentRepository;
@@ -27,6 +25,9 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
+import static team7.hrbank.unit.department.util.DepartmentRepositoryUtil.*;
+import static team7.hrbank.unit.department.util.DepartmentRepositoryUtil.get_LocalDates;
+
 @Import({QuerydslConfig.class, DepartmentMapperImpl.class})
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
@@ -42,25 +43,72 @@ public class RepositoryTest {
     private EntityManager em;
 
     @Test
-    @DisplayName("Fake 라이터리로 더미 데이터 생성 + 공통 단어 포함 확인")
-    void makeFakeDummy() {
-        // 원하는 엔티티 세팅 수
-        int entitySettingSize = 30;
+    @DisplayName("establishmentDate 기준 정렬 제대로 했는지 테스트")
+    void sortPagingTest2() {
+        // given
+        String nameOrDescription = "부서";
+        Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
+        String cursor = null; // 커서 (이전 페이지 마지막 커서)
+        Integer requestSize = 10;
+        String sortedField = "establishmentDate"; // 정렬 필드(name or establishmentDate)
+        String sortDirection = "asc ";
+        DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
+                .nameOrDescription(nameOrDescription)
+                .idAfter(idAfter)
+                .cursor(cursor)
+                .size(requestSize)
+                .sortedField(sortedField)
+                .sortDirection(sortDirection)
+                .build();
 
-        // 공통되는 단어
-        String commonWord = "ㅎㅇ";
+        // 저장될 엔티티 수
+        int entitySettingSize = 12;
+        int repeatCount = 5;
+        String otherNameOrDescriptionSize = "기서";
+        for (int i = 0; i < repeatCount; i++) {
+            setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
+            setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
+        }
 
-        setting_entity_save_and_containing_name(entitySettingSize, commonWord);
-        //setting_entity_save_and_containing_description(entitySettingSize, commonWord);
+        //when
+        List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
+        DepartmentResponseDTO result;
+        do {
+            result = departmentRepository.findPagingAll1(searchCondition);
+            contentDTOList.addAll(result.contents());
 
-        List<Department> all = departmentRepository.findAll();
+            // 조건 다시 세팅
+            searchCondition = DepartmentSearchCondition.builder()
+                    .nameOrDescription(nameOrDescription)
+                    .idAfter(result.nextIdAfter())
+                    .cursor(result.nextCursor())
+                    .size(requestSize)
+                    .sortedField(sortedField)
+                    .sortDirection(sortDirection)
+                    .build();
+        } while (result.hasNext());
 
-        assertThat(all).hasSize(entitySettingSize);
-        assertThat(all).doesNotHaveDuplicates();
-        assertThat(all).allSatisfy(department -> {
-            assertThat(department.getName()).contains(commonWord);
-            //assertThat(department.getDescription()).contains(commonWord);
-        });
+        // then 1. 기본 값 테스트
+        assertThat(result).isNotNull();
+        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
+                .isEqualTo(entitySettingSize * repeatCount);
+        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
+                .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
+
+        // then 2. 정렬 테스트
+        if (sortDirection.trim().equalsIgnoreCase("desc")) {
+            assertThat(contentDTOList).as("Established 내림차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 내림차순 정렬 확인")
+                    .isSortedAccordingTo(
+                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.reverseOrder())
+                                    .thenComparing(DepartmentPageContentDTO::id, Comparator.reverseOrder())
+                    );
+
+        } else {
+            assertThat(contentDTOList).as("Established 오름차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 오름차순 정렬 확인")
+                    .isSortedAccordingTo(
+                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.naturalOrder())
+                                    .thenComparing(DepartmentPageContentDTO::id));
+        }
     }
 
     @Test
@@ -135,197 +183,39 @@ public class RepositoryTest {
         }
     }
 
-    @Test
-    @DisplayName("establishmentDate 기준 정렬 제대로 했는지 테스트")
-    void sortPagingTest2() {
-        // given
-        String nameOrDescription = "부서";
-        Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
-        String cursor = null; // 커서 (이전 페이지 마지막 커서)
-        Integer requestSize = 10;
-        String sortedField = "establishmentDate"; // 정렬 필드(name or establishmentDate)
-        String sortDirection = "asc ";
-        DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
-                .nameOrDescription(nameOrDescription)
-                .idAfter(idAfter)
-                .cursor(cursor)
-                .size(requestSize)
-                .sortedField(sortedField)
-                .sortDirection(sortDirection)
-                .build();
-
-        // 저장될 엔티티 수
-        int entitySettingSize = 12;
-        int repeatCount = 5;
-        String otherNameOrDescriptionSize = "기서";
-        for (int i = 0; i < repeatCount; i++) {
-            setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
-            setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
-        }
-
-        //when
-        List<DepartmentPageContentDTO> contentDTOList = new ArrayList<>();
-        DepartmentResponseDTO result;
-        do {
-            result = departmentRepository.findPagingAll1(searchCondition);
-            contentDTOList.addAll(result.contents());
-
-            // 조건 다시 세팅
-            searchCondition = DepartmentSearchCondition.builder()
-                    .nameOrDescription(nameOrDescription)
-                    .idAfter(result.nextIdAfter())
-                    .cursor(result.nextCursor())
-                    .size(requestSize)
-                    .sortedField(sortedField)
-                    .sortDirection(sortDirection)
-                    .build();
-        } while (result.hasNext());
-
-        // then 1. 기본 값 테스트
-        assertThat(result).isNotNull();
-        assertThat(contentDTOList.size()).as("필터를 거치고 실제로 가져온 DTO가 예상과 같은지")
-                .isEqualTo(entitySettingSize * repeatCount);
-        assertThat(contentDTOList).as("전부 필터링 조건에 맞는지")
-                .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
-
-        // then 2. 정렬 테스트
-        if (sortDirection.trim().equalsIgnoreCase("desc")) {
-            assertThat(contentDTOList).as("Established 내림차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 내림차순 정렬 확인")
-                    .isSortedAccordingTo(
-                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.reverseOrder())
-                                    .thenComparing(DepartmentPageContentDTO::id, Comparator.reverseOrder())
-                    );
-
-        } else {
-            assertThat(contentDTOList).as("Established 오름차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 오름차순 정렬 확인")
-                    .isSortedAccordingTo(
-                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.naturalOrder())
-                                .thenComparing(DepartmentPageContentDTO::id));
-        }
-    }
-    //[자바 정렬 기준]
-    //공백 < 쉼표 < 하이폰(-)
-    //
-    //[Postgre]
-    //하이폰(-) < 쉼표 < 공백
-
     private void setting_entity_save_and_containing_name(int entityCountOfNumber, String containingWord) {
-        Faker faker = new Faker();
         // 1. name 추출
-        Set<String> departmentName = new HashSet<>();
-
-        while (departmentName.size() < entityCountOfNumber) {
-            String name = faker.company().name();
-            int randomNum = StringUtils.hasText(containingWord)
-                    ? (int) (Math.random() * 3) + 1
-                    : -1;
-
-            switch (randomNum) {
-                case 1 -> name = name + " " + containingWord;
-                case 2 -> name = containingWord + " " + name;
-                case 3 -> {
-                    String zeroIndex = name.substring(0, 1);
-                    String oneIndex = name.substring(1);
-                    name = zeroIndex + containingWord + oneIndex;
-                }
-            }
-
-            departmentName.add(name);
-        }
-
+        Set<String> departmentName = get_department_name_common_Word(entityCountOfNumber, containingWord);
         // 2. description 및 establishedDate 추출
-        List<String> departmentDescription = new ArrayList<>();
-        while (departmentDescription.size() < entityCountOfNumber) {
-            String description = faker.lorem().paragraph(1);
-            departmentDescription.add(description);
-        }
-
-        List<LocalDate> establishedDate = new ArrayList<>();
-        while (establishedDate.size() < entityCountOfNumber) {
-            LocalDate randomDate = faker.date().birthdayLocalDate();
-            if (establishedDate.size() == entityCountOfNumber - 1) {
-                establishedDate.add(randomDate); // 일부러 두번 (중복시키려고)
-                log.info("중복된 날짜 : {}", randomDate);
-            }
-            establishedDate.add(randomDate);
-        }
-
-
+        List<String> descriptionList = get_department_description(entityCountOfNumber);
+        List<LocalDate> establishedDateList = get_LocalDates(entityCountOfNumber);
         List<String> nameList = departmentName.stream().toList();
-
         // 3. entity 저장
         List<Department> departmentList = new ArrayList<>();
         for (int i = 0; i < entityCountOfNumber; i++) {
-            String name = nameList.get(i);
-            String description = departmentDescription.get(i);
-            LocalDate date = establishedDate.get(i);
-            departmentList.add(new Department(name, description, date));
+            departmentList.add(new Department(nameList.get(i), descriptionList.get(i), establishedDateList.get(i)));
         }
-        log.info("저장된 수 : {}", departmentList.size());
         departmentRepository.saveAllAndFlush(departmentList);
         em.clear();
     }
 
 
-    private void setting_entity_save_and_containing_description(int entityCount, String containingWord) {
-        Faker faker = new Faker();
-        // 1. name 추출
-        Set<String> departmentName = new HashSet<>();
-        while (departmentName.size() < entityCount) {
-            String name = faker.company().name();
-            departmentName.add(name);
-        }
-
-
-        // 2. description 추출
-
-        List<String> departmentDescription = new ArrayList<>();
-        while (departmentDescription.size() < entityCount) {
-            String description = faker.lorem().paragraph(1);
-            int randomNum = StringUtils.hasText(containingWord)
-                    ? (int) (Math.random() * 3) + 1
-                    : -1;
-            switch (randomNum) {
-                case 1 -> description = description + " " + containingWord;
-                case 2 -> description = containingWord + " " + description;
-                case 3 -> {
-                    String zeroIndex = description.substring(0, 1);
-                    String oneToEndIndex = description.substring(1);
-
-                    description = zeroIndex + containingWord + oneToEndIndex;
-                }
-            }
-            departmentDescription.add(description);
-        }
-
-        // 3. establishedDate 추출
-        List<LocalDate> establishedDate = new ArrayList<>();
-        while (establishedDate.size() < entityCount) {
-            LocalDate randomDate = faker.date().birthdayLocalDate();
-            if (establishedDate.size() == entityCount) {
-                establishedDate.add(randomDate); // 일부러 두번 (중복시키려고)
-            }
-            establishedDate.add(randomDate);
-            //LocalDate randomDate2 = faker.date().past(3650, TimeUnit.DAYS)
-            //.toInstant()
-            //.atZone(ZoneId.systemDefault())
-            //.toLocalDate();
-        }
-
+    private void setting_entity_save_and_containing_description(int entityCountOfNumber, String containingWord) {
+        Set<String> departmentName = get_department_name(entityCountOfNumber);
+        List<String> descriptionList = get_department_description_common_word(entityCountOfNumber, containingWord);
+        List<LocalDate> establishedDateList = get_LocalDates(entityCountOfNumber);
         List<String> nameList = departmentName.stream().toList();
 
         // 4. entity 저장
         List<Department> departmentList = new ArrayList<>();
-        for (int i = 0; i < entityCount; i++) {
-            String name = nameList.get(i);
-            String description = departmentDescription.get(i);
-            LocalDate date = establishedDate.get(i);
-            departmentList.add(new Department(name, description, date));
+        for (int i = 0; i < entityCountOfNumber; i++) {
+            departmentList.add(new Department(nameList.get(i), descriptionList.get(i), establishedDateList.get(i)));
         }
         departmentRepository.saveAllAndFlush(departmentList);
         em.flush();
         em.clear();
     }
+
 
     @AfterEach
     void cleanId() {

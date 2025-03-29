@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 public class basicBinary {
 
-
     @Autowired
     private BinaryContentService binaryContentService;
     @Autowired
