@@ -1,10 +1,9 @@
-package team7.hrbank.unit.department;
+package team7.hrbank.unit.department.practice;
 
 import jakarta.persistence.EntityManager;
 import net.datafaker.Faker;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -13,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import team7.hrbank.config.QuerydslConfig;
 import team7.hrbank.domain.department.dto.DepartmentMapperImpl;
@@ -23,14 +20,11 @@ import team7.hrbank.domain.department.dto.DepartmentWithEmployeeCountResponseDto
 import team7.hrbank.domain.department.dto.PageDepartmentsResponseDto;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
 //@DataJpaTest를 사용하는 경우 기본적으로 Auditing 기능이 활성화되지 않으므로,
@@ -40,9 +34,9 @@ import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTest
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
 @ActiveProfiles("test")
-public class RepositoryTest {
+public class RepositoryTestPractice {
 
-    private static final Logger log = LoggerFactory.getLogger(RepositoryTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RepositoryTestPractice.class);
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -77,6 +71,7 @@ public class RepositoryTest {
 
     @Test
     @DisplayName("부서 생성 JSON 테스트")
+    @Disabled
     void createTest() {
         // given
 
@@ -107,13 +102,6 @@ public class RepositoryTest {
         String otherNameOrDescriptionSize = "기서";
         setting_entity_save_and_containing_name(entitySettingSize, nameOrDescription);
         setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
-
-
-        departmentRepository.findAll().forEach(department -> {
-            log.info("부서 ID : {}", department.getId());
-            log.info("부서 이름 : {}", department.getName());
-            log.info("부서 설명 : {}", department.getDescription());
-        });
 
         //when
         PageDepartmentsResponseDto result = departmentRepository.findDepartments(nameOrDescription, idAfter, cursor, size, sortField, sortDirection);

@@ -57,13 +57,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         //String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
         int year = request.hireDate().getYear();
         String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
+        String employeeNumber = getEmployeeNumber(year);
 
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
-
-        // 비즈니스 로직 1
-        String employeeNumber = getEmployeeNumber(year);
 
         // 프로필 사진 유무 별 employee 생성
         Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)

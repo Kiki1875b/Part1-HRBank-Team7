@@ -1,5 +1,8 @@
 package team7.hrbank.domain.employee.service.v4.support;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,5 +16,7 @@ public class EmployeeCreateData {
     private final EmployeeCreateRequest request;
     private final Department department;
     private final String employeeNumber;
+
+    @Nonnull
     private final MultipartFile file;
 }

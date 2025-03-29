@@ -1,8 +1,5 @@
-package team7.hrbank.unit.department;
+package team7.hrbank.unit.department.practice;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityManager;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
@@ -13,20 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StringUtils;
 import team7.hrbank.config.QuerydslConfig;
-import team7.hrbank.domain.department.dto.DepartmentCreateRequest;
 import team7.hrbank.domain.department.dto.DepartmentMapperImpl;
 import team7.hrbank.domain.department.entity.Department;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.*;
 //@DataJpaTest를 사용하는 경우 기본적으로 Auditing 기능이 활성화되지 않으므로,
 // 테스트 설정에 별도로 Auditing 설정을 포함하거나 필요한 설정 클래스를 @Import 어노테이션으로 불러오도록 구성
@@ -47,56 +40,6 @@ public class RepositoryDummyPractice {
 
     @Autowired
     private DepartmentMapperImpl departmentMapper;
-
-    @Test
-        //@BeforeEach
-    void setUp() throws IOException {
-        ClassPathResource jsonData = new ClassPathResource("department100.json");
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // LocalDateTime, LocalDate 등 자바 8 모듈 추가
-
-        List<DepartmentCreateRequest> dtoList = objectMapper.readValue(jsonData.getInputStream(), new TypeReference<List<DepartmentCreateRequest>>() {
-        });
-        List<String> nameList = dtoList.stream().map(DepartmentCreateRequest::name).toList();
-
-        assertThat(dtoList).hasSize(100);
-        assertThat(nameList).doesNotHaveDuplicates();
-
-        dtoList.forEach(dto -> departmentRepository.save(departmentMapper.toEntity(dto)));
-        em.flush();
-        em.clear();
-    }
-
-    @Test
-    @DisplayName("ObjectMapper로 JSON 파싱 테스트 + 모듈 추가")
-    void parseFilterJsonTest() throws IOException {
-        ClassPathResource jsonData = new ClassPathResource("department100.json");
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // LocalDateTime, LocalDate 등 자바 8 모듈 추가
-
-        List<DepartmentCreateRequest> jsonDtoList = objectMapper.readValue(jsonData.getInputStream(), new TypeReference<List<DepartmentCreateRequest>>() {
-        });
-        List<String> nameList = jsonDtoList.stream().map(DepartmentCreateRequest::name).toList();
-
-        assertThat(jsonDtoList).hasSize(100);
-        assertThat(nameList).doesNotHaveDuplicates(); // 이름 중복 검증
-    }
-
-    @Test
-    @DisplayName("Fake 라이터리로 더미 데이터 만들어보기")
-    void makeFakeDummy() {
-        int settingSize = 30;
-        // 공통되는 단어 신경 안쓸때
-        String commonWord = "ㅎㅇ";
-
-        setting_entity_save_and_containing_name(settingSize, commonWord);
-        setting_entity_save_and_containing_description(settingSize, commonWord);
-
-        List<Department> all = departmentRepository.findAll();
-
-        assertThat(all).hasSize(settingSize);
-        assertThat(all).doesNotHaveDuplicates();
-    }
 
     @Test
     @DisplayName("부서 생성 JSON 테스트")

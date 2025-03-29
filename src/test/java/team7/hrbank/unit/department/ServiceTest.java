@@ -1,14 +1,12 @@
 package team7.hrbank.unit.department;
 
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
@@ -76,13 +74,17 @@ public class ServiceTest {
         // given
         String duplicateName = "중복 될 부서명";
         String description = "설명 입니다";
-        lenient().when(departmentRepository.findByName(anyString())).thenReturn(Optional.of(getSavedDepartmentByReflection(duplicateName, description)));
+        lenient().when(departmentRepository.findByName(anyString())).thenReturn(Optional.of(getSavedDepartment(duplicateName, description)));
         // 	thenAnswer() : 동적으로 값을 생성할 때 사용
         stub_repository_save();
 
-        // when, then
+        // when, then  ---
         DepartmentCreateRequest emptyNameDto = new DepartmentCreateRequest(" ", "create를 위한 부서 설명", LocalDate.now());
         DepartmentCreateRequest duplicateNameDto = new DepartmentCreateRequest(duplicateName, "create를 위한 부서 설명", LocalDate.now());
+
+
+
+        // 어떻게 할지 코멘트 듣고 고치기
         assertThatThrownBy(() -> departmentService.create(emptyNameDto))
                 .isInstanceOf(InvalidParameterException.class)
                 .hasMessageContaining("부서 이름에 공백은 포함될");
@@ -104,7 +106,7 @@ public class ServiceTest {
         });
     }
 
-    private Department getSavedDepartmentByReflection(String name, String description) {
+    private Department getSavedDepartment(String name, String description) {
         Department department = new Department(name, description, LocalDate.now());
         ReflectionTestUtils.setField(department, "id", autoIncrementId.get());
         ReflectionTestUtils.setField(department, "createdAt", Instant.now());

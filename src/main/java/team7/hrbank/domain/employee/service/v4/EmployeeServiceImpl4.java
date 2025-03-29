@@ -61,15 +61,15 @@ public class EmployeeServiceImpl4 implements EmployeeService4 {
         // 사원번호 생성
         String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
 
+        // 직원 생성 Generetor 쪼개기
         String employeeNumber = employeeNumberGenerator.generateEmployeeNumber(lastEmployeeNumber);
-
         EmployeeCreateData createData = EmployeeCreateData.builder()
                 .request(request)
                 .department(belongedDepartment)
                 .employeeNumber(employeeNumber)
                 .file(file).build();
 
-        // 비즈니스 로직 1
+        // 직원 생성 메인 쪼개기
         Employee createdEmployee = employeeCreateSupport.createEmployee(createData);
 
         // DB 저장
