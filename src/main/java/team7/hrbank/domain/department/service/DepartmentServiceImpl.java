@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team7.hrbank.domain.department.dto.*;
 import team7.hrbank.domain.department.entity.Department;
-import team7.hrbank.domain.department.repository.CustomDepartmentRepository;
 import team7.hrbank.domain.department.repository.DepartmentRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
@@ -20,7 +19,6 @@ public class DepartmentServiceImpl implements DepartmentService {
   private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
   private final DepartmentMapper departmentMapper;
-  private final CustomDepartmentRepository customDepartmentRepository;
 
 
   //부서생성 메서드
@@ -32,6 +30,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     departmentRepository.save(department);
 
     return departmentMapper.toDto(department);
+
   }
 
   // 부서 수정 메서드
@@ -65,7 +64,7 @@ public class DepartmentServiceImpl implements DepartmentService {
                                                    Integer size,
                                                    String sortField,
                                                    String sortDirection) {
-    return customDepartmentRepository.findDepartments(
+    return departmentRepository.findDepartments(
       nameOrDescription, idAfter, cursor, size, sortField, sortDirection);
   }
 
@@ -91,14 +90,24 @@ public class DepartmentServiceImpl implements DepartmentService {
     if (!departmentRepository.findByName(name).isEmpty()) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     };
-
   }
 
-  private void validateName(Long id, String name) {
+  private void validateName2(Long id, String name) {
     Optional<Department> existingDepartment = departmentRepository.findByName(name);
     if (name.contains(" ")){
       throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
     }
+    if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
+      throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
+    }
+  }
+
+
+  private void validateName(Long id, String name) {
+    Optional<Department> existingDepartment = departmentRepository.findByName(name);
+//    if (name.contains(" ")){
+//      throw new InvalidParameterException("부서 이름에 공백은 포함될 수 없습니다.");
+//    }
     if (!existingDepartment.isEmpty()&&!(existingDepartment.get().getId().equals(id))) {
       throw new InvalidParameterException("이미 존재하는 부서 이름입니다.");
     }

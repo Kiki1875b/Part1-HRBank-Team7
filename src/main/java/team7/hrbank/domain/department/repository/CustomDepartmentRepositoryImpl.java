@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 import team7.hrbank.domain.department.dto.DepartmentMapper;
@@ -21,11 +22,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-@Repository
 @RequiredArgsConstructor
-
-
 public class CustomDepartmentRepositoryImpl implements CustomDepartmentRepository {
 
   private final JPAQueryFactory queryFactory;

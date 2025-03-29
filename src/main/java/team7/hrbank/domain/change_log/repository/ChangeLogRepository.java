@@ -41,8 +41,8 @@ public interface ChangeLogRepository extends JpaRepository<ChangeLog, Long>,
         SELECT COUNT(*)
         FROM change_log c
         WHERE c.type = 'CREATED'
-        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate
-    """, nativeQuery = true)
+        AND COALESCE(c.capture_date, '9999-12-31') <= :hireDate  
+    """, nativeQuery = true)  //// 실제로 null인 값들을 제외하는 용도
   int countCreatedEmployeesUntil(@Param("hireDate") LocalDate hireDate);
 
   Optional<ChangeLog> findTopByOrderByCaptureDate();

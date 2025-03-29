@@ -9,7 +9,7 @@ import team7.hrbank.domain.department.entity.Department;
 
 import java.util.Optional;
 
-public interface DepartmentRepository extends JpaRepository<Department, Long> {
+public interface DepartmentRepository extends JpaRepository<Department, Long>, CustomDepartmentRepository{
 
   //이름으로 부서 존재여부 확인
   Optional<Department> findByName(String name);

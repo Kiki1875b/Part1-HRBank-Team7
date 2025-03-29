@@ -6,7 +6,6 @@ import team7.hrbank.domain.department.entity.Department;
 
 @Mapper(componentModel = "spring")
 public interface DepartmentMapper {
-  DepartmentMapper INSTANCE = Mappers.getMapper(DepartmentMapper.class);
 
   DepartmentResponseDto toDto(Department department);
 

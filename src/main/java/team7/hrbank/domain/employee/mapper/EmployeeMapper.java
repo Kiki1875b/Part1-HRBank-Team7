@@ -16,7 +16,7 @@ public interface EmployeeMapper {
 
   @Mapping(target = "departmentId", source = "department.id")
   @Mapping(target = "departmentName", source = "department.name")
-  @Mapping(target = "profileImageId", source = "profile.id", defaultValue = "-1L")
+  @Mapping(target = "profileImageId", source = "profile.id", defaultValue = "-1L")  // null 익셉션 터지지 않나
   EmployeeDto fromEntity(Employee employee);
 
   @Mapping(target = "departmentId", source = "department.id")

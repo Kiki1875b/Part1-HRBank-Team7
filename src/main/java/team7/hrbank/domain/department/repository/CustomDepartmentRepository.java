@@ -11,5 +11,4 @@ public interface CustomDepartmentRepository {
                                              Integer size,
                                              String sortField,
                                              String sortDirection);
-
 }

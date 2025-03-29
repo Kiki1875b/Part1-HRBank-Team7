@@ -1,13 +1,6 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.employee.service.v4;
 
 import com.querydsl.core.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +24,18 @@ import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeCreateData;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeCreateSupport;
+import team7.hrbank.domain.employee.service.v4.support.EmployeeNumberGenerator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeServiceImpl implements EmployeeService {
+public class EmployeeServiceImpl4 implements EmployeeService4 {
 
     // 의존성 주입
     private final EmployeeRepository employeeRepository;
@@ -45,33 +46,31 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
-
+    private final EmployeeNumberGenerator employeeNumberGenerator = new EmployeeNumberGenerator();
+    private final EmployeeCreateSupport employeeCreateSupport;
 
     // 직원 등록
     @Override
     @Transactional
     public EmployeeDto create(EmployeeCreateRequest request, MultipartFile file,
                               String ipAddress) {
-
-        // 사원번호 생성
-        //String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
-        int year = request.hireDate().getYear();
-        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
-        String employeeNumber = getEmployeeNumber(year);
-
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
-        // 프로필 사진 유무 별 employee 생성
-        Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
-                .map((dto) -> {
-                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
-                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
-                            belongedDepartment, employeeNumber);
-                })
-                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
-                        employeeNumber));
+        // 사원번호 생성
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
+
+        // 직원 생성 Generetor 쪼개기
+        String employeeNumber = employeeNumberGenerator.generateEmployeeNumber(lastEmployeeNumber);
+        EmployeeCreateData createData = EmployeeCreateData.builder()
+                .request(request)
+                .department(belongedDepartment)
+                .employeeNumber(employeeNumber)
+                .file(file).build();
+
+        // 직원 생성 메인 쪼개기
+        Employee createdEmployee = employeeCreateSupport.createEmployee(createData);
 
         // DB 저장
         employeeRepository.save(createdEmployee);
@@ -251,5 +250,25 @@ public class EmployeeServiceImpl implements EmployeeService {
             default:
                 return null;
         }
+    }
+
+
+    private Employee createEmployee(EmployeeCreateRequest request, Department department, String employeeNumber, MultipartFile file) {
+        Optional<BinaryContentDto> binaryContentDto = binaryMapper.convertFileToBinaryContent(file);
+        return binaryContentDto.map((dto) -> {
+                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
+                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent, department, employeeNumber);
+                })
+                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, department, employeeNumber));
+    }
+
+    public String getEmployeeNumber(String lastEmployeeNumber) {
+        long lastNumber = 0;
+        Integer year = Integer.valueOf(lastEmployeeNumber.split("-")[1]);
+        if (org.springframework.util.StringUtils.hasText(lastEmployeeNumber)) {
+            lastNumber = Long.parseLong(
+                    lastEmployeeNumber.split("-")[2]);     // EMP-YYYY-001에서 001 부분 분리하여 long 타입으로 변환}
+        }
+        return String.format("EMP-%d-%03d", year, lastNumber + 1);
     }
 }

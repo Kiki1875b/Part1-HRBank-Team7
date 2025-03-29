@@ -1,12 +1,6 @@
-package team7.hrbank.domain.employee.service;
+package team7.hrbank.domain.employee.service.v2;
 
 import com.querydsl.core.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,9 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.common.dto.PageResponse;
 import team7.hrbank.common.exception.employee.NotFoundEmployeeException;
-import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
-import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
 import team7.hrbank.domain.change_log.dto.DiffDto;
 import team7.hrbank.domain.change_log.service.ChangeLogService;
@@ -32,9 +24,13 @@ import team7.hrbank.domain.employee.mapper.EmployeeMapper;
 import team7.hrbank.domain.employee.repository.CustomEmployeeRepository;
 import team7.hrbank.domain.employee.repository.EmployeeRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
-public class EmployeeServiceImpl implements EmployeeService {
+public class EmployeeServiceImpl2 implements EmployeeService2 {
 
     // 의존성 주입
     private final EmployeeRepository employeeRepository;
@@ -45,7 +41,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentService departmentService;
     private final ChangeLogService changeLogService;
     private final DepartmentRepository departmentRepository;
+    private EmployeeServiceLikePojo employeeServiceLikePojo;
 
+    @PostConstruct
+    public void init() {
+        employeeServiceLikePojo = new EmployeeServiceLikePojo(employeeMapper, binaryContentService, binaryMapper);
+    }
 
     // 직원 등록
     @Override
@@ -55,23 +56,25 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // 사원번호 생성
         //String employeeNumber = getEmployeeNumber(year);  // 최종 사원번호
-        int year = request.hireDate().getYear();
-        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(year);
-        String employeeNumber = getEmployeeNumber(year);
+        String lastEmployeeNumber = customEmployeeRepository.selectLatestEmployeeNumberByHireDateYear(request.hireDate().getYear());
 
         // 부서
         Department belongedDepartment = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new RuntimeException("id에 맞는 부서가 존재하지 않습니다."));// 나중에 에러 정리할때 한번에
 
-        // 프로필 사진 유무 별 employee 생성
-        Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
-                .map((dto) -> {
-                    BinaryContent createdBinaryContent = binaryContentService.save(dto);
-                    return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
-                            belongedDepartment, employeeNumber);
-                })
-                .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
-                        employeeNumber));
+        // 비즈니스 로직
+        String employeeNumber = " 나중에 ㄱ ";
+        Employee createdEmployee = employeeServiceLikePojo.createEmployee(request, belongedDepartment, employeeNumber, file);
+
+//    // 프로필 사진 유무 별 employee 생성
+//    Employee createdEmployee = binaryMapper.convertFileToBinaryContent(file)
+//        .map((dto) -> {
+//          BinaryContent createdBinaryContent = binaryContentService.save(dto);
+//          return employeeMapper.toEntityWithProfile(request, createdBinaryContent,
+//              belongedDepartment, employeeNumber);
+//        })
+//        .orElseGet(() -> employeeMapper.toEntityWithoutProfile(request, belongedDepartment,
+//            employeeNumber));
 
         // DB 저장
         employeeRepository.save(createdEmployee);
