@@ -70,7 +70,7 @@ public class ServiceTest {
 
     @Test  // 연관된 의존성 : departmentRepository
     @DisplayName("create 메서드에서 이름 체크 잘 되는지 테스트") // 테스트 결과 : 실패 Cuz validateName 메서드가 부서명에 띄어쓰기가 있으면 오류를 발생시킨다
-    void validateNameForCreate(){
+    void validateNameSpaceForCreate(){
         // given
         String duplicateName = "중복 될 부서명";
         String description = "설명 입니다";
@@ -82,18 +82,36 @@ public class ServiceTest {
         DepartmentCreateRequest emptyNameDto = new DepartmentCreateRequest(" ", "create를 위한 부서 설명", LocalDate.now());
         DepartmentCreateRequest duplicateNameDto = new DepartmentCreateRequest(duplicateName, "create를 위한 부서 설명", LocalDate.now());
 
-
-
         // 어떻게 할지 코멘트 듣고 고치기
         assertThatThrownBy(() -> departmentService.create(emptyNameDto))
                 .isInstanceOf(InvalidParameterException.class)
                 .hasMessageContaining("부서 이름에 공백은 포함될");
+    }
+
+
+    @Test  // 연관된 의존성 : departmentRepository
+    @DisplayName("create 메서드에서 이름 체크 잘 되는지 테스트") // 테스트 결과 : 실패 Cuz validateName 메서드가 부서명에 띄어쓰기가 있으면 오류를 발생시킨다
+    void validateDuplicatedNameForCreate(){
+        // given
+        String duplicateName = "중복부서명";
+        String description = "설명 입니다";
+        lenient().when(departmentRepository.findByName(anyString())).thenReturn(Optional.of(getSavedDepartment(duplicateName, description)));
+        // 	thenAnswer() : 동적으로 값을 생성할 때 사용
+        stub_repository_save();
+
+        // when,
+        DepartmentCreateRequest duplicateNameDto = new DepartmentCreateRequest(duplicateName, "create를 위한 부서 설명", LocalDate.now());
+
+        //then
         assertThatThrownBy(() -> departmentService.create(duplicateNameDto))
                 .isInstanceOf(InvalidParameterException.class)
                 // .hasMessageContaining("부서 이름에 공백은 포함될 ");
                 .hasMessageContaining("이미 존재하는 ");
 
     }
+
+
+
 
     private void stub_repository_save() {
         lenient().when(departmentRepository.save(any(Department.class))).thenAnswer(invocationOnMock -> {

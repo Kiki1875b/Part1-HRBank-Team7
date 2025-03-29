@@ -117,7 +117,6 @@ public class EmployeeServiceVersionTest {
         Employee employee = employeeCreateSupport.createEmployee(createData);
 
         // then
-        log.info("생성된 employee={}", employee);
         assertThat(employee.getName()).isEqualTo(request.name());
         assertThat(employee.getEmail()).isEqualTo(request.email());
         assertThat(employee.getDepartment()).isEqualTo(department);
@@ -143,7 +142,6 @@ public class EmployeeServiceVersionTest {
         assertThat(newEmployeeNumber).isGreaterThan(lastEmployeeNumber);
         assertThat(newEmployeeNumber).isEqualTo(expectedEmployeeNumber);
     }
-
 
 
 

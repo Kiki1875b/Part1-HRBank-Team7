@@ -1,19 +1,13 @@
 package team7.hrbank.domain.employee.service.v4.support;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 import team7.hrbank.domain.binary.BinaryContent;
 import team7.hrbank.domain.binary.BinaryContentService;
 import team7.hrbank.domain.binary.dto.BinaryContentDto;
 import team7.hrbank.domain.binary.dto.BinaryMapper;
-import team7.hrbank.domain.binary.dto.BinaryMapperImpl;
 import team7.hrbank.domain.employee.entity.Employee;
 import team7.hrbank.domain.employee.mapper.EmployeeMapper;
-import team7.hrbank.domain.employee.mapper.EmployeeMapperImpl;
-
-import java.io.IOException;
 import java.util.Optional;
 
 @Component
