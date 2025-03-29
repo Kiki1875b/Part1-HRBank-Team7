@@ -16,9 +16,11 @@ public class DepartmentSearchCondition {
     private static final int DEFAULT_SIZE = 10;
 
     // 여기다가 조건 및 get메서드 재정의해서 default값 정의
-    @Getter private String nameOrDescription;
+    @Getter
+    private String nameOrDescription;
     private Integer idAfter; // 이전 페이지 마지막 요소 id
-    @Getter private String cursor; // 커서 (이전 페이지 마지막 요소 값)
+    @Getter
+    private String cursor; // 커서 (이전 페이지 마지막 요소 값)
 
     // 최소 최대 조건이 요구사항에 있엇나??
     private Integer size; // 페이지 사이즈(기본값 10)
@@ -34,11 +36,10 @@ public class DepartmentSearchCondition {
     }
 
     public String getSortedField() {
-        return StringUtils.hasText(sortedField) ? sortedField : DEFAULT_SORTED_FIELD; // 기본값 establishmentDate
+        return StringUtils.hasText(sortedField) ? sortedField.trim() : DEFAULT_SORTED_FIELD; // 기본값 establishmentDate
     }
 
     public String getSortDirection() {
-        return StringUtils.hasText(sortDirection) ? sortDirection : DEFAULT_SORT_DIRECTION; // 기본값 asc
+        return StringUtils.hasText(sortDirection) ? sortDirection.trim() : DEFAULT_SORT_DIRECTION; // 기본값 asc
     }
-
 }

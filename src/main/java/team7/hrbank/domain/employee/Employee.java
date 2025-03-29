@@ -12,7 +12,7 @@ import java.time.Instant;
 
 import static jakarta.persistence.FetchType.*;
 
-@Entity @Getter @Setter
+@Entity @Getter
 @Table(name = "employees")
 public class Employee extends BaseEntity {
 

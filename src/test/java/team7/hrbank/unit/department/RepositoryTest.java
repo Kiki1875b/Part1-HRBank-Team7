@@ -3,6 +3,7 @@ package team7.hrbank.unit.department;
 import jakarta.persistence.EntityManager;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -40,9 +41,6 @@ public class RepositoryTest {
     @Autowired
     private EntityManager em;
 
-    @Autowired
-    private DepartmentMapperImpl departmentMapper;
-
     @Test
     @DisplayName("Fake 라이터리로 더미 데이터 생성 + 공통 단어 포함 확인")
     void makeFakeDummy() {
@@ -66,81 +64,14 @@ public class RepositoryTest {
     }
 
     @Test
-    @DisplayName("부서 생성 JSON 테스트")
-    void createTest() {
-        // given
-
-
-        // when
-
-        em.flush();
-        em.clear();
-
-        // then
-
-    }
-
-
-    @Test
-    @DisplayName("페이징 기본 테스트")
-    void findTest() {
-        // given
-        String nameOrDescription = "부서";
-        // 이전 페이지 마지막 요소 id
-        Integer idAfter = 0;
-        // 커서 (다음 페이지 시작점)
-        String cursor = null;
-        Integer requestSize = 10;
-        // 정렬 필드(name or establishmentDate)
-        String sortedField = "name";
-        String sortDirection = "desc";
-        DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
-                .nameOrDescription(nameOrDescription)
-                .idAfter(idAfter)
-                .cursor(cursor)
-                .size(requestSize)
-                .sortedField(sortedField)
-                .sortDirection(sortDirection)
-                .build();
-
-
-        // 저장될 엔티티 수
-        int entitySettingSize = 12;
-        int repeatCount = 5;
-        String otherNameOrDescriptionSize = "기서";
-        for (int i = 0; i < repeatCount; i++) {
-            setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
-            setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
-        }
-
-        //when
-        DepartmentResponseDTO result = departmentRepository.findPagingAll1(searchCondition);
-        List<DepartmentPageContentDTO> contents = result.contents();
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(contents).as("한 페이지에 가져온 개수가 처음 설정한 개수랑 같은지")
-                .size().isEqualTo(requestSize);
-        assertThat(result.totalElements()).as("필터를 거친 전체 수가 예상과 같은지")
-                .isEqualTo(entitySettingSize * repeatCount);
-        assertThat(contents).as("전부 필터링 조건에 맞는지")
-                .allSatisfy(department ->
-                        assertThat(department.name()).contains(nameOrDescription));
-
-    }
-
-
-    @Test
     @DisplayName("name 기준 정렬 제대로 했는지 테스트")
     void sortPagingTest() {
         // given
         String nameOrDescription = "부서";
-        // 이전 페이지 마지막 요소 id
         Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
-        String cursor = null; // 커서 (다음 페이지 시작점)
+        String cursor = null; // 커서 (이전 페이지 마지막 커서)
         Integer requestSize = 10;
-        // 정렬 필드(name or establishmentDate)
-        String sortedField = "name";
+        String sortedField = "name";  // 정렬 필드(name or establishmentDate)
         String sortDirection = "desc ";
         DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
                 .nameOrDescription(nameOrDescription)
@@ -151,11 +82,10 @@ public class RepositoryTest {
                 .sortDirection(sortDirection)
                 .build();
 
-
         // 저장될 엔티티 수
         int entitySettingSize = 12;
         int repeatCount = 5;
-        String otherNameOrDescriptionSize = "기서";
+        String otherNameOrDescriptionSize = "기서";  // ㅎㅇ 기서 ㅎㅇ  기서 ㅎㅇ ㅎㅇ
         for (int i = 0; i < repeatCount; i++) {
             setting_entity_save_and_containing_name(entitySettingSize, searchCondition.getNameOrDescription());
             setting_entity_save_and_containing_name(entitySettingSize, otherNameOrDescriptionSize);
@@ -210,13 +140,11 @@ public class RepositoryTest {
     void sortPagingTest2() {
         // given
         String nameOrDescription = "부서";
-        // 이전 페이지 마지막 요소 id
         Integer idAfter = 0;  // 커서 (현재 가져온 페이지의 마지막 id)
-        String cursor = null; // 커서 (다음 페이지 시작점)
+        String cursor = null; // 커서 (이전 페이지 마지막 커서)
         Integer requestSize = 10;
-        // 정렬 필드(name or establishmentDate)
-        String sortedField = "establishmentDate";
-        String sortDirection = "desc ";
+        String sortedField = "establishmentDate"; // 정렬 필드(name or establishmentDate)
+        String sortDirection = "asc ";
         DepartmentSearchCondition searchCondition = DepartmentSearchCondition.builder()
                 .nameOrDescription(nameOrDescription)
                 .idAfter(idAfter)
@@ -261,50 +189,25 @@ public class RepositoryTest {
                 .allSatisfy(department -> assertThat(department.name()).contains(nameOrDescription));
 
         // then 2. 정렬 테스트
-        // 대소문자 구분 필요 : ASCII는 대문자가 더 작음 (Postgre는 신경 안씀)
         if (sortDirection.trim().equalsIgnoreCase("desc")) {
-            assertThat(contentDTOList).as("내림차순 정렬")
-                    .extracting(DepartmentPageContentDTO::establishmentDate)
-                    .isSortedAccordingTo(Comparator.reverseOrder());
+            assertThat(contentDTOList).as("Established 내림차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 내림차순 정렬 확인")
+                    .isSortedAccordingTo(
+                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.reverseOrder())
+                                    .thenComparing(DepartmentPageContentDTO::id, Comparator.reverseOrder())
+                    );
+
         } else {
-            assertThat(contentDTOList).as("오름차순 정렬")
-                    .extracting(DepartmentPageContentDTO::establishmentDate)
-                    .isSortedAccordingTo(Comparator.naturalOrder());
+            assertThat(contentDTOList).as("Established 오름차순 정렬 확인 후 같을 경우 -> 2번 째 정렬 기준인 id를 오름차순 정렬 확인")
+                    .isSortedAccordingTo(
+                            Comparator.comparing(DepartmentPageContentDTO::establishmentDate, Comparator.naturalOrder())
+                                .thenComparing(DepartmentPageContentDTO::id));
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //[자바 정렬 기준]
     //공백 < 쉼표 < 하이폰(-)
     //
     //[Postgre]
     //하이폰(-) < 쉼표 < 공백
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private void setting_entity_save_and_containing_name(int entityCountOfNumber, String containingWord) {
         Faker faker = new Faker();
@@ -342,6 +245,7 @@ public class RepositoryTest {
             LocalDate randomDate = faker.date().birthdayLocalDate();
             if (establishedDate.size() == entityCountOfNumber - 1) {
                 establishedDate.add(randomDate); // 일부러 두번 (중복시키려고)
+                log.info("중복된 날짜 : {}", randomDate);
             }
             establishedDate.add(randomDate);
         }

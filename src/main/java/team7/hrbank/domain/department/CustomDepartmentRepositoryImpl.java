@@ -10,17 +10,12 @@ import org.springframework.util.StringUtils;
 import team7.hrbank.domain.department.dto.DepartmentPageContentDTO;
 import team7.hrbank.domain.department.dto.DepartmentResponseDTO;
 import team7.hrbank.domain.department.dto.DepartmentSearchCondition;
-
-import java.sql.Array;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.LinkedList;
 import java.util.List;
 
 import static team7.hrbank.domain.department.QDepartment.*;
 import static team7.hrbank.domain.employee.QEmployee.employee;
-//
+
 
 // 남은 활용할 것 :     private Integer idAfter; // 이전 페이지 마지막 요소 id
 //    private String cursor; // 커서 (다음 페이지 시작점)
